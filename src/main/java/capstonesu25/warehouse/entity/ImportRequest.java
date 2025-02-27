@@ -13,8 +13,8 @@ import java.util.List;
 public class ImportRequest {
 
     @Id
-    @Column(name = "unique_id")
-    private String uniqueID;
+    @Column(name = "import_request_id")
+    private String id;
 
     @Column(name = "import_reason")
     private String importReason;
