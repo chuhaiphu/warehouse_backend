@@ -14,13 +14,17 @@ public class UpdatedItem {
     @Column(name = "unique_id")
     private String uniqueID;
 
+    @Column(name = "status")
     private String status;
+
+    @Column(name = "description")
     private String description;
 
     @Column(name = "updated_date")
     private LocalDateTime updatedDate;
 
-    private String quality;
+    @Column(name = "quantity")
+    private int quantity;
 
     @ManyToOne
     @JoinColumn(name = "item_id")

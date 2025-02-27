@@ -20,7 +20,8 @@ public class Item {
     @JoinColumn(name = "group_items_id")
     private GroupItem groupItem;
 
-    private String quality;
+    @Column(name = "quantity")
+    private String quantity;
 
     @Column(name = "inputted_date")
     private LocalDateTime inputtedDate;

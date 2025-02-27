@@ -27,6 +27,12 @@ public class StoredLocation {
     @Column(name = "batch_description")
     private String batchDescription;
 
+    @Column(name = "is_used")
+    private boolean isUsed;
+
+    @Column(name = "is_available")
+    private boolean isAvailable;
+
     @OneToMany(mappedBy = "location")
     private List<Item> items;
 }

@@ -15,6 +15,7 @@ public class GroupItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
     @Column(name = "measurement_unit")
@@ -22,6 +23,15 @@ public class GroupItem {
 
     @Column(name = "image_url")
     private String imageURL;
+
+    @Column(name = "max_quantity")
+    private int maxQuantity;
+
+    @Column(name = "quantity")
+    private int quantity;
+
+    @Column(name = "price")
+    private double price;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

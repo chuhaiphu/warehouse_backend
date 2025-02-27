@@ -1,4 +1,5 @@
 package capstonesu25.warehouse.entity;
+import capstonesu25.warehouse.enums.OrderStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -21,8 +22,11 @@ public class ImportRequest {
     @Column(name = "import_type")
     private String importType;
 
-    @Column(name = "import_datetime")
-    private LocalDateTime importDatetime;
+    @OneToMany(mappedBy = "importRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ImportRequestDetail> details;
+
+    @Column(name = "status")
+    private OrderStatus status;
 
     @ManyToOne
     @JoinColumn(name = "provider_id")

@@ -1,7 +1,9 @@
 package capstonesu25.warehouse.entity;
+import capstonesu25.warehouse.enums.OrderStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "import_order")
@@ -29,9 +31,15 @@ public class ImportOrder {
     @Column(name = "sign_receiver")
     private String signReceiver;
 
+    @Column(name = "status")
+    private OrderStatus status;
+
+    @OneToMany(mappedBy = "importOrder", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ImportOrderDetail> importOrderDetails;
+
     @ManyToOne
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @JoinColumn(name = "group_item_id")
+    private GroupItem groupItem;
 
     @ManyToOne
     @JoinColumn(name = "stored_location_id")
