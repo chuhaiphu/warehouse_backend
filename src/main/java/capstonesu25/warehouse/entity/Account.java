@@ -49,12 +49,17 @@ public class Account implements UserDetails {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-
     @Column(name = "verification_token")
     private String verificationToken;
 
     @Column(name = "verification_token_expiry")
     private LocalDateTime verificationTokenExpiry;
+
+    @OneToMany(mappedBy = "assignedWareHouseKeeper", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<ImportOrder> importOrders;
+
+    @OneToMany(mappedBy = "assignedWareHouseKeeper", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<ExportRequest> exportRequests;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

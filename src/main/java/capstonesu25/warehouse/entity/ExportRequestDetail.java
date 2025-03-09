@@ -8,32 +8,31 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
-@Table(name = "import_order_detail")
+@Table(name = "export_request_detail")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportOrderDetail {
+
+public class ExportRequestDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "quantity")
+    private Integer quantity;
+
     @Column(name = "status")
     private String status;
 
-    @Column(name = "expect_quantity")
-    private int expectQuantity;
-
-    @Column(name = "actual_quantity")
-    private int actualQuantity;
+    @ManyToOne
+    @JoinColumn(name = "export_request_id")
+    private ExportRequest exportRequest;
 
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
 
-    @OneToMany(mappedBy = "importOrderDetail", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToMany(mappedBy = "exportRequestDetail", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<InventoryItem> inventoryItems;
 
-    @ManyToOne
-    @JoinColumn(name = "import_order_id")
-    private ImportOrder importOrder;
 }

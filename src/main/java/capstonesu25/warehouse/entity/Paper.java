@@ -12,23 +12,24 @@ import java.time.LocalDateTime;
 public class Paper {
 
     @Id
-    @Column(name = "unique_id")
-    private String uniqueID;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "created_date")
-    private LocalDateTime createdDate;
+    @Column(name = "sign_provider_url")
+    private String signProviderUrl;
 
-    @Column(name = "type")
-    private String type;
+    @Column(name = "sign_warehouse_url")
+    private String signWarehouseUrl;
 
-    @Column(name = "link_pdf")
-    private String linkPdf;
+    @Column(name = "description")
+    private String description;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "import_order_id")
     private ImportOrder importOrder;
 
-    @ManyToOne
-    @JoinColumn(name = "export_order_id")
-    private ExportOrder exportOrder;
+    @OneToOne
+    @JoinColumn(name = "export_request_id")
+    private ExportRequest exportRequest;
+
 }

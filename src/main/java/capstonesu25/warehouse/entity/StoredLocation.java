@@ -12,27 +12,27 @@ import java.util.List;
 public class StoredLocation {
 
     @Id
-    @Column(name = "unique_id")
-    private String uniqueID;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(name = "zone_description")
-    private String zoneDescription;
+    @Column(name = "zone")
+    private String zone;
 
-    @Column(name = "floor_description")
-    private String floorDescription;
+    @Column(name = "floor")
+    private String floor;
 
-    @Column(name = "row_description")
-    private String rowDescription;
+    @Column(name = "row")
+    private String row;
 
-    @Column(name = "batch_description")
-    private String batchDescription;
+    @Column(name = "batch")
+    private String batch;
 
     @Column(name = "is_used")
     private boolean isUsed;
 
-    @Column(name = "is_available")
-    private boolean isAvailable;
+    @Column(name = "is_fulled")
+    private boolean isFulled;
 
-    @OneToMany(mappedBy = "location")
-    private List<Item> items;
+    @OneToMany(mappedBy = "location", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<InventoryItem> inventoryItems;
 }

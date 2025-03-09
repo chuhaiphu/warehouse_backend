@@ -24,9 +24,9 @@ public class Provider {
     @Column(name = "address")
     private String address;
 
-    @OneToMany(mappedBy = "provider")
+    @OneToMany(mappedBy = "provider", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<Item> items;
 
-    @OneToMany(mappedBy = "provider")
-    private List<ImportRequest> importRequests;
+    @OneToOne(mappedBy = "provider", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private ImportRequest importRequest;
 }
