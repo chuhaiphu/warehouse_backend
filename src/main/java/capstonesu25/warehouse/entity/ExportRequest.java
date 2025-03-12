@@ -65,7 +65,7 @@ public class ExportRequest {
     @JoinColumn(name = "assigned_warehouse_keeper_id")
     private Account assignedWareHouseKeeper;
 
-    @OneToOne(mappedBy = "importOrder", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToOne(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private Paper paper;
 
     @OneToMany(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
