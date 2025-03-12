@@ -1,4 +1,6 @@
 package capstonesu25.warehouse.entity;
+import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.ImportType;
 import lombok.*;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -23,14 +25,11 @@ public class ImportRequest {
     @Column(name = "import_reason")
     private String importReason;
 
-    @Column(name = "import_type")
-    private String importType;
-
     @Column(name = "status")
-    private String status;
+    private ImportStatus status;
 
     @Column(name = "type")
-    private String type;
+    private ImportType type;
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)

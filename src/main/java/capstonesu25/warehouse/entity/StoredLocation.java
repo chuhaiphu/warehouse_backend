@@ -33,6 +33,6 @@ public class StoredLocation {
     @Column(name = "is_fulled")
     private boolean isFulled;
 
-    @OneToMany(mappedBy = "location", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToMany(mappedBy = "storedLocation", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<InventoryItem> inventoryItems;
 }
