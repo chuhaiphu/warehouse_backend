@@ -1,4 +1,4 @@
-package capstonesu25.warehouse.model.importrequest.importrequestdetail;
+package capstonesu25.warehouse.model.importorder.importorderdetail;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ImportRequestDetailRequest {
+public class ImportOrderDetailRequest {
     @NotNull(message = "can not be null")
     @NotBlank(message = "can not be blank")
     private Long itemId;
@@ -19,4 +19,5 @@ public class ImportRequestDetailRequest {
     private int quantity;
 
     private int actualQuantity;
+
 }
