@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.entity;
 
+import capstonesu25.warehouse.enums.DetailStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class ImportOrderDetail {
     private Long id;
 
     @Column(name = "status")
-    private String status;
+    private DetailStatus status;
 
     @Column(name = "expect_quantity")
     private int expectQuantity;

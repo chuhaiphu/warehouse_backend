@@ -1,0 +1,94 @@
+package capstonesu25.warehouse.service;
+
+import capstonesu25.warehouse.entity.ImportOrder;
+import capstonesu25.warehouse.entity.ImportOrderDetail;
+import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
+import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
+import capstonesu25.warehouse.repository.AccountRepository;
+import capstonesu25.warehouse.repository.ImportOrderRepository;
+import capstonesu25.warehouse.repository.ImportRequestRepository;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ImportOrderService {
+    private final ImportOrderRepository importOrderRepository;
+    private final ImportRequestRepository importRequestRepository;
+    private final AccountRepository accountRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
+
+    public ImportOrderResponse getImportOrderById(Long id) {
+        LOGGER.info("Get import order by id: " + id);
+        ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
+        return mapToResponse(importOrder);
+    }
+
+    public List<ImportOrderResponse> getImportOrdersByImportRequestId(Long id, int page, int limit) {
+        LOGGER.info("Get import orders by import request id: " + id);
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id,pageable);
+        return importOrders.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    public void create (ImportOrderRequest request) {
+        LOGGER.info("Create import order");
+        ImportOrder importOrder;
+        if(request.getImportOrderId() != null) {
+             LOGGER.info("Update import order");
+             importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
+             importOrder.setStatus(request.getStatus());
+        }else {
+             LOGGER.info("Create import order");
+             importOrder = new ImportOrder();
+        }
+        ImportRequest importRequest = importRequestRepository.findById
+                (request.getImportRequestId()).orElseThrow();
+        importOrder.setImportRequest(importRequest);
+        importOrder.setAssignedWareHouseKeeper(accountRepository.findById
+                (request.getAccountId()).orElseThrow());
+        if (request.getNote() != null){
+            importOrder.setNote(request.getNote());
+        }
+        importOrder.setDateReceived(request.getDateReceived());
+        importOrder.setTimeReceived(request.getTimeReceived());
+        importOrderRepository.save(importOrder);
+    }
+
+    public void delete(Long id) {
+        LOGGER.info("Delete import order");
+        ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
+        importOrderRepository.delete(importOrder);
+    }
+
+
+    private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
+        return new ImportOrderResponse(
+                importOrder.getId(),
+                importOrder.getImportRequest().getId(),
+                importOrder.getAssignedWareHouseKeeper().getId(),
+                importOrder.getDateReceived(),
+                importOrder.getTimeReceived(),
+                importOrder.getNote(),
+                importOrder.getStatus(),
+                importOrder.getImportOrderDetails().stream()
+                        .map(ImportOrderDetail::getId).toList(),
+                importOrder.getCreatedBy(),
+                importOrder.getUpdatedBy(),
+                importOrder.getCreatedDate(),
+                importOrder.getUpdatedDate(),
+                importOrder.getPaper().getId(),
+                importOrder.getAssignedWareHouseKeeper().getId()
+                );
+    }
+}
