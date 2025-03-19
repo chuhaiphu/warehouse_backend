@@ -5,6 +5,7 @@ import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class ImportRequestController {
     private final ImportRequestService importRequestService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestController.class);
 
+    @Operation(summary = "Get all import requests")
     @GetMapping()
     public ResponseEntity<?> getAll() {
         LOGGER.info("Getting all import requests");
@@ -31,13 +33,14 @@ public class ImportRequestController {
                 importRequestService.getAllImportRequests(),
                 HttpStatus.OK,
                 "Successfully retrieved all import requests",
-              null
+                null
         );
     }
 
+    @Operation(summary = "Get paginated import requests")
     @GetMapping("/page")
     public ResponseEntity<?> getAllByPage(@RequestParam(defaultValue = "1") int page,
-                                    @RequestParam(defaultValue = "10") int limit){
+                                          @RequestParam(defaultValue = "10") int limit){
         LOGGER.info("Getting all import requests by page");
         List<ImportRequestResponse> result = importRequestService.getAllImportRequestsByPage(page, limit);
         return ResponseUtil.getCollection(
@@ -49,6 +52,7 @@ public class ImportRequestController {
 
     }
 
+    @Operation(summary = "Create a new import request")
     @PostMapping()
     public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestRequest request){
         LOGGER.info("Creating import request");
@@ -59,5 +63,4 @@ public class ImportRequestController {
                 "Successfully created import request"
         );
     }
-
 }

@@ -12,6 +12,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui
+  show-actuator: false
+  enable-data-rest: false
 
 cloudinary:
   url: ${CLOUDINARY_URL}

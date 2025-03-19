@@ -5,6 +5,7 @@ import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportOrderService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class ImportOrderController {
     private final ImportOrderService importOrderService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderController.class);
 
+    @Operation(summary = "Get all import orders for a specific import request")
     @GetMapping("/page/{importRequestId}")
     public ResponseEntity<?> getAll(@PathVariable Long importRequestId, @RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit){
@@ -38,6 +40,7 @@ public class ImportOrderController {
         );
     }
 
+    @Operation(summary = "Get import order by ID")
     @GetMapping("/{importOrderId}")
     public ResponseEntity<?> getById(@PathVariable Long importOrderId){
         LOGGER.info("Getting import order by id");
@@ -49,6 +52,7 @@ public class ImportOrderController {
         );
     }
 
+    @Operation(summary = "Create a new import order")
     @PostMapping()
     public ResponseEntity<?> createImportOrder(@RequestBody ImportOrderRequest request){
         LOGGER.info("Creating import order");
@@ -60,6 +64,7 @@ public class ImportOrderController {
         );
     }
 
+    @Operation(summary = "Update an existing import order")
     @PutMapping()
     public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderRequest request){
         LOGGER.info("Updating import order");
@@ -71,6 +76,7 @@ public class ImportOrderController {
         );
     }
 
+    @Operation(summary = "Delete an import order by ID")
     @DeleteMapping("/{importOrderId}")
     public ResponseEntity<?> deleteImportOrder(@PathVariable Long importOrderId){
         LOGGER.info("Deleting import order");
@@ -81,6 +87,4 @@ public class ImportOrderController {
                 "Successfully deleted import order"
         );
     }
-
-
 }

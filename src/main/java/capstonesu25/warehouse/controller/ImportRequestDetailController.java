@@ -4,6 +4,7 @@ import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequ
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestDetailService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class ImportRequestDetailController {
     private final ImportRequestDetailService service;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailController.class);
 
+    @Operation(summary = "Get paginated import request details by import request ID")
     @GetMapping("/page/{importRequestId}")
     public ResponseEntity<?> getImportRequestDetail(@PathVariable Long importRequestId
             ,@RequestParam(defaultValue = "1") int page
@@ -39,6 +41,7 @@ public class ImportRequestDetailController {
         );
     }
 
+    @Operation(summary = "Get import request detail by ID")
     @GetMapping("/{importRequestDetailId}")
     public ResponseEntity<?> getImportRequestDetail(@PathVariable Long importRequestDetailId){
         LOGGER.info("Getting import request detail");
@@ -49,6 +52,7 @@ public class ImportRequestDetailController {
         );
     }
 
+    @Operation(summary = "Create import request details from file upload")
     @PostMapping("/{importRequestId}")
     public ResponseEntity<?> createImportRequest(@RequestPart MultipartFile file, @PathVariable Long importRequestId){
         LOGGER.info("Creating import request detail");
@@ -60,6 +64,7 @@ public class ImportRequestDetailController {
         );
     }
 
+    @Operation(summary = "Update import request details")
     @PutMapping("/{importRequestId}")
     public ResponseEntity<?> updateImportRequest(@RequestBody List<ImportRequestDetailRequest> requestList
             , @PathVariable Long importRequestId){
@@ -72,6 +77,7 @@ public class ImportRequestDetailController {
         );
     }
 
+    @Operation(summary = "Delete import request details by import request ID")
     @DeleteMapping("/{importRequestId}")
     public ResponseEntity<?> deleteImportRequest(@PathVariable Long importRequestId){
         LOGGER.info("Deleting import request detail");

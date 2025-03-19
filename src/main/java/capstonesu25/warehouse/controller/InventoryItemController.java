@@ -6,6 +6,7 @@ import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public class InventoryItemController {
     private final InventoryItemService inventoryItemService;
     private static final Logger LOGGER = LoggerFactory.getLogger(InventoryItemController.class);
 
+    @Operation(summary = "Get all inventory items with pagination")
     @GetMapping
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
@@ -38,6 +40,7 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Get inventory item by ID")
     @GetMapping("/{inventoryItemId}")
     public ResponseEntity<?> getById(@PathVariable Long inventoryItemId) {
         LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
@@ -49,6 +52,7 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Create a new inventory item and generate QR codes")
     @PostMapping
     public ResponseEntity<?> createInventoryItem(@RequestBody InventoryItemRequest request) {
         LOGGER.info("Creating inventory item");
@@ -61,6 +65,7 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Update an existing inventory item")
     @PutMapping
     public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
         LOGGER.info("Updating inventory item");
@@ -72,6 +77,7 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Delete an inventory item by ID")
     @DeleteMapping("/{inventoryItemId}")
     public ResponseEntity<?> deleteInventoryItem(@PathVariable Long inventoryItemId) {
         LOGGER.info("Deleting inventory item");
@@ -83,10 +89,11 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Get inventory items by import order detail ID")
     @GetMapping("/import-order-detail/{importOrderDetailId}")
     public ResponseEntity<?> getByImportOrderDetailId(@PathVariable Long importOrderDetailId,
-                                                     @RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "10") int limit) {
+                                                      @RequestParam(defaultValue = "1") int page,
+                                                      @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
         List<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page, limit);
         return ResponseUtil.getCollection(
@@ -97,10 +104,11 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Get inventory items by export request detail ID")
     @GetMapping("/export-request-detail/{exportRequestDetailId}")
     public ResponseEntity<?> getByExportRequestDetailId(@PathVariable Long exportRequestDetailId,
-                                                       @RequestParam(defaultValue = "1") int page,
-                                                       @RequestParam(defaultValue = "10") int limit) {
+                                                        @RequestParam(defaultValue = "1") int page,
+                                                        @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
         List<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId, page, limit);
         return ResponseUtil.getCollection(
@@ -111,10 +119,11 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Get inventory items by stored location ID")
     @GetMapping("/stored-location/{storedLocationId}")
     public ResponseEntity<?> getByStoredLocationId(@PathVariable Long storedLocationId,
-                                                  @RequestParam(defaultValue = "1") int page,
-                                                  @RequestParam(defaultValue = "10") int limit) {
+                                                   @RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by stored location id: {}", storedLocationId);
         List<InventoryItemResponse> result = inventoryItemService.getByStoredLocationId(storedLocationId, page, limit);
         return ResponseUtil.getCollection(

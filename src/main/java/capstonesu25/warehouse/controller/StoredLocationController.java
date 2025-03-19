@@ -5,6 +5,7 @@ import capstonesu25.warehouse.model.storedlocation.StoredLocationResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.StoredLocationService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class StoredLocationController {
     private final StoredLocationService storedLocationService;
     private static final Logger LOGGER = LoggerFactory.getLogger(StoredLocationController.class);
 
+    @Operation(summary = "Get all stored locations with pagination", description = "Returns a list of all stored locations")
     @GetMapping
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
@@ -37,6 +39,7 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Get stored location by ID", description = "Returns a stored location by its ID")
     @GetMapping("/{storedLocationId}")
     public ResponseEntity<?> getById(@PathVariable Long storedLocationId) {
         LOGGER.info("Getting stored location by id: {}", storedLocationId);
@@ -48,6 +51,7 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Create a new stored location", description = "Creates a new stored location in the system")
     @PostMapping
     public ResponseEntity<?> createStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Creating stored location");
@@ -59,6 +63,7 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
     @PutMapping
     public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Updating stored location");
@@ -70,6 +75,7 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Delete a stored location by ID", description = "Removes a stored location from the system")
     @DeleteMapping("/{storedLocationId}")
     public ResponseEntity<?> deleteStoredLocation(@PathVariable Long storedLocationId) {
         LOGGER.info("Deleting stored location");
@@ -81,9 +87,10 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Get available stored locations", description = "Returns a list of all available stored locations")
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableLocations(@RequestParam(defaultValue = "1") int page,
-                                                  @RequestParam(defaultValue = "10") int limit) {
+                                                   @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting available stored locations");
         List<StoredLocationResponse> result = storedLocationService.getAvailableStoredLocations(page, limit);
         return ResponseUtil.getCollection(
@@ -94,10 +101,11 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Get stored locations by zone", description = "Returns a list of stored locations filtered by zone")
     @GetMapping("/zone/{zone}")
     public ResponseEntity<?> getByZone(@PathVariable String zone,
-                                      @RequestParam(defaultValue = "1") int page,
-                                      @RequestParam(defaultValue = "10") int limit) {
+                                       @RequestParam(defaultValue = "1") int page,
+                                       @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting stored locations by zone: {}", zone);
         List<StoredLocationResponse> result = storedLocationService.getByZone(zone, page, limit);
         return ResponseUtil.getCollection(
@@ -108,10 +116,11 @@ public class StoredLocationController {
         );
     }
 
+    @Operation(summary = "Get stored locations by floor", description = "Returns a list of stored locations filtered by floor")
     @GetMapping("/floor/{floor}")
     public ResponseEntity<?> getByFloor(@PathVariable String floor,
-                                       @RequestParam(defaultValue = "1") int page,
-                                       @RequestParam(defaultValue = "10") int limit) {
+                                        @RequestParam(defaultValue = "1") int page,
+                                        @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting stored locations by floor: {}", floor);
         List<StoredLocationResponse> result = storedLocationService.getByFloor(floor, page, limit);
         return ResponseUtil.getCollection(

@@ -5,6 +5,7 @@ import capstonesu25.warehouse.model.item.ItemResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ public class ItemController {
     private final ItemService itemService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemController.class);
 
+    @Operation(summary = "Get all items with pagination")
     @GetMapping
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
@@ -37,6 +39,7 @@ public class ItemController {
         );
     }
 
+    @Operation(summary = "Get item by ID")
     @GetMapping("/{itemId}")
     public ResponseEntity<?> getById(@PathVariable Long itemId) {
         LOGGER.info("Getting item by id: {}", itemId);
@@ -48,6 +51,7 @@ public class ItemController {
         );
     }
 
+    @Operation(summary = "Create a new item")
     @PostMapping
     public ResponseEntity<?> createItem(@RequestBody ItemRequest request) {
         LOGGER.info("Creating item");
@@ -59,6 +63,7 @@ public class ItemController {
         );
     }
 
+    @Operation(summary = "Update an existing item")
     @PutMapping
     public ResponseEntity<?> updateItem(@RequestBody ItemRequest request) {
         LOGGER.info("Updating item");
@@ -70,6 +75,7 @@ public class ItemController {
         );
     }
 
+    @Operation(summary = "Delete an item by ID")
     @DeleteMapping("/{itemId}")
     public ResponseEntity<?> deleteItem(@PathVariable Long itemId) {
         LOGGER.info("Deleting item");
@@ -81,10 +87,11 @@ public class ItemController {
         );
     }
 
+    @Operation(summary = "Get items by category ID")
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<?> getItemsByCategory(@PathVariable Long categoryId,
-                                               @RequestParam(defaultValue = "1") int page,
-                                               @RequestParam(defaultValue = "10") int limit) {
+                                                @RequestParam(defaultValue = "1") int page,
+                                                @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting items by category id: {}", categoryId);
         List<ItemResponse> result = itemService.getItemsByCategoryId(categoryId, page, limit);
         return ResponseUtil.getCollection(
@@ -95,10 +102,11 @@ public class ItemController {
         );
     }
 
+    @Operation(summary = "Get items by provider ID")
     @GetMapping("/provider/{providerId}")
     public ResponseEntity<?> getItemsByProvider(@PathVariable Long providerId,
-                                               @RequestParam(defaultValue = "1") int page,
-                                               @RequestParam(defaultValue = "10") int limit) {
+                                                @RequestParam(defaultValue = "1") int page,
+                                                @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting items by provider id: {}", providerId);
         List<ItemResponse> result = itemService.getItemsByProviderId(providerId, page, limit);
         return ResponseUtil.getCollection(

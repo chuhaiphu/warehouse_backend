@@ -5,6 +5,7 @@ import capstonesu25.warehouse.model.paper.PaperResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.PaperService;
 import capstonesu25.warehouse.utils.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class PaperController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PaperController.class);
 
+    @Operation(summary = "Get all papers with pagination")
     @GetMapping("")
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit){
@@ -42,6 +44,7 @@ public class PaperController {
         );
     }
 
+    @Operation(summary = "Get paper by ID")
     @GetMapping("/{paperId}")
     public ResponseEntity<?> getById(@PathVariable Long paperId){
         LOGGER.info("Getting paper by id: {}",paperId);
@@ -53,6 +56,7 @@ public class PaperController {
         );
     }
 
+    @Operation(summary = "Get papers by import order ID")
     @GetMapping("import-order/{importOrderId}")
     public ResponseEntity<?> getByImportOrderId(@PathVariable Long importOrderId,
                                                 @RequestParam(defaultValue = "1") int page,
@@ -67,10 +71,11 @@ public class PaperController {
         );
     }
 
+    @Operation(summary = "Get papers by export request ID")
     @GetMapping("export-order/{exportRequestId}")
     public ResponseEntity<?> getByExportRequestId(@PathVariable Long exportRequestId,
-                                                 @RequestParam(defaultValue = "1") int page,
-                                                 @RequestParam(defaultValue = "10") int limit){
+                                                  @RequestParam(defaultValue = "1") int page,
+                                                  @RequestParam(defaultValue = "10") int limit){
         LOGGER.info("Getting paper by export request id: {} ", exportRequestId);
         List<PaperResponse> result = paperService.getListPaperByExportRequestId(exportRequestId, page, limit);
         return ResponseUtil.getCollection(
@@ -81,6 +86,7 @@ public class PaperController {
         );
     }
 
+    @Operation(summary = "Create a new paper with file upload")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createPaper(@ModelAttribute PaperRequest request) {
         LOGGER.info("Creating paper");
@@ -98,6 +104,4 @@ public class PaperController {
                 "Successfully created paper"
         );
     }
-
-
 }
