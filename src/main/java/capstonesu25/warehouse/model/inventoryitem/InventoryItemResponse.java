@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.model.inventoryitem;
 
+import capstonesu25.warehouse.enums.ItemStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ public class InventoryItemResponse {
     private Long id;
     private String reasonForDisposal;
     private Integer quantity;
-    private String status;
+    private ItemStatus status;
     private LocalDateTime expiredDate;
     private LocalDateTime importedDate;
     private LocalDateTime updatedDate;

@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.entity;
 
+import capstonesu25.warehouse.enums.ItemStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -27,7 +28,7 @@ public class InventoryItem {
     private Integer quantity;
 
     @Column(name = "status")
-    private String status;
+    private ItemStatus status;
 
     @Column(name = "expired_date")
     private LocalDateTime expiredDate;

@@ -5,6 +5,7 @@ import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.StoredLocation;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
+import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ExportRequestDetailRepository;
@@ -52,12 +53,28 @@ public class InventoryItemService {
     }
 
     @Transactional
-    public void create(InventoryItemRequest request) {
+    public List<QrCodeResponse>  create(InventoryItemRequest request) {
         LOGGER.info("Creating inventory item");
+
+        List<QrCodeResponse> qrCodes = new ArrayList<>();
+
+        for (int i = 0; i < request.getNumberOfItems(); i++) {
         InventoryItem inventoryItem = mapToEntity(request);
         inventoryItem.setImportedDate(LocalDateTime.now());
         inventoryItem.setUpdatedDate(LocalDateTime.now());
-        inventoryItemRepository.save(inventoryItem);
+        InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
+            QrCodeResponse qrCode = new QrCodeResponse(
+                    savedItem.getId(),
+                    savedItem.getItem().getId(),
+                    savedItem.getImportOrderDetail().getId(),
+                    savedItem.getExportRequestDetail().getId(),
+                    savedItem.getStoredLocation().getId()
+            );
+            qrCodes.add(qrCode);
+
+        }
+
+        return qrCodes;
     }
 
     @Transactional
@@ -70,7 +87,7 @@ public class InventoryItemService {
         InventoryItem existingItem = inventoryItemRepository.findById(request.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + request.getId()));
 
-        updateEntityFromRequest(existingItem, request);
+        existingItem = updateEntityFromRequest(existingItem, request);
         existingItem.setUpdatedDate(LocalDateTime.now());
         inventoryItemRepository.save(existingItem);
     }
@@ -169,15 +186,15 @@ public class InventoryItemService {
 
     private InventoryItem mapToEntity(InventoryItemRequest request) {
         InventoryItem inventoryItem = new InventoryItem();
-        updateEntityFromRequest(inventoryItem, request);
-        return inventoryItem;
+        return   updateEntityFromRequest(inventoryItem, request);
     }
 
-    private void updateEntityFromRequest(InventoryItem inventoryItem, InventoryItemRequest request) {
+    private InventoryItem updateEntityFromRequest(InventoryItem inventoryItem, InventoryItemRequest request) {
         inventoryItem.setReasonForDisposal(request.getReasonForDisposal());
         inventoryItem.setQuantity(request.getQuantity());
-        inventoryItem.setStatus(request.getStatus());
-        inventoryItem.setExpiredDate(request.getExpiredDate());
+        if(request.getStatus() != null){
+            inventoryItem.setStatus(request.getStatus());
+        }
 
         // Set parent reference if provided
         if (request.getParentId() != null) {
@@ -192,6 +209,9 @@ public class InventoryItemService {
             Item item = itemRepository.findById(request.getItemId())
                     .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId()));
             inventoryItem.setItem(item);
+            if (item.getDaysUntilDue() != null) {
+                inventoryItem.setExpiredDate(inventoryItem.getImportedDate().plusDays(item.getDaysUntilDue()));
+            }
         }
 
         // Set export request detail reference
@@ -218,5 +238,6 @@ public class InventoryItemService {
         } else {
             inventoryItem.setStoredLocation(null);
         }
+        return inventoryItem;
     }
 }

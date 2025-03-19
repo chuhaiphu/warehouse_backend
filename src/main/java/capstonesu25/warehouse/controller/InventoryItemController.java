@@ -2,6 +2,7 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
+import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -51,11 +52,12 @@ public class InventoryItemController {
     @PostMapping
     public ResponseEntity<?> createInventoryItem(@RequestBody InventoryItemRequest request) {
         LOGGER.info("Creating inventory item");
-        inventoryItemService.create(request);
-        return ResponseUtil.getObject(
-                null,
+        List<QrCodeResponse> responses = inventoryItemService.create(request);
+        return ResponseUtil.getCollection(
+                responses,
                 HttpStatus.CREATED,
-                "Successfully created inventory item"
+                "Successfully created inventory item",
+                null
         );
     }
 
