@@ -2,9 +2,9 @@ spring:
   application:
     name: warehouse
   datasource:
-    url: jdbc:postgresql://localhost:5432/warehouse
-    username: postgres
-    password: 12345678
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -12,3 +12,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+cloudinary:
+  url: ${CLOUDINARY_URL}
+

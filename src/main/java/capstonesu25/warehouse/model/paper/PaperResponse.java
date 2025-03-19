@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
-@RequiredArgsConstructor
 @NoArgsConstructor
 public class PaperResponse {
     private Long id;
