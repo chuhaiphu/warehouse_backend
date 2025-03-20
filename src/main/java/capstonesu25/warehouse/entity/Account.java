@@ -2,6 +2,7 @@ package capstonesu25.warehouse.entity;
 import capstonesu25.warehouse.enums.AccountRole;
 import lombok.*;
 import jakarta.persistence.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +16,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+
 public class Account implements UserDetails {
 
     @Id

@@ -52,13 +52,24 @@ public class ImportRequestController {
 
     }
 
+//    @Operation(summary = "Create a new import request")
+//    @PostMapping()
+//    public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestRequest request){
+//        LOGGER.info("Creating import request");
+//        importRequestService.createImportRequest(request);
+//        return ResponseUtil.getObject(
+//                null,
+//                HttpStatus.CREATED,
+//                "Successfully created import request"
+//        );
+//    }
+
     @Operation(summary = "Create a new import request")
     @PostMapping()
     public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestRequest request){
         LOGGER.info("Creating import request");
-        importRequestService.createImportRequest(request);
         return ResponseUtil.getObject(
-                null,
+                importRequestService.createImportRequest(request),
                 HttpStatus.CREATED,
                 "Successfully created import request"
         );

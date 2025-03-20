@@ -42,7 +42,7 @@ public class ImportRequestService {
         return mapToResponse(importRequest);
     }
 
-    public void createImportRequest(ImportRequestRequest request) {
+    public ImportRequestResponse createImportRequest(ImportRequestRequest request) {
         ImportRequest importRequest = new ImportRequest();
         if(request.getExportRequestId() != null) {
             importRequest.setExportRequest(exportRequestRepository.findById(request.getExportRequestId()).orElseThrow());
@@ -51,7 +51,8 @@ public class ImportRequestService {
         importRequest.setType(request.getImportType());
         importRequest.setProvider(providerRepository.findById(request.getProviderId()).orElseThrow());
         importRequest.setStatus(ImportStatus.NOT_STARTED);
-        importRequestRepository.save(importRequest);
+        ImportRequest newImportRequest = importRequestRepository.save(importRequest);
+        return mapToResponse(newImportRequest);
     }
 
 
@@ -63,14 +64,19 @@ public class ImportRequestService {
                 importRequest.getType(),
                 importRequest.getStatus(),
                 importRequest.getProvider().getId(),
-                importRequest.getExportRequest().getId(),
-                importRequest.getDetails().stream().map(ImportRequestDetail::getId).toList(),
-                importRequest.getImportOrders().stream().map(ImportOrder::getId).toList(),
+                importRequest.getExportRequest() != null ? importRequest.getExportRequest().getId() : null,
+                importRequest.getDetails() != null ?
+                        importRequest.getDetails().stream().map(ImportRequestDetail::getId).toList() :
+                        List.of(),
+                importRequest.getImportOrders() != null ?
+                        importRequest.getImportOrders().stream().map(ImportOrder::getId).toList() :
+                        List.of(),
                 importRequest.getCreatedBy(),
                 importRequest.getUpdatedBy(),
                 importRequest.getCreatedDate(),
                 importRequest.getUpdatedDate()
         );
     }
+
 
 }
