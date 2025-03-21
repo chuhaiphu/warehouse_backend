@@ -66,11 +66,19 @@ public class ExcelUtil {
 
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue();
-            case NUMERIC -> fieldType == Long.class ? (long) cell.getNumericCellValue() :
-                    fieldType == Integer.class ? (int) cell.getNumericCellValue() :
-                            cell.getNumericCellValue();
+            case NUMERIC -> {
+                double numericValue = cell.getNumericCellValue();
+                if (fieldType == Long.class) {
+                    yield (long) numericValue;
+                } else if (fieldType == Integer.class || fieldType == int.class) {
+                    yield (int) numericValue;
+                } else {
+                    yield numericValue;
+                }
+            }
             case BOOLEAN -> cell.getBooleanCellValue();
             default -> null;
         };
     }
+
 }
