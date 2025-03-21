@@ -66,6 +66,44 @@ public class ImportRequestDetailService {
         }
     }
 
+    public void updateImportRequestDetail(ImportRequestDetailRequest request, Long importRequestId) {
+        LOGGER.info("Updating import request detail");
+
+        List<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
+                .findImportRequestDetailsByImportRequest_Id(importRequestId);
+
+        Map<Long, ImportRequestDetail> detailMap = importRequestDetails.stream()
+                .collect(Collectors.toMap(d -> d.getItem().getId(), d -> d));
+
+        if (request.getItemId().size() != request.getQuantity().size() ||
+                request.getItemId().size() != request.getActualQuantity().size()) {
+            throw new IllegalArgumentException("Mismatch between item IDs, quantities, and actual quantities");
+        }
+
+        for (int i = 0; i < request.getItemId().size(); i++) {
+            Long itemId = request.getItemId().get(i);
+            Integer expectedQuantity = request.getQuantity().get(i);
+            Integer actualQuantity = request.getActualQuantity().get(i);
+
+            ImportRequestDetail detail = detailMap.get(itemId);
+            if (detail != null) {
+                detail.setExpectQuantity(expectedQuantity);
+                detail.setActualQuantity(actualQuantity);
+
+                if (expectedQuantity.equals(actualQuantity)) {
+                    detail.setStatus(DetailStatus.MATCH);
+                } else if (expectedQuantity > actualQuantity) {
+                    detail.setStatus(DetailStatus.LACK);
+                } else {
+                    detail.setStatus(DetailStatus.EXCESS);
+                }
+            }
+        }
+
+        importRequestDetailRepository.saveAll(importRequestDetails);
+    }
+
+
 
     public void deleteImportRequestDetail(Long importRequestDetailId) {
         LOGGER.info("Deleting import request detail");

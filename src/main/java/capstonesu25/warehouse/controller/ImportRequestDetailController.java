@@ -15,7 +15,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/import-request-detail")
@@ -66,10 +65,10 @@ public class ImportRequestDetailController {
 
     @Operation(summary = "Update import request details")
     @PutMapping("/{importRequestId}")
-    public ResponseEntity<?> updateImportRequest(@RequestBody List<ImportRequestDetailRequest> requestList
+    public ResponseEntity<?> updateImportRequest(@RequestBody ImportRequestDetailRequest importRequestDetailRequest
             , @PathVariable Long importRequestId){
         LOGGER.info("Updating import request detail");
-        service.updateImportRequestDetail(requestList, importRequestId);
+        service.updateImportRequestDetail(importRequestDetailRequest, importRequestId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,

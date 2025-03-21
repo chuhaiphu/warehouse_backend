@@ -18,6 +18,8 @@ public class ImportRequestDetailRequest {
     @NotEmpty(message = "Quantities cannot be empty")
     private List<Integer> quantity;
 
+    private List<Integer> actualQuantity;
+
     @NotNull(message = "can not be null")
     private Long providerId;
 }
