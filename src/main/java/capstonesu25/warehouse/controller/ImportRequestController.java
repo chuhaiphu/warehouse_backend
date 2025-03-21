@@ -51,6 +51,17 @@ public class ImportRequestController {
         );
 
     }
+    @Operation(summary = "Get import request by import request Id")
+    @GetMapping("/{importRequestId}")
+    public ResponseEntity<?> getById(@PathVariable Long importRequestId){
+        LOGGER.info("Getting import request by id");
+        ImportRequestResponse result = importRequestService.getImportRequestById(importRequestId);
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully retrieved import request"
+        );
+    }
 
     @Operation(summary = "Create a new import request")
     @PostMapping()

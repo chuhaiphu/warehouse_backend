@@ -19,14 +19,14 @@ public class CategoryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryService.class);
 
-    private List<CategoryResponse> getAllCategories() {
+    public List<CategoryResponse> getAllCategories() {
         LOGGER.info("Get all categories");
         return categoryRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    private CategoryResponse getCategoryById(Long categoryId) {
+    public CategoryResponse getCategoryById(Long categoryId) {
         LOGGER.info("Get category by id: {}", categoryId);
         Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new RuntimeException("Category not found"));
         return mapToResponse(category);
