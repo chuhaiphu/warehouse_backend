@@ -37,7 +37,9 @@ public class CategoryService {
         categoryResponse.setId(category.getId());
         categoryResponse.setName(category.getName());
         categoryResponse.setDescription(category.getDescription());
-        categoryResponse.setItemIds(category.getItems().stream().map(Item::getId).collect(Collectors.toList()));
+        if(category.getItems() != null){
+            categoryResponse.setItemIds(category.getItems().stream().map(Item::getId).collect(Collectors.toList()));
+        }
         return categoryResponse;
     }
 }

@@ -57,7 +57,7 @@ public class ProviderController {
         LOGGER.info("Creating provider");
         providerService.create(request);
         return ResponseUtil.getObject(
-                null,
+                providerService.create(request),
                 HttpStatus.CREATED,
                 "Successfully created provider"
         );
@@ -67,9 +67,8 @@ public class ProviderController {
     @PutMapping
     public ResponseEntity<?> updateProvider(@RequestBody ProviderRequest request) {
         LOGGER.info("Updating provider");
-        providerService.update(request);
         return ResponseUtil.getObject(
-                null,
+                providerService.update(request),
                 HttpStatus.OK,
                 "Successfully updated provider"
         );

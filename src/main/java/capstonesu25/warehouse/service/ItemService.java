@@ -1,8 +1,6 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Category;
-import capstonesu25.warehouse.entity.Item;
-import capstonesu25.warehouse.entity.Provider;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.model.item.ItemRequest;
 import capstonesu25.warehouse.model.item.ItemResponse;
 import capstonesu25.warehouse.repository.CategoryRepository;
@@ -16,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,14 +43,15 @@ public class ItemService {
     }
 
     @Transactional
-    public void create(ItemRequest request) {
+    public ItemResponse create(ItemRequest request) {
         LOGGER.info("Creating item: {}", request);
-        Item item = mapToEntity(request);
-        itemRepository.save(item);
+        Item item = new Item();
+        item = mapToEntity(request, item);
+        return mapToResponse(itemRepository.save(item));
     }
 
     @Transactional
-    public void update(ItemRequest request) {
+    public ItemResponse update(ItemRequest request) {
         LOGGER.info("Updating item: {}", request);
         if (request.getId() == null) {
             throw new RuntimeException("Item ID must not be null for update operation");
@@ -60,8 +60,9 @@ public class ItemService {
         Item existingItem = itemRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Item not found with id: " + request.getId()));
 
-        Item updatedItem = mapToEntity(request);
-        itemRepository.save(updatedItem);
+        Item updatedItem = mapToEntity(request,existingItem);
+
+        return mapToResponse(itemRepository.save(updatedItem));
     }
 
     @Transactional
@@ -113,55 +114,60 @@ public class ItemService {
         // Convert OneToMany relationships to lists of IDs
         if (item.getImportOrderDetails() != null) {
             response.setImportOrderDetailIds(item.getImportOrderDetails().stream()
-                    .map(detail -> detail.getId())
+                    .map(ImportOrderDetail::getId)
                     .collect(Collectors.toList()));
         }
 
         if (item.getImportRequestDetails() != null) {
             response.setImportRequestDetailIds(item.getImportRequestDetails().stream()
-                    .map(detail -> detail.getId())
+                    .map(ImportRequestDetail::getId)
                     .collect(Collectors.toList()));
         }
 
         if (item.getExportRequestDetails() != null) {
             response.setExportRequestDetailIds(item.getExportRequestDetails().stream()
-                    .map(detail -> detail.getId())
+                    .map(ExportRequestDetail::getId)
                     .collect(Collectors.toList()));
         }
 
         if (item.getInventoryItems() != null) {
-            response.setInventoryItemIds(item.getInventoryItems().stream()
-                    .map(inventoryItem -> inventoryItem.getId())
-                    .collect(Collectors.toList()));
+            List<Long> list = new ArrayList<>();
+            for (InventoryItem inventoryItem : item.getInventoryItems()) {
+                Long id = inventoryItem.getId();
+                list.add(id);
+            }
+            response.setInventoryItemIds(list);
         }
 
         return response;
     }
 
-    private Item mapToEntity(ItemRequest request) {
-        Item item = new Item();
-        item.setId(request.getId());
-        item.setName(request.getName());
-        item.setDescription(request.getDescription());
-        item.setMeasurementUnit(request.getMeasurementUnit());
-        item.setTotalMeasurementValue(request.getTotalMeasurementValue());
-        item.setUnitType(request.getUnitType());
-        item.setDaysUntilDue(request.getDaysUntilDue());
-        item.setMinimumStockQuantity(request.getMinimumStockQuantity());
-        item.setMaximumStockQuantity(request.getMaximumStockQuantity());
+    private Item mapToEntity(ItemRequest request, Item existingItem) {
+        if (request == null) {
+            throw new IllegalArgumentException("Item request must not be null");
+        }
+        existingItem.setName(request.getName());
+        existingItem.setDescription(request.getDescription());
+        existingItem.setMeasurementUnit(request.getMeasurementUnit());
+        existingItem.setTotalMeasurementValue(request.getTotalMeasurementValue());
+        existingItem.setUnitType(request.getUnitType());
+        existingItem.setDaysUntilDue(request.getDaysUntilDue());
+        existingItem.setMinimumStockQuantity(request.getMinimumStockQuantity());
+        existingItem.setMaximumStockQuantity(request.getMaximumStockQuantity());
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Category not found with id: " + request.getCategoryId()));
-            item.setCategory(category);
+            existingItem.setCategory(category);
         }
 
         if (request.getProviderId() != null) {
             Provider provider = providerRepository.findById(request.getProviderId())
                     .orElseThrow(() -> new RuntimeException("Provider not found with id: " + request.getProviderId()));
-            item.setProvider(provider);
+            existingItem.setProvider(provider);
         }
 
-        return item;
+        return existingItem;
     }
+
 }

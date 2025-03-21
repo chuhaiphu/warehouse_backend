@@ -55,9 +55,8 @@ public class ItemController {
     @PostMapping
     public ResponseEntity<?> createItem(@RequestBody ItemRequest request) {
         LOGGER.info("Creating item");
-        itemService.create(request);
         return ResponseUtil.getObject(
-                null,
+                itemService.create(request),
                 HttpStatus.CREATED,
                 "Successfully created item"
         );
@@ -67,9 +66,8 @@ public class ItemController {
     @PutMapping
     public ResponseEntity<?> updateItem(@RequestBody ItemRequest request) {
         LOGGER.info("Updating item");
-        itemService.update(request);
         return ResponseUtil.getObject(
-                null,
+                itemService.update(request),
                 HttpStatus.OK,
                 "Successfully updated item"
         );

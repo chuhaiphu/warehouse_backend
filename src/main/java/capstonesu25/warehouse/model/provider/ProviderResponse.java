@@ -17,5 +17,5 @@ public class ProviderResponse {
     private String phone;
     private String address;
     private List<Long> itemIds;
-    private Long importRequestId;
+    private List<Long> importRequestId;
 }

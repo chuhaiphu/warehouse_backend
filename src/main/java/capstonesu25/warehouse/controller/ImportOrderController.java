@@ -56,9 +56,8 @@ public class ImportOrderController {
     @PostMapping()
     public ResponseEntity<?> createImportOrder(@RequestBody ImportOrderRequest request){
         LOGGER.info("Creating import order");
-        importOrderService.create(request);
         return ResponseUtil.getObject(
-                null,
+                importOrderService.save(request),
                 HttpStatus.CREATED,
                 "Successfully created import order"
         );
@@ -68,9 +67,8 @@ public class ImportOrderController {
     @PutMapping()
     public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderRequest request){
         LOGGER.info("Updating import order");
-        importOrderService.create(request);
         return ResponseUtil.getObject(
-                null,
+                importOrderService.save(request),
                 HttpStatus.OK,
                 "Successfully updated import order"
         );

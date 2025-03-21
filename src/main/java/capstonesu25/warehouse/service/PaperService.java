@@ -8,7 +8,6 @@ import capstonesu25.warehouse.repository.ImportOrderRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.PaperRepository;
 import capstonesu25.warehouse.utils.CloudinaryUtil;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +61,7 @@ public class PaperService {
         paper.setSignProviderUrl(signProviderUrl);
         paper.setSignWarehouseUrl(signWarehouseUrl);
         paperRepository.save(paper);
+        afterCreatedPaperUpdateItems(request);
     }
 
     private void afterCreatedPaperUpdateItems(PaperRequest request) {
@@ -106,8 +106,12 @@ public class PaperService {
         PaperResponse response = new PaperResponse();
         response.setId(paper.getId());
         response.setDescription(paper.getDescription());
-        response.setImportOrderId(paper.getImportOrder().getId());
-        response.setExportRequestId(paper.getExportRequest().getId());
+        if(paper.getImportOrder() != null) {
+            response.setImportOrderId(paper.getImportOrder().getId());
+        }
+        if(paper.getExportRequest() != null) {
+            response.setExportRequestId(paper.getExportRequest().getId());
+        }
         response.setSignProviderUrl(paper.getSignProviderUrl());
         response.setSignWarehouseUrl(paper.getSignWarehouseUrl());
         return response;

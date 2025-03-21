@@ -52,43 +52,6 @@ public class InventoryItemController {
         );
     }
 
-    @Operation(summary = "Create a new inventory item and generate QR codes")
-    @PostMapping
-    public ResponseEntity<?> createInventoryItem(@RequestBody InventoryItemRequest request) {
-        LOGGER.info("Creating inventory item");
-        List<QrCodeResponse> responses = inventoryItemService.create(request);
-        return ResponseUtil.getCollection(
-                responses,
-                HttpStatus.CREATED,
-                "Successfully created inventory item",
-                null
-        );
-    }
-
-    @Operation(summary = "Update an existing inventory item")
-    @PutMapping
-    public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
-        LOGGER.info("Updating inventory item");
-        inventoryItemService.update(request);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully updated inventory item"
-        );
-    }
-
-    @Operation(summary = "Delete an inventory item by ID")
-    @DeleteMapping("/{inventoryItemId}")
-    public ResponseEntity<?> deleteInventoryItem(@PathVariable Long inventoryItemId) {
-        LOGGER.info("Deleting inventory item");
-        inventoryItemService.delete(inventoryItemId);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully deleted inventory item"
-        );
-    }
-
     @Operation(summary = "Get inventory items by import order detail ID")
     @GetMapping("/import-order-detail/{importOrderDetailId}")
     public ResponseEntity<?> getByImportOrderDetailId(@PathVariable Long importOrderDetailId,
@@ -133,4 +96,41 @@ public class InventoryItemController {
                 new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
         );
     }
+
+    @Operation(summary = "Create a new inventory item and generate QR codes")
+    @PostMapping
+    public ResponseEntity<?> createInventoryItem(@RequestBody InventoryItemRequest request) {
+        LOGGER.info("Creating inventory item");
+        List<QrCodeResponse> responses = inventoryItemService.create(request);
+        return ResponseUtil.getCollection(
+                responses,
+                HttpStatus.CREATED,
+                "Successfully created inventory item",
+                null
+        );
+    }
+
+    @Operation(summary = "Update an existing inventory item")
+    @PutMapping
+    public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
+        LOGGER.info("Updating inventory item");
+        return ResponseUtil.getObject(
+                inventoryItemService.update(request),
+                HttpStatus.OK,
+                "Successfully updated inventory item"
+        );
+    }
+
+    @Operation(summary = "Delete an inventory item by ID")
+    @DeleteMapping("/{inventoryItemId}")
+    public ResponseEntity<?> deleteInventoryItem(@PathVariable Long inventoryItemId) {
+        LOGGER.info("Deleting inventory item");
+        inventoryItemService.delete(inventoryItemId);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully deleted inventory item"
+        );
+    }
+
 }

@@ -106,7 +106,7 @@ public class ImportRequestDetailService {
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
                 importRequestDetail.getExpectQuantity(),
                 importRequestDetail.getActualQuantity(),
-                importRequestDetail.getStatus()
+                importRequestDetail.getStatus() != null ? importRequestDetail.getStatus() : null
         );
     }
 

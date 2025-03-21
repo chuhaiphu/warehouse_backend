@@ -41,7 +41,7 @@ public class ImportOrderService {
                 .toList();
     }
 
-    public void create (ImportOrderRequest request) {
+    public ImportOrderResponse save (ImportOrderRequest request) {
         LOGGER.info("Create import order");
         ImportOrder importOrder;
         if(request.getImportOrderId() != null) {
@@ -62,7 +62,8 @@ public class ImportOrderService {
         }
         importOrder.setDateReceived(request.getDateReceived());
         importOrder.setTimeReceived(request.getTimeReceived());
-        importOrderRepository.save(importOrder);
+
+        return mapToResponse(importOrderRepository.save(importOrder));
     }
 
     public void delete(Long id) {
@@ -75,20 +76,20 @@ public class ImportOrderService {
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(
                 importOrder.getId(),
-                importOrder.getImportRequest().getId(),
-                importOrder.getAssignedWareHouseKeeper().getId(),
+                importOrder.getImportRequest() != null? importOrder.getImportRequest().getId() : null,
                 importOrder.getDateReceived(),
                 importOrder.getTimeReceived(),
                 importOrder.getNote(),
-                importOrder.getStatus(),
-                importOrder.getImportOrderDetails().stream()
-                        .map(ImportOrderDetail::getId).toList(),
+                importOrder.getStatus() != null? importOrder.getStatus() : null,
+                importOrder.getImportOrderDetails() != null? importOrder.getImportOrderDetails().stream()
+                        .map(ImportOrderDetail::getId).toList() : null,
                 importOrder.getCreatedBy(),
                 importOrder.getUpdatedBy(),
                 importOrder.getCreatedDate(),
                 importOrder.getUpdatedDate(),
-                importOrder.getPaper().getId(),
-                importOrder.getAssignedWareHouseKeeper().getId()
+                importOrder.getPaper() != null? importOrder.getPaper().getId() : null,
+                importOrder.getAssignedWareHouseKeeper() != null?
+                    importOrder.getAssignedWareHouseKeeper().getId() : null
                 );
     }
 }

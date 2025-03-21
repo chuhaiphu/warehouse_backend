@@ -16,7 +16,6 @@ import java.util.List;
 public class ImportOrderResponse {
     private Long importOrderId;
     private Long importRequestId;
-    private Long accountId;
     private LocalDate dateReceived;
     private LocalTime timeReceived;
     private String note;

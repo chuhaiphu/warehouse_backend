@@ -73,12 +73,11 @@ public class InventoryItemService {
             qrCodes.add(qrCode);
 
         }
-
         return qrCodes;
     }
 
     @Transactional
-    public void update(InventoryItemRequest request) {
+    public InventoryItemResponse update(InventoryItemRequest request) {
         LOGGER.info("Updating inventory item with id: {}", request.getId());
         if (request.getId() == null) {
             throw new IllegalArgumentException("Inventory item ID cannot be null for update operation");
@@ -87,9 +86,9 @@ public class InventoryItemService {
         InventoryItem existingItem = inventoryItemRepository.findById(request.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + request.getId()));
 
-        existingItem = updateEntityFromRequest(existingItem, request);
+        updateEntityFromRequest(existingItem, request);
         existingItem.setUpdatedDate(LocalDateTime.now());
-        inventoryItemRepository.save(existingItem);
+        return mapToResponse(inventoryItemRepository.save(existingItem));
     }
 
     @Transactional

@@ -111,7 +111,7 @@ public class ImportOrderDetailService {
                 importOrderDetail.getItem().getName(),
                 importOrderDetail.getExpectQuantity(),
                 importOrderDetail.getActualQuantity(),
-                importOrderDetail.getStatus()
+                importOrderDetail.getStatus() != null ? importOrderDetail.getStatus() : null
         );
     }
 }

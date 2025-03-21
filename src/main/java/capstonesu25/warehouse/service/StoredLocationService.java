@@ -43,36 +43,6 @@ public class StoredLocationService {
         return mapToResponse(storedLocation);
     }
 
-    @Transactional
-    public void create(StoredLocationRequest request) {
-        LOGGER.info("Creating stored location");
-        StoredLocation storedLocation = mapToEntity(request);
-        storedLocationRepository.save(storedLocation);
-    }
-
-    @Transactional
-    public void update(StoredLocationRequest request) {
-        LOGGER.info("Updating stored location with id: {}", request.getId());
-        if (request.getId() == null) {
-            throw new IllegalArgumentException("Stored location ID cannot be null for update operation");
-        }
-
-        StoredLocation existingLocation = storedLocationRepository.findById(request.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getId()));
-
-        updateEntityFromRequest(existingLocation, request);
-        storedLocationRepository.save(existingLocation);
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        LOGGER.info("Deleting stored location with id: {}", id);
-        if (!storedLocationRepository.existsById(id)) {
-            throw new EntityNotFoundException("Stored location not found with id: " + id);
-        }
-        storedLocationRepository.deleteById(id);
-    }
-
     public List<StoredLocationResponse> getAvailableStoredLocations(int page, int limit) {
         LOGGER.info("Getting available stored locations with page: {} and limit: {}", page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
@@ -95,6 +65,36 @@ public class StoredLocationService {
         return storedLocationRepository.findByFloor(floor, pageable).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public StoredLocationResponse create(StoredLocationRequest request) {
+        LOGGER.info("Creating stored location");
+        StoredLocation storedLocation = mapToEntity(request);
+        return mapToResponse(storedLocationRepository.save(storedLocation));
+    }
+
+    @Transactional
+    public StoredLocationResponse update(StoredLocationRequest request) {
+        LOGGER.info("Updating stored location with id: {}", request.getId());
+        if (request.getId() == null) {
+            throw new IllegalArgumentException("Stored location ID cannot be null for update operation");
+        }
+
+        StoredLocation existingLocation = storedLocationRepository.findById(request.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getId()));
+
+        updateEntityFromRequest(existingLocation, request);
+        return mapToResponse(storedLocationRepository.save(existingLocation));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        LOGGER.info("Deleting stored location with id: {}", id);
+        if (!storedLocationRepository.existsById(id)) {
+            throw new EntityNotFoundException("Stored location not found with id: " + id);
+        }
+        storedLocationRepository.deleteById(id);
     }
 
     private StoredLocationResponse mapToResponse(StoredLocation storedLocation) {

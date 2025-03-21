@@ -59,7 +59,7 @@ public class ImportRequest {
     @JoinColumn(name = "export_request_id")
     private ExportRequest exportRequest;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "provider_id")
     private Provider provider;
 }

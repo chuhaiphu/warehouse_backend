@@ -55,35 +55,10 @@ public class StoredLocationController {
     @PostMapping
     public ResponseEntity<?> createStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Creating stored location");
-        storedLocationService.create(request);
         return ResponseUtil.getObject(
-                null,
+                storedLocationService.create(request),
                 HttpStatus.CREATED,
                 "Successfully created stored location"
-        );
-    }
-
-    @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
-    @PutMapping
-    public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
-        LOGGER.info("Updating stored location");
-        storedLocationService.update(request);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully updated stored location"
-        );
-    }
-
-    @Operation(summary = "Delete a stored location by ID", description = "Removes a stored location from the system")
-    @DeleteMapping("/{storedLocationId}")
-    public ResponseEntity<?> deleteStoredLocation(@PathVariable Long storedLocationId) {
-        LOGGER.info("Deleting stored location");
-        storedLocationService.delete(storedLocationId);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully deleted stored location"
         );
     }
 
@@ -130,4 +105,28 @@ public class StoredLocationController {
                 new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
         );
     }
+
+    @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
+    @PutMapping
+    public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
+        LOGGER.info("Updating stored location");
+        return ResponseUtil.getObject(
+                storedLocationService.update(request),
+                HttpStatus.OK,
+                "Successfully updated stored location"
+        );
+    }
+
+    @Operation(summary = "Delete a stored location by ID", description = "Removes a stored location from the system")
+    @DeleteMapping("/{storedLocationId}")
+    public ResponseEntity<?> deleteStoredLocation(@PathVariable Long storedLocationId) {
+        LOGGER.info("Deleting stored location");
+        storedLocationService.delete(storedLocationId);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully deleted stored location"
+        );
+    }
+
 }

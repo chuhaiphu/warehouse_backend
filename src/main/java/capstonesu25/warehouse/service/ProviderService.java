@@ -1,5 +1,7 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.Provider;
 import capstonesu25.warehouse.model.provider.ProviderRequest;
 import capstonesu25.warehouse.model.provider.ProviderResponse;
@@ -38,14 +40,14 @@ public class ProviderService {
     }
 
     @Transactional
-    public void create(ProviderRequest request) {
+    public ProviderResponse create(ProviderRequest request) {
         LOGGER.info("Creating provider: {}", request);
-        Provider provider = mapToEntity(request);
-        providerRepository.save(provider);
+        Provider provider = mapToEntity(request, null);
+       return mapToResponse(providerRepository.save(provider));
     }
 
     @Transactional
-    public void update(ProviderRequest request) {
+    public ProviderResponse update(ProviderRequest request) {
         LOGGER.info("Updating provider: {}", request);
         if (request.getId() == null) {
             throw new RuntimeException("Provider ID must not be null for update operation");
@@ -54,8 +56,8 @@ public class ProviderService {
         Provider existingProvider = providerRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Provider not found with id: " + request.getId()));
 
-        Provider updatedProvider = mapToEntity(request);
-        providerRepository.save(updatedProvider);
+        Provider updatedProvider = mapToEntity(request, existingProvider);
+        return mapToResponse(providerRepository.save(updatedProvider));
     }
 
     @Transactional
@@ -76,29 +78,26 @@ public class ProviderService {
         // Convert OneToMany relationship with items to a list of IDs
         if (provider.getItems() != null) {
             response.setItemIds(provider.getItems().stream()
-                    .map(item -> item.getId())
+                    .map(Item::getId)
                     .collect(Collectors.toList()));
         }
 
-        // Convert OneToOne relationship with importRequest to an ID
         if (provider.getImportRequest() != null) {
-            response.setImportRequestId(provider.getImportRequest().getId());
+            response.setImportRequestId(provider.getImportRequest().stream()
+                    .map(ImportRequest::getId)
+                    .collect(Collectors.toList()));
         }
 
         return response;
     }
 
-    private Provider mapToEntity(ProviderRequest request) {
-        Provider provider = new Provider();
-        provider.setId(request.getId());
-        provider.setName(request.getName());
-        provider.setPhone(request.getPhone());
-        provider.setAddress(request.getAddress());
-
-        // Note: We don't set the items or importRequest here as they are managed
-        // by their respective services. This avoids circular dependencies.
-        // Those relationships will be managed when creating/updating items or import requests
-
-        return provider;
+    private Provider mapToEntity(ProviderRequest request, Provider existingProvider) {
+        if(existingProvider == null) {
+            existingProvider = new Provider();
+        }
+        existingProvider.setName(request.getName());
+        existingProvider.setPhone(request.getPhone());
+        existingProvider.setAddress(request.getAddress());
+        return existingProvider;
     }
 }
