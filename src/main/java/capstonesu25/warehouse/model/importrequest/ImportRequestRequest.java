@@ -19,10 +19,6 @@ public class ImportRequestRequest {
     @NotBlank(message = "cannot be blank")
     private ImportType importType;
 
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
-    private Long providerId;
-
     private Long exportRequestId;
 
 

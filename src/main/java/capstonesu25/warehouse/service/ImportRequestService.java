@@ -8,7 +8,6 @@ import capstonesu25.warehouse.model.importrequest.ImportRequestRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
-import capstonesu25.warehouse.repository.ProviderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +21,6 @@ import java.util.List;
 public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
     private final ExportRequestRepository exportRequestRepository;
-    private final ProviderRepository providerRepository;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         return importRequestRepository.findAll().stream()
@@ -49,7 +47,6 @@ public class ImportRequestService {
         }
         importRequest.setImportReason(request.getImportReason());
         importRequest.setType(request.getImportType());
-        importRequest.setProvider(providerRepository.findById(request.getProviderId()).orElseThrow());
         importRequest.setStatus(ImportStatus.NOT_STARTED);
         ImportRequest newImportRequest = importRequestRepository.save(importRequest);
         return mapToResponse(newImportRequest);
@@ -63,7 +60,7 @@ public class ImportRequestService {
                 importRequest.getImportReason(),
                 importRequest.getType(),
                 importRequest.getStatus(),
-                importRequest.getProvider().getId(),
+                importRequest.getProvider() != null ? importRequest.getProvider().getId() : null,
                 importRequest.getExportRequest() != null ? importRequest.getExportRequest().getId() : null,
                 importRequest.getDetails() != null ?
                         importRequest.getDetails().stream().map(ImportRequestDetail::getId).toList() :

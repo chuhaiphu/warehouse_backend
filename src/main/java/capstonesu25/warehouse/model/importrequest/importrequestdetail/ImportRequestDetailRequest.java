@@ -1,22 +1,23 @@
 package capstonesu25.warehouse.model.importrequest.importrequestdetail;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportRequestDetailRequest {
-    @NotNull(message = "can not be null")
-    @NotBlank(message = "can not be blank")
-    private Long itemId;
+    @NotEmpty(message = "Item IDs cannot be empty")
+    private List<Long> itemId;
+
+    @NotEmpty(message = "Quantities cannot be empty")
+    private List<Integer> quantity;
 
     @NotNull(message = "can not be null")
-    @NotBlank(message = "can not be blank")
-    private int quantity;
-
-    private int actualQuantity;
+    private Long providerId;
 }

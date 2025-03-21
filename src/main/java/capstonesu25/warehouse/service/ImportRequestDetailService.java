@@ -2,12 +2,14 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
+import capstonesu25.warehouse.entity.Provider;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
+import capstonesu25.warehouse.repository.ProviderRepository;
 import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -29,51 +31,41 @@ public class ImportRequestDetailService {
     private final ImportRequestDetailRepository importRequestDetailRepository;
     private final ItemRepository itemRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
+    private final ProviderRepository providerRepository;
+
 
     public void createImportRequestDetail(MultipartFile file, Long importRequestId) {
-        LOGGER.info("Creating import request detail");
-        LOGGER.info("finding import request by id: {}", importRequestId);
-        ImportRequest importRequest = importRequestRepository.findById(importRequestId).orElseThrow();
-        List<ImportRequestDetailRequest> list =  ExcelUtil.processExcelFile(file,
-                ImportRequestDetailRequest.class);
+        LOGGER.info("Creating import order detail");
+        LOGGER.info("Finding import order by id: {}", importRequestId);
 
-        for(ImportRequestDetailRequest request : list) {
-            ImportRequestDetail importRequestDetail = new ImportRequestDetail();
-            importRequestDetail.setImportRequest(importRequest);
-            importRequestDetail.setExpectQuantity(request.getQuantity());
-            importRequestDetail.setItem(itemRepository.findById(request.getItemId()).orElseThrow());
-            importRequestDetail.setActualQuantity(0);
-            importRequestDetailRepository.save(importRequestDetail);
-        }
-    }
+        ImportRequest importRequest = importRequestRepository.findById(importRequestId)
+                .orElseThrow(() -> new RuntimeException("Import order not found"));
 
-    public void updateImportRequestDetail(List<ImportRequestDetailRequest> list, Long importRequestId) {
-        LOGGER.info("Updating import request detail");
+        List<ImportRequestDetailRequest> requests = ExcelUtil.processExcelFile(file, ImportRequestDetailRequest.class);
 
-        List<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
-                .findImportRequestDetailsByImportRequest_Id(importRequestId);
+        for (ImportRequestDetailRequest request : requests) {
+            if (request.getItemId().size() != request.getQuantity().size()) {
+                throw new IllegalArgumentException("Mismatch between itemIds and quantities");
+            }
+            LOGGER.info("update provider for import request with providerId: {}", request.getProviderId());
+            Provider provider = providerRepository.findById(request.getProviderId())
+                    .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + request.getProviderId()));
+            importRequest.setProvider(provider);
+            importRequestRepository.save(importRequest);
 
-        Map<Long, ImportRequestDetail> detailMap = importRequestDetails.stream()
-                .collect(Collectors.toMap(d -> d.getItem().getId(), d -> d));
+            for (int i = 0; i < request.getItemId().size(); i++) {
+                ImportRequestDetail importRequestDetail = new ImportRequestDetail();
+                importRequestDetail.setImportRequest(importRequest);
+                importRequestDetail.setExpectQuantity(request.getQuantity().get(i));
+                importRequestDetail.setItem(itemRepository.findById(request.getItemId().get(i))
+                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + request.getItemId())));
+                importRequestDetail.setActualQuantity(0);
 
-        for (ImportRequestDetailRequest request : list) {
-            ImportRequestDetail detail = detailMap.get(request.getItemId());
-            if (detail != null) {
-                detail.setExpectQuantity(request.getQuantity());
-                detail.setActualQuantity(request.getActualQuantity());
-                if(request.getQuantity() == request.getActualQuantity()) {
-                    detail.setStatus(DetailStatus.MATCH);
-                }
-                if(request.getQuantity() > request.getActualQuantity()) {
-                    detail.setStatus(DetailStatus.LACK);
-                }
-                if(request.getQuantity() < request.getActualQuantity()) {
-                    detail.setStatus(DetailStatus.EXCESS);
-                }
+                importRequestDetailRepository.save(importRequestDetail);
             }
         }
-        importRequestDetailRepository.saveAll(importRequestDetails);
     }
+
 
     public void deleteImportRequestDetail(Long importRequestDetailId) {
         LOGGER.info("Deleting import request detail");
