@@ -4,6 +4,7 @@ import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.entity.Provider;
 import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailExcelRow;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
@@ -41,30 +42,38 @@ public class ImportRequestDetailService {
         ImportRequest importRequest = importRequestRepository.findById(importRequestId)
                 .orElseThrow(() -> new RuntimeException("Import order not found"));
 
-        List<ImportRequestDetailRequest> requests = ExcelUtil.processExcelFile(file, ImportRequestDetailRequest.class);
+        // Process Excel file using the new DTO
+        List<ImportRequestDetailExcelRow> excelRows = ExcelUtil.processExcelFile(file, ImportRequestDetailExcelRow.class);
 
-        for (ImportRequestDetailRequest request : requests) {
-            if (request.getItemId().size() != request.getQuantity().size()) {
-                throw new IllegalArgumentException("Mismatch between itemIds and quantities");
-            }
-            LOGGER.info("update provider for import request with providerId: {}", request.getProviderId());
-            Provider provider = providerRepository.findById(request.getProviderId())
-                    .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + request.getProviderId()));
+        // Group by providerId
+        Map<Long, List<ImportRequestDetailExcelRow>> rowsByProvider = excelRows.stream()
+                .collect(Collectors.groupingBy(ImportRequestDetailExcelRow::getProviderId));
+
+        // Process each provider group
+        for (Map.Entry<Long, List<ImportRequestDetailExcelRow>> entry : rowsByProvider.entrySet()) {
+            Long providerId = entry.getKey();
+            List<ImportRequestDetailExcelRow> rows = entry.getValue();
+
+            LOGGER.info("Update provider for import request with providerId: {}", providerId);
+            Provider provider = providerRepository.findById(providerId)
+                    .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + providerId));
             importRequest.setProvider(provider);
             importRequestRepository.save(importRequest);
 
-            for (int i = 0; i < request.getItemId().size(); i++) {
+            // Create import request details
+            for (ImportRequestDetailExcelRow row : rows) {
                 ImportRequestDetail importRequestDetail = new ImportRequestDetail();
                 importRequestDetail.setImportRequest(importRequest);
-                importRequestDetail.setExpectQuantity(request.getQuantity().get(i));
-                importRequestDetail.setItem(itemRepository.findById(request.getItemId().get(i))
-                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + request.getItemId())));
+                importRequestDetail.setExpectQuantity(row.getQuantity());
+                importRequestDetail.setItem(itemRepository.findById(row.getItemId())
+                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId())));
                 importRequestDetail.setActualQuantity(0);
 
                 importRequestDetailRepository.save(importRequestDetail);
             }
         }
     }
+
 
     public void updateImportRequestDetail(ImportRequestDetailRequest request, Long importRequestId) {
         LOGGER.info("Updating import request detail");
@@ -110,17 +119,15 @@ public class ImportRequestDetailService {
         importRequestDetailRepository.deleteById(importRequestDetailId);
     }
 
-    public List<ImportRequestDetailResponse> getImportRequestDetailsByImportRequestId(Long importRequestId, int page, int limit) {
+    public Page<ImportRequestDetailResponse> getImportRequestDetailsByImportRequestId(Long importRequestId, int page, int limit) {
         LOGGER.info("Getting import request detail for ImportRequest ID: {}", importRequestId);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
                 .findImportRequestDetailsByImportRequest_Id(importRequestId, pageable);
 
-        return importRequestDetails.getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        return importRequestDetails.map(this::mapToResponse);
     }
+
 
     public ImportRequestDetailResponse getImportRequestDetailById(Long importRequestDetailId) {
         LOGGER.info("Getting import request detail for ImportRequestDetail ID: {}", importRequestDetailId);
