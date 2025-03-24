@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,13 +37,11 @@ public class InventoryItemService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InventoryItemService.class);
 
-    public List<InventoryItemResponse> getAllInventoryItems(int page, int limit) {
+    public Page<InventoryItemResponse> getAllInventoryItems(int page, int limit) {
         LOGGER.info("Getting all inventory items with page: {} and limit: {}", page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return inventoryItemRepository.findAll(pageable).getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return inventoryItemRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
     public InventoryItemResponse getInventoryItemById(Long id) {
@@ -100,31 +99,25 @@ public class InventoryItemService {
         inventoryItemRepository.deleteById(id);
     }
 
-    public List<InventoryItemResponse> getByImportOrderDetailId(Long importOrderDetailId, int page, int limit) {
+    public Page<InventoryItemResponse> getByImportOrderDetailId(Long importOrderDetailId, int page, int limit) {
         LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
         Pageable pageable = PageRequest.of(page - 1, limit);
         return inventoryItemRepository.findByImportOrderDetailId(importOrderDetailId, pageable)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .map(this::mapToResponse);
     }
 
-    public List<InventoryItemResponse> getByExportRequestDetailId(Long exportRequestDetailId, int page, int limit) {
+    public Page<InventoryItemResponse> getByExportRequestDetailId(Long exportRequestDetailId, int page, int limit) {
         LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return inventoryItemRepository.findByExportRequestDetailId(exportRequestDetailId, pageable)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<InventoryItem> inventoryItems = inventoryItemRepository.findByExportRequestDetailId(exportRequestDetailId, pageable);
+        return inventoryItems.map(this::mapToResponse);
     }
 
-    public List<InventoryItemResponse> getByStoredLocationId(Long storedLocationId, int page, int limit) {
+    public Page<InventoryItemResponse> getByStoredLocationId(Long storedLocationId, int page, int limit) {
         LOGGER.info("Getting inventory items by stored location id: {}", storedLocationId);
         Pageable pageable = PageRequest.of(page - 1, limit);
         return inventoryItemRepository.findByStoredLocationId(storedLocationId, pageable)
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .map(this::mapToResponse);
     }
 
     private InventoryItemResponse mapToResponse(InventoryItem inventoryItem) {

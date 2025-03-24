@@ -29,10 +29,10 @@ public class PaperService {
     private final CloudinaryUtil cloudinaryUtil;
     private static final Logger LOGGER = LoggerFactory.getLogger(PaperService.class);
 
-    public List<PaperResponse> getListPaper(int page, int limit) {
+    public Page<PaperResponse> getListPaper(int page, int limit) {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<Paper> papers = paperRepository.findAll(pageable);
-        return papers.map(this::convertToResponse).toList();
+        return papers.map(this::convertToResponse);
     }
 
     public List<PaperResponse> getListPaperByImportOrderId(Long importOrderId,int page, int limit) {

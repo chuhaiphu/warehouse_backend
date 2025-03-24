@@ -28,12 +28,10 @@ public class ImportRequestService {
                 .toList();
     }
 
-    public List<ImportRequestResponse> getAllImportRequestsByPage(int page, int limit){
+    public Page<ImportRequestResponse> getAllImportRequestsByPage(int page, int limit){
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportRequest> importRequests = importRequestRepository.findAll(pageable);
-        return importRequests.stream()
-                .map(this::mapToResponse)
-                .toList();
+        return importRequests.map(this::mapToResponse);
     }
     public ImportRequestResponse getImportRequestById(Long id) {
         ImportRequest importRequest = importRequestRepository.findById(id).orElseThrow();

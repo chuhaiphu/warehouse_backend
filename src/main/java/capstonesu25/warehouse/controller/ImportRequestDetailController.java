@@ -32,17 +32,17 @@ public class ImportRequestDetailController {
             ,@RequestParam(defaultValue = "1") int page
             ,@RequestParam(defaultValue = "10") int limit){
         LOGGER.info("Getting import request detail");
-        Page<ImportRequestDetailResponse> resultPage = service.getImportRequestDetailsByImportRequestId(importRequestId, page, limit);
+        Page<ImportRequestDetailResponse> result = service.getImportRequestDetailsByImportRequestId(importRequestId, page, limit);
 
         return ResponseUtil.getCollection(
-                resultPage.getContent(),
+                result.getContent(),
                 HttpStatus.OK,
                 "Successfully get import request detail",
                 new MetaDataDTO(
-                        resultPage.hasNext(),
-                        resultPage.hasPrevious(),
+                        result.hasNext(),
+                        result.hasPrevious(),
                         limit,
-                        (int) resultPage.getTotalElements(),
+                        (int) result.getTotalElements(),
                         page
                 )
         );

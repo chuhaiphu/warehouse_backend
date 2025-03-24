@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,12 +32,18 @@ public class InventoryItemController {
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all inventory items");
-        List<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems(page, limit);
+        Page<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems(page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved all inventory items",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get all inventory items with pagination",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -58,12 +65,18 @@ public class InventoryItemController {
                                                       @RequestParam(defaultValue = "1") int page,
                                                       @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
-        List<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page, limit);
+        Page<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved inventory items by import order detail",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get inventory items by import order detail ID",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -73,12 +86,18 @@ public class InventoryItemController {
                                                         @RequestParam(defaultValue = "1") int page,
                                                         @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
-        List<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId, page, limit);
+        Page<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId, page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved inventory items by export request detail",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get inventory items by export request detail ID",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -88,12 +107,18 @@ public class InventoryItemController {
                                                    @RequestParam(defaultValue = "1") int page,
                                                    @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by stored location id: {}", storedLocationId);
-        List<InventoryItemResponse> result = inventoryItemService.getByStoredLocationId(storedLocationId, page, limit);
+        Page<InventoryItemResponse> result = inventoryItemService.getByStoredLocationId(storedLocationId, page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved inventory items by stored location",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get inventory items by stored location ID",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 

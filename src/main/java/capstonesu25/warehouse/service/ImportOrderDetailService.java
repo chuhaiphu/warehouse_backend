@@ -7,7 +7,6 @@ import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDet
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
 import capstonesu25.warehouse.repository.ImportOrderRepository;
-import capstonesu25.warehouse.repository.ImportRequestRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,21 +26,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ImportOrderDetailService {
     private final ImportOrderRepository importOrderRepository;
-    private final ImportRequestRepository importRequestRepository;
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final ItemRepository itemRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
-    public List<ImportOrderDetailResponse> getAllByImportOrderId(Long importOrderId, int page, int limit) {
+    public Page<ImportOrderDetailResponse> getAllByImportOrderId(Long importOrderId, int page, int limit) {
         LOGGER.info("Getting all import order detail by import order id: {}", importOrderId);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ImportOrderDetail> importOrderDetailPage = importOrderDetailRepository.
                 findImportOrderDetailByImportOrder_Id(importOrderId, pageable);
-        return importOrderDetailPage.getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        return importOrderDetailPage.map(this::mapToResponse);
     }
 
     public ImportOrderDetailResponse getById(Long importOrderDetailId) {

@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportOrderDetailService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,13 +33,18 @@ public class ImportOrderDetailController {
             , @RequestParam(defaultValue = "1") int page
             , @RequestParam(defaultValue = "10") int limit){
         LOGGER.info("Getting import order detail");
-        var result = service.getAllByImportOrderId(importOrderId, page, limit);
+        Page<ImportOrderDetailResponse> result = service.getAllByImportOrderId(importOrderId, page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully get import order detail",
-                new MetaDataDTO(page < result.size(),page > 1, limit, result.size(), page)
-
+                "Successfully get paginated import order details by import order ID",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 

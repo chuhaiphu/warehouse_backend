@@ -9,6 +9,7 @@ import capstonesu25.warehouse.repository.ProviderRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,13 +27,11 @@ public class ItemService {
     private final CategoryRepository categoryRepository;
     private final ProviderRepository providerRepository;
 
-    public List<ItemResponse> getAllItems(int page, int limit) {
+    public Page<ItemResponse> getAllItems(int page, int limit) {
         LOGGER.info("Getting all items with page: {}, limit: {}", page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        List<Item> items = itemRepository.findAll(pageable).getContent();
-        return items.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Item> items = itemRepository.findAll(pageable);
+        return items.map(this::mapToResponse);
     }
 
     public ItemResponse getItemById(Long itemId) {
@@ -73,22 +72,18 @@ public class ItemService {
         itemRepository.delete(item);
     }
 
-    public List<ItemResponse> getItemsByCategoryId(Long categoryId, int page, int limit) {
+    public Page<ItemResponse> getItemsByCategoryId(Long categoryId, int page, int limit) {
         LOGGER.info("Getting items by category id: {}, page: {}, limit: {}", categoryId, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        List<Item> items = itemRepository.findByCategoryId(categoryId, pageable);
-        return items.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Item> items = itemRepository.findByCategoryId(categoryId, pageable);
+        return items.map(this::mapToResponse);
     }
 
-    public List<ItemResponse> getItemsByProviderId(Long providerId, int page, int limit) {
+    public Page<ItemResponse> getItemsByProviderId(Long providerId, int page, int limit) {
         LOGGER.info("Getting items by provider id: {}, page: {}, limit: {}", providerId, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        List<Item> items = itemRepository.findByProviderId(providerId, pageable);
-        return items.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Item> items = itemRepository.findByProviderId(providerId, pageable);
+        return items.map(this::mapToResponse);
     }
 
     private ItemResponse mapToResponse(Item item) {

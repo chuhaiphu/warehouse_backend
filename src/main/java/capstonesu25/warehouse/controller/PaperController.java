@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,14 +34,18 @@ public class PaperController {
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit){
         LOGGER.info("Getting all papers");
-        List<PaperResponse> result =  paperService.getListPaper(page, limit);
+        Page<PaperResponse> result =  paperService.getListPaper(page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved all papers",
-                new MetaDataDTO(page < result.size(),
-                        page > 1, limit, result.size(), page)
-
+                "Successfully get all papers with pagination",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 

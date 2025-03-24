@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,13 +28,11 @@ public class StoredLocationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StoredLocationService.class);
 
-    public List<StoredLocationResponse> getAllStoredLocations(int page, int limit) {
+    public Page<StoredLocationResponse> getAllStoredLocations(int page, int limit) {
         LOGGER.info("Getting all stored locations with page: {} and limit: {}", page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return storedLocationRepository.findAll(pageable).getContent()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return storedLocationRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
     public StoredLocationResponse getStoredLocationById(Long id) {
@@ -43,28 +42,23 @@ public class StoredLocationService {
         return mapToResponse(storedLocation);
     }
 
-    public List<StoredLocationResponse> getAvailableStoredLocations(int page, int limit) {
+    public Page<StoredLocationResponse> getAvailableStoredLocations(int page, int limit) {
         LOGGER.info("Getting available stored locations with page: {} and limit: {}", page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return storedLocationRepository.findByIsUsedFalseAndIsFulledFalse(pageable).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return storedLocationRepository.findByIsUsedFalseAndIsFulledFalse(pageable)
+                .map(this::mapToResponse);
     }
 
-    public List<StoredLocationResponse> getByZone(String zone, int page, int limit) {
+    public Page<StoredLocationResponse> getByZone(String zone, int page, int limit) {
         LOGGER.info("Getting stored locations by zone: {} with page: {} and limit: {}", zone, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return storedLocationRepository.findByZone(zone, pageable).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return storedLocationRepository.findByZone(zone, pageable).map(this::mapToResponse);
     }
 
-    public List<StoredLocationResponse> getByFloor(String floor, int page, int limit) {
+    public Page<StoredLocationResponse> getByFloor(String floor, int page, int limit) {
         LOGGER.info("Getting stored locations by floor: {} with page: {} and limit: {}", floor, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return storedLocationRepository.findByFloor(floor, pageable).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return storedLocationRepository.findByFloor(floor, pageable).map(this::mapToResponse);
     }
 
     @Transactional

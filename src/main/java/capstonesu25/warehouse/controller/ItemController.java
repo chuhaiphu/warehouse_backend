@@ -9,13 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/items")
@@ -30,12 +30,18 @@ public class ItemController {
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all items");
-        List<ItemResponse> result = itemService.getAllItems(page, limit);
+        Page<ItemResponse> result = itemService.getAllItems(page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved all items",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get all items with pagination",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -48,6 +54,48 @@ public class ItemController {
                 result,
                 HttpStatus.OK,
                 "Successfully retrieved item"
+        );
+    }
+
+    @Operation(summary = "Get items by category ID")
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<?> getItemsByCategory(@PathVariable Long categoryId,
+                                                @RequestParam(defaultValue = "1") int page,
+                                                @RequestParam(defaultValue = "10") int limit) {
+        LOGGER.info("Getting items by category id: {}", categoryId);
+        Page<ItemResponse> result = itemService.getItemsByCategoryId(categoryId, page, limit);
+        return ResponseUtil.getCollection(
+                result.getContent(),
+                HttpStatus.OK,
+                "Successfully get items by category ID",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
+        );
+    }
+
+    @Operation(summary = "Get items by provider ID")
+    @GetMapping("/provider/{providerId}")
+    public ResponseEntity<?> getItemsByProvider(@PathVariable Long providerId,
+                                                @RequestParam(defaultValue = "1") int page,
+                                                @RequestParam(defaultValue = "10") int limit) {
+        LOGGER.info("Getting items by provider id: {}", providerId);
+        Page<ItemResponse> result = itemService.getItemsByProviderId(providerId, page, limit);
+        return ResponseUtil.getCollection(
+                result.getContent(),
+                HttpStatus.OK,
+                "Successfully  items by provider ID",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -85,33 +133,4 @@ public class ItemController {
         );
     }
 
-    @Operation(summary = "Get items by category ID")
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<?> getItemsByCategory(@PathVariable Long categoryId,
-                                                @RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting items by category id: {}", categoryId);
-        List<ItemResponse> result = itemService.getItemsByCategoryId(categoryId, page, limit);
-        return ResponseUtil.getCollection(
-                result,
-                HttpStatus.OK,
-                "Successfully retrieved items by category",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
-        );
-    }
-
-    @Operation(summary = "Get items by provider ID")
-    @GetMapping("/provider/{providerId}")
-    public ResponseEntity<?> getItemsByProvider(@PathVariable Long providerId,
-                                                @RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting items by provider id: {}", providerId);
-        List<ItemResponse> result = itemService.getItemsByProviderId(providerId, page, limit);
-        return ResponseUtil.getCollection(
-                result,
-                HttpStatus.OK,
-                "Successfully retrieved items by provider",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
-        );
-    }
 }

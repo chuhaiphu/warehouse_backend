@@ -9,13 +9,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @Controller
 @RequestMapping("/stored-locations")
@@ -30,12 +30,18 @@ public class StoredLocationController {
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all stored locations");
-        List<StoredLocationResponse> result = storedLocationService.getAllStoredLocations(page, limit);
+        Page<StoredLocationResponse> result = storedLocationService.getAllStoredLocations(page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved all stored locations",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get all stored locations with pagination",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -67,12 +73,18 @@ public class StoredLocationController {
     public ResponseEntity<?> getAvailableLocations(@RequestParam(defaultValue = "1") int page,
                                                    @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting available stored locations");
-        List<StoredLocationResponse> result = storedLocationService.getAvailableStoredLocations(page, limit);
+        Page<StoredLocationResponse> result = storedLocationService.getAvailableStoredLocations(page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved available stored locations",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get available stored locations",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -82,12 +94,18 @@ public class StoredLocationController {
                                        @RequestParam(defaultValue = "1") int page,
                                        @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting stored locations by zone: {}", zone);
-        List<StoredLocationResponse> result = storedLocationService.getByZone(zone, page, limit);
+        Page<StoredLocationResponse> result = storedLocationService.getByZone(zone, page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved stored locations by zone",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get stored locations by zone",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 
@@ -97,12 +115,18 @@ public class StoredLocationController {
                                         @RequestParam(defaultValue = "1") int page,
                                         @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting stored locations by floor: {}", floor);
-        List<StoredLocationResponse> result = storedLocationService.getByFloor(floor, page, limit);
+        Page<StoredLocationResponse> result = storedLocationService.getByFloor(floor, page, limit);
         return ResponseUtil.getCollection(
-                result,
+                result.getContent(),
                 HttpStatus.OK,
-                "Successfully retrieved stored locations by floor",
-                new MetaDataDTO(page < result.size(), page > 1, limit, result.size(), page)
+                "Successfully get stored locations by floor",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
         );
     }
 

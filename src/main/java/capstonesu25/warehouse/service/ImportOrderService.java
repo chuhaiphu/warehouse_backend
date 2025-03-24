@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,13 +31,11 @@ public class ImportOrderService {
         return mapToResponse(importOrder);
     }
 
-    public List<ImportOrderResponse> getImportOrdersByImportRequestId(Long id, int page, int limit) {
+    public Page<ImportOrderResponse> getImportOrdersByImportRequestId(Long id, int page, int limit) {
         LOGGER.info("Get import orders by import request id: " + id);
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id,pageable);
-        return importOrders.stream()
-                .map(this::mapToResponse)
-                .toList();
+        return importOrders.map(this::mapToResponse);
     }
 
     public ImportOrderResponse save (ImportOrderRequest request) {

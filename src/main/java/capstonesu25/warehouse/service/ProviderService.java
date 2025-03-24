@@ -9,12 +9,12 @@ import capstonesu25.warehouse.repository.ProviderRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,13 +23,11 @@ public class ProviderService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderService.class);
     private final ProviderRepository providerRepository;
 
-    public List<ProviderResponse> getAllProviders(int page, int limit) {
+    public Page<ProviderResponse> getAllProviders(int page, int limit) {
         LOGGER.info("Getting all providers with page: {}, limit: {}", page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        List<Provider> providers = providerRepository.findAll(pageable).getContent();
-        return providers.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Page<Provider> providers = providerRepository.findAll(pageable);
+        return providers.map(this::mapToResponse);
     }
 
     public ProviderResponse getProviderById(Long providerId) {
