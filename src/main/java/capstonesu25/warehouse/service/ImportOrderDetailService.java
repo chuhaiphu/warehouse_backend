@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,10 +48,30 @@ public class ImportOrderDetailService {
 
     public void create(MultipartFile file, Long importOrderId) {
         LOGGER.info("Creating import order detail");
-        LOGGER.info("finding import order by id: {}", importOrderId);
-        ImportOrder importRequest = importOrderRepository.findById(importOrderId).orElseThrow();
-        List<ImportOrderDetailRequest> list = ExcelUtil.processExcelFile(file,
-                ImportOrderDetailRequest.class);
+        LOGGER.info("Finding import order by id: {}", importOrderId);
+
+        ImportOrder importRequest = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
+
+        List<ImportOrderDetailRequest> list = ExcelUtil.processExcelFile(file, ImportOrderDetailRequest.class);
+
+        if (list.isEmpty()) {
+            throw new IllegalArgumentException("Import order detail list cannot be empty");
+        }
+
+        Long providerId = itemRepository.findById(list.get(0).getItemId())
+                .map(item -> item.getProvider().getId())
+                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + list.get(0).getItemId()));
+
+        for (ImportOrderDetailRequest request : list) {
+            Long currentProviderId = itemRepository.findById(request.getItemId())
+                    .map(item -> item.getProvider().getId())
+                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + request.getItemId()));
+
+            if (!providerId.equals(currentProviderId)) {
+                throw new IllegalArgumentException("All items must belong to the same provider.");
+            }
+        }
 
         for (ImportOrderDetailRequest request : list) {
             ImportOrderDetail importOrderDetail = new ImportOrderDetail();
@@ -59,9 +80,11 @@ public class ImportOrderDetailService {
             importOrderDetail.setItem(itemRepository.findById(request.getItemId()).orElseThrow());
             importOrderDetail.setActualQuantity(0);
             importOrderDetailRepository.save(importOrderDetail);
-
         }
+
+        LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
     }
+
 
     public void updateImportOrderDetail(List<ImportOrderDetailRequest> list, Long importOrderId) {
         LOGGER.info("Updating import order detail for ImportOrder ID: {}", importOrderId);

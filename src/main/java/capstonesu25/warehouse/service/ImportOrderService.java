@@ -16,6 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +45,8 @@ public class ImportOrderService {
         ImportOrder importOrder;
         if(request.getImportOrderId() != null) {
              LOGGER.info("Update import order");
-             importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
+             importOrder = importOrderRepository.findById(request.getImportOrderId())
+                     .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + request.getImportRequestId()));
              importOrder.setStatus(request.getStatus());
         }else {
              LOGGER.info("Create import order");
