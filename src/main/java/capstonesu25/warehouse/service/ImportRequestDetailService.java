@@ -141,8 +141,8 @@ public class ImportRequestDetailService {
                 importRequestDetail.getImportRequest() != null ? importRequestDetail.getImportRequest().getId() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getId() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
-                importRequestDetail.getExpectQuantity(),
                 importRequestDetail.getActualQuantity(),
+                importRequestDetail.getExpectQuantity(),
                 importRequestDetail.getStatus() != null ? importRequestDetail.getStatus() : null
         );
     }
