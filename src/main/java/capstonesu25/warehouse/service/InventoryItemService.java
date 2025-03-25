@@ -66,12 +66,36 @@ public class InventoryItemService {
                     savedItem.getId(),
                     savedItem.getItem().getId(),
                     savedItem.getImportOrderDetail().getId(),
-                    savedItem.getExportRequestDetail().getId()
+                    savedItem.getExportRequestDetail().getId(),
+                    savedItem.getQuantity()
             );
             qrCodes.add(qrCode);
 
         }
         return qrCodes;
+    }
+
+    public List<QrCodeResponse> getListQRCodeByCredential(Long itemId,Long importOrderDetailId,Long exportRequestDetailId
+            ,Integer quantity){
+        List<InventoryItem> inventoryItems = new ArrayList<>();
+        if(importOrderDetailId != null) {
+             inventoryItems = inventoryItemRepository
+                    .findByItem_IdAndImportOrderDetail_IdAndQuantity(itemId, importOrderDetailId, quantity);
+        }
+        if(exportRequestDetailId != null) {
+            inventoryItems = inventoryItemRepository
+                    .findByItem_IdAndExportRequestDetail_IdAndQuantity(itemId, exportRequestDetailId, quantity);
+        }
+        return inventoryItems.stream()
+                .map(inventoryItem -> new QrCodeResponse(
+                        inventoryItem.getId(),
+                        inventoryItem.getItem().getId(),
+                        inventoryItem.getImportOrderDetail().getId(),
+                        inventoryItem.getExportRequestDetail().getId(),
+                        inventoryItem.getQuantity()
+                ))
+                .collect(Collectors.toList());
+
     }
 
     @Transactional

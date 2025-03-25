@@ -7,6 +7,7 @@ import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,10 +122,26 @@ public class InventoryItemController {
                 )
         );
     }
+    @Operation(summary = "Get QR codes data ")
+    @GetMapping("/getQRCodes")
+    public ResponseEntity<?> getListQRCodes(@RequestParam Long itemId,
+                                       @RequestParam @Nullable Long importOrderDetailId,
+                                        @RequestParam @Nullable Long exportRequestDetailId,
+                                        @RequestParam Integer quantity) {
+        LOGGER.info("Get QR codes data");
+        List<QrCodeResponse> result = inventoryItemService.getListQRCodeByCredential(itemId, importOrderDetailId
+                , exportRequestDetailId, quantity);
+        return ResponseUtil.getCollection(
+                result,
+                HttpStatus.OK,
+                "Successfully get all QR codes",
+                null
+        );
+    }
 
     @Operation(summary = "Create a new inventory item and generate QR codes")
     @PostMapping
-    public ResponseEntity<?> createInventoryItem(@RequestBody InventoryItemRequest request) {
+    public ResponseEntity<?> createQRCode(@RequestBody InventoryItemRequest request) {
         LOGGER.info("Creating inventory item");
         List<QrCodeResponse> responses = inventoryItemService.create(request);
         return ResponseUtil.getCollection(

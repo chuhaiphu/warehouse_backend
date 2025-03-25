@@ -20,7 +20,6 @@ public class ImportOrderRequest {
     @NotNull(message = "can not be null")
     private Long importRequestId;
 
-    @NotNull(message = "can not be null")
     private Long accountId;
 
     @NotNull(message = "can not be null")
