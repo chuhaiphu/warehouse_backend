@@ -14,6 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class ImportOrderRequest {
     private Long importOrderId;
+
     private ImportStatus status;
 
     @NotNull(message = "can not be null")

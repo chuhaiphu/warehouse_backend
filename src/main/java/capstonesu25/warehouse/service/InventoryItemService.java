@@ -66,8 +66,7 @@ public class InventoryItemService {
                     savedItem.getId(),
                     savedItem.getItem().getId(),
                     savedItem.getImportOrderDetail().getId(),
-                    savedItem.getExportRequestDetail().getId(),
-                    savedItem.getStoredLocation().getId()
+                    savedItem.getExportRequestDetail().getId()
             );
             qrCodes.add(qrCode);
 

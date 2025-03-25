@@ -72,11 +72,11 @@ public class ImportRequestDetailController {
     }
 
     @Operation(summary = "Update import request details")
-    @PutMapping("/{importRequestId}")
+    @PutMapping("/{importRequestDetailId}")
     public ResponseEntity<?> updateImportRequest(@RequestBody ImportRequestDetailRequest importRequestDetailRequest
-            , @PathVariable Long importRequestId){
+            , @PathVariable Long importRequestDetailId){
         LOGGER.info("Updating import request detail");
-        service.updateImportRequestDetail(importRequestDetailRequest, importRequestId);
+        service.updateImportRequestDetail(importRequestDetailRequest, importRequestDetailId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
@@ -85,10 +85,10 @@ public class ImportRequestDetailController {
     }
 
     @Operation(summary = "Delete import request details by import request ID")
-    @DeleteMapping("/{importRequestId}")
-    public ResponseEntity<?> deleteImportRequest(@PathVariable Long importRequestId){
+    @DeleteMapping("/{importRequestDetailId}")
+    public ResponseEntity<?> deleteImportRequest(@PathVariable Long importRequestDetailId){
         LOGGER.info("Deleting import request detail");
-        service.deleteImportRequestDetail(importRequestId);
+        service.deleteImportRequestDetail(importRequestDetailId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
