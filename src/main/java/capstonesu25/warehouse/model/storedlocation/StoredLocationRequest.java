@@ -18,4 +18,7 @@ public class StoredLocationRequest {
     private boolean isUsed;
     private boolean isFulled;
     private List<Long> inventoryItemIds; // References to inventory items
+    private double maximumCapacityForItem;
+    private double currentCapacity;
+    private Long itemId; // References to item
 }

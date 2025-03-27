@@ -14,4 +14,6 @@ public interface StoredLocationRepository extends JpaRepository<StoredLocation, 
     Page<StoredLocation> findByIsUsedFalseAndIsFulledFalse(Pageable pageable);
     Page<StoredLocation> findByZone(String zone, Pageable pageable);
     Page<StoredLocation> findByFloor(String floor, Pageable pageable);
+
+    List<StoredLocation> findByItem_IdAndIsUsedFalseOrderByZoneAscFloorAscRowAscBatchAsc(Long itemId);
 }

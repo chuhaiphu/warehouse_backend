@@ -60,4 +60,7 @@ public class Item {
     @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<InventoryItem> inventoryItems;
 
+    @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<StoredLocation> storedLocations;
+
 }

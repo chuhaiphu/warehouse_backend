@@ -69,6 +69,7 @@ public class ItemService {
         LOGGER.info("Deleting item with id: {}", itemId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
+        item.getStoredLocations().forEach(storedLocation -> storedLocation.setItem(null));
         itemRepository.delete(item);
     }
 

@@ -5,6 +5,7 @@ import capstonesu25.warehouse.entity.StoredLocation;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationRequest;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationResponse;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
+import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.StoredLocationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class StoredLocationService {
     private final StoredLocationRepository storedLocationRepository;
     private final InventoryItemRepository inventoryItemRepository;
+    private final ItemRepository itemRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StoredLocationService.class);
 
@@ -100,6 +102,8 @@ public class StoredLocationService {
         response.setBatch(storedLocation.getBatch());
         response.setUsed(storedLocation.isUsed());
         response.setFulled(storedLocation.isFulled());
+        response.setMaximumCapacityForItem(storedLocation.getMaximumCapacityForItem());
+        response.setCurrentCapacity(storedLocation.getCurrentCapacity());
 
         // Set inventory item references
         if (storedLocation.getInventoryItems() != null && !storedLocation.getInventoryItems().isEmpty()) {
@@ -108,6 +112,10 @@ public class StoredLocationService {
                     .collect(Collectors.toList()));
         } else {
             response.setInventoryItemIds(new ArrayList<>());
+        }
+
+        if(storedLocation.getItem() != null) {
+            response.setItemId(storedLocation.getItem().getId());
         }
 
         return response;
@@ -126,8 +134,9 @@ public class StoredLocationService {
         storedLocation.setBatch(request.getBatch());
         storedLocation.setUsed(request.isUsed());
         storedLocation.setFulled(request.isFulled());
+        storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
+        storedLocation.setCurrentCapacity(request.getCurrentCapacity());
 
-        // Update inventory items if provided
         if (request.getInventoryItemIds() != null && !request.getInventoryItemIds().isEmpty()) {
             List<InventoryItem> inventoryItems = request.getInventoryItemIds().stream()
                     .map(id -> inventoryItemRepository.findById(id)
@@ -136,6 +145,10 @@ public class StoredLocationService {
             storedLocation.setInventoryItems(inventoryItems);
         } else {
             storedLocation.setInventoryItems(new ArrayList<>());
+        }
+        if(request.getItemId() != null) {
+            storedLocation.setItem(itemRepository.findById(request.getItemId())
+                    .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId())));
         }
     }
 }

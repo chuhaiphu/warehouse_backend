@@ -33,6 +33,16 @@ public class StoredLocation {
     @Column(name = "is_fulled")
     private boolean isFulled;
 
+    @Column(name = "maximum_capacity_for_item")
+    private double maximumCapacityForItem;
+
+    @Column(name = "current_capacity")
+    private double currentCapacity;
+
+    @ManyToOne
+    @JoinColumn(name = "item_id", nullable = true)
+    private Item item;
+
     @OneToMany(mappedBy = "storedLocation", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<InventoryItem> inventoryItems;
 }
