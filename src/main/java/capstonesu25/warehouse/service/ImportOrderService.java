@@ -3,6 +3,7 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.repository.AccountRepository;
@@ -55,14 +56,15 @@ public class ImportOrderService {
         ImportRequest importRequest = importRequestRepository.findById
                 (request.getImportRequestId()).orElseThrow();
         importOrder.setImportRequest(importRequest);
-        importOrder.setAssignedWareHouseKeeper(accountRepository.findById
-                (request.getAccountId()).orElseThrow());
+        if(request.getAccountId() != null) {
+            importOrder.setAssignedWareHouseKeeper(accountRepository.findById
+                    (request.getAccountId()).orElseThrow());
+        }
         if (request.getNote() != null){
             importOrder.setNote(request.getNote());
         }
         importOrder.setDateReceived(request.getDateReceived());
         importOrder.setTimeReceived(request.getTimeReceived());
-
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
@@ -71,6 +73,7 @@ public class ImportOrderService {
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
         importOrderRepository.delete(importOrder);
     }
+
 
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {

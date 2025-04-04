@@ -20,6 +20,8 @@ public class ImportRequestDetailRequest {
 
     private List<Integer> actualQuantity;
 
+    private List<Integer> remainingQuantity;
+
     @NotNull(message = "can not be null")
     private Long providerId;
 }

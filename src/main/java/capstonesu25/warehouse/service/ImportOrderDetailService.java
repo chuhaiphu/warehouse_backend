@@ -2,11 +2,15 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
+import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
 import capstonesu25.warehouse.repository.ImportOrderRepository;
+import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ public class ImportOrderDetailService {
     private final ImportOrderRepository importOrderRepository;
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final ItemRepository itemRepository;
+    private final ImportRequestDetailRepository importRequestDetailRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
@@ -81,7 +86,7 @@ public class ImportOrderDetailService {
             importOrderDetail.setActualQuantity(0);
             importOrderDetailRepository.save(importOrderDetail);
         }
-
+        updateRemainingQuantityOfImportRequestDetail(importOrderId);
         LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
     }
 
@@ -103,6 +108,24 @@ public class ImportOrderDetailService {
         });
 
         importOrderDetailRepository.saveAll(importOrderDetails);
+    }
+
+    private void updateRemainingQuantityOfImportRequestDetail(Long importOrderId) {
+        LOGGER.info("Update remaining quantity of import request detail");
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+        ImportRequest importRequest = importOrder.getImportRequest();
+        LOGGER.info("Finding import request by id: {}", importRequest.getId());
+        for (ImportRequestDetail detail : importRequest.getDetails()) {
+            for(ImportOrderDetail orderDetail : importOrder.getImportOrderDetails()) {
+                if(detail.getItem().getId().equals(orderDetail.getItem().getId())){
+                    LOGGER.info("Updating remaining quantity for item id: {}", detail.getItem().getId());
+                    detail.setRemainingQuantity(detail.getExpectQuantity() - orderDetail.getExpectQuantity());
+                    importRequestDetailRepository.save(detail);
+                    break;
+                }
+            }
+        }
     }
 
     private void updateOrderDetail(ImportOrderDetail detail, ImportOrderDetailRequest request) {

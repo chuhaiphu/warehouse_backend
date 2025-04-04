@@ -15,6 +15,7 @@ public class ImportRequestDetailResponse {
     private String itemName;
     private int actualQuantity;
     private int expectQuantity;
+    private int remainingQuantity;
     private DetailStatus status;
 
 

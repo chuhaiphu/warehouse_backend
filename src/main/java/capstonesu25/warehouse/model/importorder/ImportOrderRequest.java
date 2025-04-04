@@ -22,10 +22,8 @@ public class ImportOrderRequest {
 
     private Long accountId;
 
-    @NotNull(message = "can not be null")
     private LocalDate dateReceived;
 
-    @NotNull(message = "can not be null")
     private LocalTime timeReceived;
 
     private String note;

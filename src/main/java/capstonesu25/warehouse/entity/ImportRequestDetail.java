@@ -25,6 +25,9 @@ public class ImportRequestDetail {
     @Column(name = "actual_quantity")
     private int actualQuantity;
 
+    @Column(name = "remaining_quantity")
+    private int remainingQuantity;
+
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
