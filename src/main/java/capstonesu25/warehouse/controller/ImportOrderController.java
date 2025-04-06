@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.model.importorder.AssignWarehouseKeeperRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -88,6 +89,21 @@ public class ImportOrderController {
                 null,
                 HttpStatus.OK,
                 "Successfully deleted import order"
+        );
+    }
+
+    @Operation(summary = "Assign warehouse keeper to an import order")
+    @PostMapping("/assign-warehouse-keeper")
+    public ResponseEntity<?> assignWarehouseKeeper(@RequestBody AssignWarehouseKeeperRequest request) {
+        LOGGER.info("Assigning warehouse keeper to import order");
+        ImportOrderResponse result = importOrderService.assignWarehouseKeeper(
+                request.getImportOrderId(), 
+                request.getAccountId());
+        
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully assigned warehouse keeper to import order"
         );
     }
 }

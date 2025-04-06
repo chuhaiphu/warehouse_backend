@@ -8,7 +8,6 @@ import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,35 +122,6 @@ public class InventoryItemController {
                 )
         );
     }
-    @Operation(summary = "Get QR codes data ")
-    @GetMapping("/getQRCodes")
-    public ResponseEntity<?> getListQRCodes(@RequestParam Long itemId,
-                                       @RequestParam @Nullable Long importOrderDetailId,
-                                        @RequestParam @Nullable Long exportRequestDetailId,
-                                        @RequestParam Double measurementValue) {
-        LOGGER.info("Get QR codes data");
-        List<QrCodeResponse> result = inventoryItemService.getListQRCodeByCredential(itemId, importOrderDetailId
-                , exportRequestDetailId, measurementValue);
-        return ResponseUtil.getCollection(
-                result,
-                HttpStatus.OK,
-                "Successfully get all QR codes",
-                null
-        );
-    }
-
-    @Operation(summary = "Create a new inventory item")
-    @PostMapping
-    public ResponseEntity<?> createQRCode(@RequestBody InventoryItemRequest request) {
-        LOGGER.info("Creating inventory item");
-        List<QrCodeResponse> responses = inventoryItemService.create(request);
-        return ResponseUtil.getCollection(
-                responses,
-                HttpStatus.CREATED,
-                "Successfully created inventory item",
-                null
-        );
-    }
 
     @Operation(summary = "Create a new inventory item with QR codes")
     @PostMapping("/create-with-qr")
@@ -166,6 +136,18 @@ public class InventoryItemController {
         );
     }
 
+    @Operation(summary = "Get QR codes by inventory item IDs")
+    @PostMapping("/qr-codes")
+    public ResponseEntity<?> getListQrCodes(@RequestBody List<Long> inventoryItemIds) {
+        LOGGER.info("Getting QR codes by inventory item IDs");
+        List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
+        return ResponseUtil.getCollection(
+                result,
+                HttpStatus.OK,
+                "Successfully retrieved QR codes",
+                null
+        );
+    }
 
     @Operation(summary = "Update an existing inventory item")
     @PutMapping

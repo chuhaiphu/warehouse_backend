@@ -54,28 +54,6 @@ public class InventoryItemService {
     }
 
     @Transactional
-    public List<QrCodeResponse>  create(InventoryItemRequest request) {
-        LOGGER.info("Creating inventory item");
-        List<QrCodeResponse> qrCodes = new ArrayList<>();
-        for (int i = 0; i < request.getNumberOfItems(); i++) {
-        InventoryItem inventoryItem = mapToEntity(request);
-        inventoryItem.setImportedDate(LocalDateTime.now());
-        inventoryItem.setUpdatedDate(LocalDateTime.now());
-        InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
-            QrCodeResponse qrCode = new QrCodeResponse(
-                    savedItem.getId(),
-                    savedItem.getItem().getId(),
-                    savedItem.getImportOrderDetail() != null ? savedItem.getImportOrderDetail().getId() : null,
-                    savedItem.getExportRequestDetail() != null ? savedItem.getExportRequestDetail().getId() : null,
-                    savedItem.getMeasurementValue()
-            );
-            qrCodes.add(qrCode);
-
-        }
-        return qrCodes;
-    }
-
-    @Transactional
     public List<QrCodeResponse> createQRCode(QrCodeRequest request) {
         LOGGER.info("Creating QR codes for inventory items");
         List<QrCodeResponse> qrCodes = new ArrayList<>();
@@ -125,29 +103,6 @@ public class InventoryItemService {
         return qrCodes;
     }
 
-    public List<QrCodeResponse> getListQRCodeByCredential(Long itemId,Long importOrderDetailId,Long exportRequestDetailId
-            ,Double measurementValue){
-        List<InventoryItem> inventoryItems = new ArrayList<>();
-        if(importOrderDetailId != null) {
-             inventoryItems = inventoryItemRepository
-                    .findByItem_IdAndImportOrderDetail_IdAndMeasurementValue(itemId, importOrderDetailId, measurementValue);
-        }
-        if(exportRequestDetailId != null) {
-            inventoryItems = inventoryItemRepository
-                    .findByItem_IdAndExportRequestDetail_IdAndMeasurementValue(itemId, exportRequestDetailId, measurementValue);
-        }
-        return inventoryItems.stream()
-                .map(inventoryItem -> new QrCodeResponse(
-                        inventoryItem.getId(),
-                        inventoryItem.getItem().getId(),
-                        inventoryItem.getImportOrderDetail() != null ? inventoryItem.getImportOrderDetail().getId() : null,
-                        inventoryItem.getExportRequestDetail() != null ? inventoryItem.getExportRequestDetail().getId() : null,
-                        inventoryItem.getMeasurementValue()
-                ))
-                .collect(Collectors.toList());
-
-    }
-
     @Transactional
     public InventoryItemResponse update(InventoryItemRequest request) {
         LOGGER.info("Updating inventory item with id: {}", request.getId());
@@ -191,6 +146,21 @@ public class InventoryItemService {
         Pageable pageable = PageRequest.of(page - 1, limit);
         return inventoryItemRepository.findByStoredLocationId(storedLocationId, pageable)
                 .map(this::mapToResponse);
+    }
+
+    public List<QrCodeResponse> getListQrCodes(List<Long> inventoryItemIds) {
+        LOGGER.info("Getting QR codes by inventory item IDs: {}", inventoryItemIds);
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findAllById(inventoryItemIds);
+        
+        return inventoryItems.stream()
+            .map(inventoryItem -> new QrCodeResponse(
+                inventoryItem.getId(),
+                inventoryItem.getItem().getId(),
+                inventoryItem.getImportOrderDetail() != null ? inventoryItem.getImportOrderDetail().getId() : null,
+                inventoryItem.getExportRequestDetail() != null ? inventoryItem.getExportRequestDetail().getId() : null,
+                inventoryItem.getMeasurementValue()
+            ))
+            .collect(Collectors.toList());
     }
 
     private InventoryItemResponse mapToResponse(InventoryItem inventoryItem) {

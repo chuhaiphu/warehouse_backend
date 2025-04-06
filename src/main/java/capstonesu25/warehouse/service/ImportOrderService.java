@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
@@ -74,7 +75,18 @@ public class ImportOrderService {
         importOrderRepository.delete(importOrder);
     }
 
-
+    public ImportOrderResponse assignWarehouseKeeper(Long importOrderId, Long accountId) {
+        LOGGER.info("Assigning warehouse keeper to import order: " + importOrderId);
+        
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
+        
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
+        
+        importOrder.setAssignedWareHouseKeeper(account);
+        return mapToResponse(importOrderRepository.save(importOrder));
+    }
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(

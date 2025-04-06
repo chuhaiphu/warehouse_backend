@@ -61,7 +61,7 @@ public class ImportRequestDetailController {
 
     @Operation(summary = "Create import request details from file upload")
     @PostMapping("/{importRequestId}")
-    public ResponseEntity<?> createImportRequest(@RequestPart MultipartFile file, @PathVariable Long importRequestId){
+    public ResponseEntity<?> createImportRequestDetail(@RequestPart MultipartFile file, @PathVariable Long importRequestId){
         LOGGER.info("Creating import request detail");
         service.createImportRequestDetail(file, importRequestId);
         return ResponseUtil.getObject(
@@ -73,7 +73,7 @@ public class ImportRequestDetailController {
 
     @Operation(summary = "Update import request details")
     @PutMapping("/{importRequestDetailId}")
-    public ResponseEntity<?> updateImportRequest(@RequestBody ImportRequestDetailRequest importRequestDetailRequest
+    public ResponseEntity<?> updateImportRequestDetail(@RequestBody ImportRequestDetailRequest importRequestDetailRequest
             , @PathVariable Long importRequestDetailId){
         LOGGER.info("Updating import request detail");
         service.updateImportRequestDetail(importRequestDetailRequest, importRequestDetailId);
@@ -86,7 +86,7 @@ public class ImportRequestDetailController {
 
     @Operation(summary = "Delete import request details by import request ID")
     @DeleteMapping("/{importRequestDetailId}")
-    public ResponseEntity<?> deleteImportRequest(@PathVariable Long importRequestDetailId){
+    public ResponseEntity<?> deleteImportRequestDetail(@PathVariable Long importRequestDetailId){
         LOGGER.info("Deleting import request detail");
         service.deleteImportRequestDetail(importRequestDetailId);
         return ResponseUtil.getObject(
