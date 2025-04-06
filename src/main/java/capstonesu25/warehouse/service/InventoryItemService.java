@@ -97,13 +97,13 @@ public class InventoryItemService {
                     importOrderDetail.getImportOrder().getTimeReceived()));
             inventoryItem.setImportOrderDetail(importOrderDetail);
             inventoryItem.setUpdatedDate(LocalDateTime.now());
-            inventoryItem.setMeasurementValue(inventoryItem.getItem().getMeasurementValue());
 
             if (request.getItemId() != null) {
                 LOGGER.info("Setting item ID: {}", request.getItemId());
                 Item item = itemRepository.findById(request.getItemId())
                         .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId()));
                 inventoryItem.setItem(item);
+                inventoryItem.setMeasurementValue(inventoryItem.getItem().getMeasurementValue());
                 if (item.getDaysUntilDue() != null && inventoryItem.getImportedDate() != null) {
                     inventoryItem.setExpiredDate(inventoryItem.getImportedDate().plusDays(item.getDaysUntilDue()));
                 } else {
