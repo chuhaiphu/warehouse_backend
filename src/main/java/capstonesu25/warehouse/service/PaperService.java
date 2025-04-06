@@ -117,7 +117,7 @@ public class PaperService {
             }
             //get the stored location
             List<StoredLocation> storedLocationList = storedLocationRepository
-                    .findByItem_IdAndFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(importOrderDetail.getItem().getId());
+                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(importOrderDetail.getItem().getId());
             for (InventoryItem inventoryItem : inventoryItemList) {
                 for (StoredLocation storedLocation : storedLocationList) {
                     if (storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue() <= storedLocation.getMaximumCapacityForItem()) {
