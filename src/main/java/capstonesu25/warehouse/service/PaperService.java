@@ -125,6 +125,8 @@ public class PaperService {
                         double newCapacity = storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue();
                         storedLocation.setCurrentCapacity(newCapacity);
 
+                        storedLocation.setUsed(true);
+
                         boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < inventoryItem.getMeasurementValue();
                         storedLocation.setFulled(isNowFull);
 
