@@ -13,7 +13,7 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     Page<InventoryItem> findByImportOrderDetailId(Long importOrderDetailId, Pageable pageable);
     Page<InventoryItem> findByExportRequestDetailId(Long exportRequestDetailId, Pageable pageable);
     Page<InventoryItem> findByStoredLocationId(Long storedLocationId, Pageable pageable);
-    List<InventoryItem> findByItem_IdAndImportOrderDetail_IdAndQuantity(Long itemId, Long importOrderDetailId, Integer quantity);
-    List<InventoryItem> findByItem_IdAndExportRequestDetail_IdAndQuantity(Long itemId, Long exportRequestDetailId, Integer quantity);
+    List<InventoryItem> findByItem_IdAndImportOrderDetail_IdAndMeasurementValue(Long itemId, Long importOrderDetailId, Double measurementValue);
+    List<InventoryItem> findByItem_IdAndExportRequestDetail_IdAndMeasurementValue(Long itemId, Long exportRequestDetailId, Double measurementValue);
 
 }

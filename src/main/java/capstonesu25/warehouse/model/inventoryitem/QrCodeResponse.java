@@ -12,5 +12,5 @@ public class QrCodeResponse {
     private Long itemId;
     private Long importOrderDetailId;
     private Long exportRequestDetailId;
-    private Integer quantity;
+    private Double measurementValue;
 }

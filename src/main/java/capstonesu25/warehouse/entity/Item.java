@@ -28,6 +28,12 @@ public class Item {
     @Column(name = "total_measurement_value")
     private Double totalMeasurementValue;
 
+    @Column(name = "measurement_value")
+    private Double measurementValue;
+
+    @Column(name = "quantity")
+    private Integer quantity;
+
     @Column(name = "unit_type")
     private String unitType;
 

@@ -67,7 +67,7 @@ public class InventoryItemService {
                     savedItem.getItem().getId(),
                     savedItem.getImportOrderDetail() != null ? savedItem.getImportOrderDetail().getId() : null,
                     savedItem.getExportRequestDetail() != null ? savedItem.getExportRequestDetail().getId() : null,
-                    savedItem.getQuantity()
+                    savedItem.getMeasurementValue()
             );
             qrCodes.add(qrCode);
 
@@ -97,6 +97,7 @@ public class InventoryItemService {
                     importOrderDetail.getImportOrder().getTimeReceived()));
             inventoryItem.setImportOrderDetail(importOrderDetail);
             inventoryItem.setUpdatedDate(LocalDateTime.now());
+            inventoryItem.setMeasurementValue(inventoryItem.getItem().getMeasurementValue());
 
             if (request.getItemId() != null) {
                 LOGGER.info("Setting item ID: {}", request.getItemId());
@@ -117,7 +118,7 @@ public class InventoryItemService {
                     savedItem.getItem().getId(),
                     savedItem.getImportOrderDetail() != null ? savedItem.getImportOrderDetail().getId() : null,
                     savedItem.getExportRequestDetail() != null ? savedItem.getExportRequestDetail().getId() : null,
-                    savedItem.getQuantity()
+                    savedItem.getMeasurementValue()
             );
             qrCodes.add(qrCode);
         }
@@ -125,15 +126,15 @@ public class InventoryItemService {
     }
 
     public List<QrCodeResponse> getListQRCodeByCredential(Long itemId,Long importOrderDetailId,Long exportRequestDetailId
-            ,Integer quantity){
+            ,Double measurementValue){
         List<InventoryItem> inventoryItems = new ArrayList<>();
         if(importOrderDetailId != null) {
              inventoryItems = inventoryItemRepository
-                    .findByItem_IdAndImportOrderDetail_IdAndQuantity(itemId, importOrderDetailId, quantity);
+                    .findByItem_IdAndImportOrderDetail_IdAndMeasurementValue(itemId, importOrderDetailId, measurementValue);
         }
         if(exportRequestDetailId != null) {
             inventoryItems = inventoryItemRepository
-                    .findByItem_IdAndExportRequestDetail_IdAndQuantity(itemId, exportRequestDetailId, quantity);
+                    .findByItem_IdAndExportRequestDetail_IdAndMeasurementValue(itemId, exportRequestDetailId, measurementValue);
         }
         return inventoryItems.stream()
                 .map(inventoryItem -> new QrCodeResponse(
@@ -141,7 +142,7 @@ public class InventoryItemService {
                         inventoryItem.getItem().getId(),
                         inventoryItem.getImportOrderDetail() != null ? inventoryItem.getImportOrderDetail().getId() : null,
                         inventoryItem.getExportRequestDetail() != null ? inventoryItem.getExportRequestDetail().getId() : null,
-                        inventoryItem.getQuantity()
+                        inventoryItem.getMeasurementValue()
                 ))
                 .collect(Collectors.toList());
 
@@ -196,7 +197,7 @@ public class InventoryItemService {
         InventoryItemResponse response = new InventoryItemResponse();
         response.setId(inventoryItem.getId());
         response.setReasonForDisposal(inventoryItem.getReasonForDisposal());
-        response.setQuantity(inventoryItem.getQuantity());
+        response.setMeasurementValue(inventoryItem.getMeasurementValue());
         response.setStatus(inventoryItem.getStatus());
         response.setExpiredDate(inventoryItem.getExpiredDate());
         response.setImportedDate(inventoryItem.getImportedDate());
@@ -256,7 +257,7 @@ public class InventoryItemService {
     private InventoryItem updateEntityFromRequest(InventoryItem inventoryItem, InventoryItemRequest request) {
         LOGGER.info("convert to inventory item entity from request: {}", request);
         inventoryItem.setReasonForDisposal(request.getReasonForDisposal() != null ? request.getReasonForDisposal() : null);
-        inventoryItem.setQuantity(request.getQuantity() != null ? request.getQuantity() : null);
+        inventoryItem.setMeasurementValue(Double.valueOf(request.getMeasurementValue() != null ? request.getMeasurementValue() : null));
         if(request.getStatus() != null){
             inventoryItem.setStatus(request.getStatus());
         }

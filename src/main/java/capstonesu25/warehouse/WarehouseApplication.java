@@ -65,40 +65,40 @@ public class WarehouseApplication {
 			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
 
 			// Items - Electronics
-			Item laptop = new Item(null, "Laptop", "Gaming laptop", "pcs", 10.0, "Electronics", 365, 5, 50, cat1, prov1, null, null, null, null, null);
-			Item smartphone = new Item(null, "Smartphone", "Latest model smartphone", "pcs", 30.0, "Electronics", 365, 10, 100, cat1, prov1, null, null, null, null, null);
-			Item tablet = new Item(null, "Tablet", "10-inch tablet", "pcs", 15.0, "Electronics", 365, 8, 60, cat1, prov1, null, null, null, null, null);
-			Item headphones = new Item(null, "Headphones", "Wireless headphones", "pcs", 25.0, "Electronics", 365, 15, 80, cat1, prov1, null, null, null, null, null);
+			Item laptop = new Item(null, "Laptop", "Gaming laptop", "pcs", 10.0,2.0,5, "Electronics", 365, 5, 50, cat1, prov1, null, null, null, null, null);
+			Item smartphone = new Item(null, "Smartphone", "Latest model smartphone", "pcs", 10.0,2.0,5, "Electronics", 365, 10, 100, cat1, prov1, null, null, null, null, null);
+			Item tablet = new Item(null, "Tablet", "10-inch tablet", "pcs", 10.0,2.0,5, "Electronics", 365, 8, 60, cat1, prov1, null, null, null, null, null);
+			Item headphones = new Item(null, "Headphones", "Wireless headphones", "pcs", 10.0,2.0,5, "Electronics", 365, 15, 80, cat1, prov1, null, null, null, null, null);
 
 			// Items - Furniture
-			Item chair = new Item(null, "Chair", "Office chair", "pcs", 20.0, "Furniture", 500, 10, 100, cat2, prov2, null, null, null, null, null);
-			Item desk = new Item(null, "Desk", "Computer desk", "pcs", 15.0, "Furniture", 500, 5, 30, cat2, prov2, null, null, null, null, null);
-			Item bookshelf = new Item(null, "Bookshelf", "Wooden bookshelf", "pcs", 10.0, "Furniture", 500, 3, 20, cat2, prov2, null, null, null, null, null);
-			Item cabinet = new Item(null, "Cabinet", "File cabinet", "pcs", 8.0, "Furniture", 500, 4, 25, cat2, prov2, null, null, null, null, null);
+			Item chair = new Item(null, "Chair", "Office chair", "pcs", 10.0,2.0,5, "Furniture", 500, 10, 100, cat2, prov2, null, null, null, null, null);
+			Item desk = new Item(null, "Desk", "Computer desk", "pcs", 110.0,2.0,5,"Furniture", 500, 5, 30, cat2, prov2, null, null, null, null, null);
+			Item bookshelf = new Item(null, "Bookshelf", "Wooden bookshelf", "pcs",10.0,2.0,5, "Furniture", 500, 3, 20, cat2, prov2, null, null, null, null, null);
+			Item cabinet = new Item(null, "Cabinet", "File cabinet", "pcs", 10.0,2.0,5, "Furniture", 500, 4, 25, cat2, prov2, null, null, null, null, null);
 
 			// Items - Groceries
-			Item rice = new Item(null, "Rice", "Organic rice", "kg", 500.0, "Groceries", 180, 50, 1000, cat3, prov3, null, null, null, null, null);
-			Item sugar = new Item(null, "Sugar", "White sugar", "kg", 300.0, "Groceries", 365, 30, 600, cat3, prov3, null, null, null, null, null);
-			Item flour = new Item(null, "Flour", "All-purpose flour", "kg", 400.0, "Groceries", 180, 40, 800, cat3, prov3, null, null, null, null, null);
-			Item oil = new Item(null, "Cooking Oil", "Vegetable oil", "liter", 200.0, "Groceries", 365, 20, 400, cat3, prov3, null, null, null, null, null);
+			Item rice = new Item(null, "Rice", "Organic rice", "kg", 10.0,2.0,5, "Groceries", 180, 50, 1000, cat3, prov3, null, null, null, null, null);
+			Item sugar = new Item(null, "Sugar", "White sugar", "kg", 10.0,2.0,5, "Groceries", 365, 30, 600, cat3, prov3, null, null, null, null, null);
+			Item flour = new Item(null, "Flour", "All-purpose flour", "kg", 10.0,2.0,5, "Groceries", 180, 40, 800, cat3, prov3, null, null, null, null, null);
+			Item oil = new Item(null, "Cooking Oil", "Vegetable oil", "liter", 10.0,2.0,5, "Groceries", 365, 20, 400, cat3, prov3, null, null, null, null, null);
 
 			// Items - Clothing
-			Item tshirt = new Item(null, "T-Shirt", "Cotton T-shirt", "pcs", 100.0, "Clothing", 730, 20, 500, cat4, prov4, null, null, null, null, null);
-			Item jeans = new Item(null, "Jeans", "Denim jeans", "pcs", 80.0, "Clothing", 730, 15, 300, cat4, prov4, null, null, null, null, null);
-			Item jacket = new Item(null, "Jacket", "Winter jacket", "pcs", 50.0, "Clothing", 730, 10, 200, cat4, prov4, null, null, null, null, null);
-			Item socks = new Item(null, "Socks", "Cotton socks", "pairs", 150.0, "Clothing", 730, 30, 600, cat4, prov4, null, null, null, null, null);
+			Item tshirt = new Item(null, "T-Shirt", "Cotton T-shirt", "pcs", 10.0,2.0,5,"Clothing", 730, 20, 500, cat4, prov4, null, null, null, null, null);
+			Item jeans = new Item(null, "Jeans", "Denim jeans", "pcs", 10.0,2.0,5, "Clothing", 730, 15, 300, cat4, prov4, null, null, null, null, null);
+			Item jacket = new Item(null, "Jacket", "Winter jacket", "pcs", 10.0,2.0,5, "Clothing", 730, 10, 200, cat4, prov4, null, null, null, null, null);
+			Item socks = new Item(null, "Socks", "Cotton socks", "pairs", 10.0,2.0,5, "Clothing", 730, 30, 600, cat4, prov4, null, null, null, null, null);
 
 			// Items - Office Supplies
-			Item paper = new Item(null, "Paper", "A4 printing paper", "reams", 100.0, "Office Supplies", 730, 20, 500, cat5, prov5, null, null, null, null, null);
-			Item pens = new Item(null, "Pens", "Ballpoint pens", "boxes", 50.0, "Office Supplies", 730, 10, 200, cat5, prov5, null, null, null, null, null);
-			Item stapler = new Item(null, "Stapler", "Office stapler", "pcs", 30.0, "Office Supplies", 730, 5, 100, cat5, prov5, null, null, null, null, null);
-			Item folders = new Item(null, "Folders", "File folders", "packs", 40.0, "Office Supplies", 730, 8, 150, cat5, prov5, null, null, null, null, null);
+			Item paper = new Item(null, "Paper", "A4 printing paper", "reams", 10.0,2.0,5, "Office Supplies", 730, 20, 500, cat5, prov5, null, null, null, null, null);
+			Item pens = new Item(null, "Pens", "Ballpoint pens", "boxes", 10.0,2.0,5, "Office Supplies", 730, 10, 200, cat5, prov5, null, null, null, null, null);
+			Item stapler = new Item(null, "Stapler", "Office stapler", "pcs",10.0,2.0,5, "Office Supplies", 730, 5, 100, cat5, prov5, null, null, null, null, null);
+			Item folders = new Item(null, "Folders", "File folders", "packs", 10.0,2.0,5, "Office Supplies", 730, 8, 150, cat5, prov5, null, null, null, null, null);
 
 			// Items - Tools
-			Item hammer = new Item(null, "Hammer", "Claw hammer", "pcs", 25.0, "Tools", 1825, 5, 50, cat6, prov6, null, null, null, null, null);
-			Item screwdriver = new Item(null, "Screwdriver Set", "Multi-bit screwdriver set", "sets", 20.0, "Tools", 1825, 8, 80, cat6, prov6, null, null, null, null, null);
-			Item wrench = new Item(null, "Wrench Set", "Adjustable wrench set", "sets", 15.0, "Tools", 1825, 6, 60, cat6, prov6, null, null, null, null, null);
-			Item drill = new Item(null, "Power Drill", "Cordless power drill", "pcs", 10.0, "Tools", 1825, 4, 40, cat6, prov6, null, null, null, null, null);
+			Item hammer = new Item(null, "Hammer", "Claw hammer", "pcs", 10.0,2.0,5, "Tools", 1825, 5, 50, cat6, prov6, null, null, null, null, null);
+			Item screwdriver = new Item(null, "Screwdriver Set", "Multi-bit screwdriver set", "sets", 10.0,2.0,5, "Tools", 1825, 8, 80, cat6, prov6, null, null, null, null, null);
+			Item wrench = new Item(null, "Wrench Set", "Adjustable wrench set", "sets", 10.0,2.0,5, "Tools", 1825, 6, 60, cat6, prov6, null, null, null, null, null);
+			Item drill = new Item(null, "Power Drill", "Cordless power drill", "pcs", 10.0,2.0,5, "Tools", 1825, 4, 40, cat6, prov6, null, null, null, null, null);
 
 			itemRepo.saveAll(List.of(
 					laptop, smartphone, tablet, headphones,

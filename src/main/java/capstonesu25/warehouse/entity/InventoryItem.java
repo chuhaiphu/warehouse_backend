@@ -24,8 +24,8 @@ public class InventoryItem {
     @Column(name = "reason_for_disposal")
     private String reasonForDisposal;
 
-    @Column(name = "quantity")
-    private Integer quantity;
+    @Column(name = "measurement_value")
+    private Double measurementValue;
 
     @Column(name = "status")
     private ItemStatus status;

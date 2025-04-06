@@ -128,10 +128,10 @@ public class InventoryItemController {
     public ResponseEntity<?> getListQRCodes(@RequestParam Long itemId,
                                        @RequestParam @Nullable Long importOrderDetailId,
                                         @RequestParam @Nullable Long exportRequestDetailId,
-                                        @RequestParam Integer quantity) {
+                                        @RequestParam Double measurementValue) {
         LOGGER.info("Get QR codes data");
         List<QrCodeResponse> result = inventoryItemService.getListQRCodeByCredential(itemId, importOrderDetailId
-                , exportRequestDetailId, quantity);
+                , exportRequestDetailId, measurementValue);
         return ResponseUtil.getCollection(
                 result,
                 HttpStatus.OK,

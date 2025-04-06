@@ -14,7 +14,7 @@ import java.util.List;
 public class InventoryItemResponse {
     private Long id;
     private String reasonForDisposal;
-    private Integer quantity;
+    private Double measurementValue;
     private ItemStatus status;
     private LocalDateTime expiredDate;
     private LocalDateTime importedDate;
