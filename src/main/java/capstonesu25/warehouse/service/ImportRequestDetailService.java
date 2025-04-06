@@ -68,7 +68,7 @@ public class ImportRequestDetailService {
                 importRequestDetail.setItem(itemRepository.findById(row.getItemId())
                         .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId())));
                 importRequestDetail.setActualQuantity(0);
-                importRequestDetail.setRemainingQuantity(0);
+                importRequestDetail.setOrderedQuantity(0);
                 importRequestDetailRepository.save(importRequestDetail);
             }
         }
@@ -143,7 +143,7 @@ public class ImportRequestDetailService {
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
                 importRequestDetail.getActualQuantity(),
                 importRequestDetail.getExpectQuantity(),
-                importRequestDetail.getRemainingQuantity(),
+                importRequestDetail.getOrderedQuantity(),
                 importRequestDetail.getStatus() != null ? importRequestDetail.getStatus() : null
         );
     }

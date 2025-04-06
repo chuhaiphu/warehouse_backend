@@ -2,6 +2,7 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
+import capstonesu25.warehouse.model.inventoryitem.QrCodeRequest;
 import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
@@ -139,7 +140,7 @@ public class InventoryItemController {
         );
     }
 
-    @Operation(summary = "Create a new inventory item and generate QR codes")
+    @Operation(summary = "Create a new inventory item")
     @PostMapping
     public ResponseEntity<?> createQRCode(@RequestBody InventoryItemRequest request) {
         LOGGER.info("Creating inventory item");
@@ -151,6 +152,20 @@ public class InventoryItemController {
                 null
         );
     }
+
+    @Operation(summary = "Create a new inventory item with QR codes")
+    @PostMapping("/create-with-qr")
+    public ResponseEntity<?> createInventoryItemWithQrCode(@RequestBody QrCodeRequest request) {
+        LOGGER.info("Creating inventory item with QR codes");
+        List<QrCodeResponse> responses = inventoryItemService.createQRCode(request);
+        return ResponseUtil.getCollection(
+                responses,
+                HttpStatus.CREATED,
+                "Successfully created inventory item with QR codes",
+                null
+        );
+    }
+
 
     @Operation(summary = "Update an existing inventory item")
     @PutMapping

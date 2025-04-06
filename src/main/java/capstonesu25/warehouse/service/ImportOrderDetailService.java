@@ -86,7 +86,7 @@ public class ImportOrderDetailService {
             importOrderDetail.setActualQuantity(0);
             importOrderDetailRepository.save(importOrderDetail);
         }
-        updateRemainingQuantityOfImportRequestDetail(importOrderId);
+        updateOrderedQuantityOfImportRequestDetail(importOrderId);
         LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
     }
 
@@ -110,7 +110,7 @@ public class ImportOrderDetailService {
         importOrderDetailRepository.saveAll(importOrderDetails);
     }
 
-    private void updateRemainingQuantityOfImportRequestDetail(Long importOrderId) {
+    private void updateOrderedQuantityOfImportRequestDetail(Long importOrderId) {
         LOGGER.info("Update remaining quantity of import request detail");
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
@@ -119,8 +119,8 @@ public class ImportOrderDetailService {
         for (ImportRequestDetail detail : importRequest.getDetails()) {
             for(ImportOrderDetail orderDetail : importOrder.getImportOrderDetails()) {
                 if(detail.getItem().getId().equals(orderDetail.getItem().getId())){
-                    LOGGER.info("Updating remaining quantity for item id: {}", detail.getItem().getId());
-                    detail.setRemainingQuantity(detail.getExpectQuantity() - orderDetail.getExpectQuantity());
+                    LOGGER.info("Updating ordered quantity for item id: {}", detail.getItem().getId());
+                    detail.setOrderedQuantity(detail.getOrderedQuantity() + orderDetail.getExpectQuantity());
                     importRequestDetailRepository.save(detail);
                     break;
                 }

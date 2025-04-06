@@ -6,6 +6,7 @@ import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.StoredLocation;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
+import capstonesu25.warehouse.model.inventoryitem.QrCodeRequest;
 import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
@@ -55,9 +56,7 @@ public class InventoryItemService {
     @Transactional
     public List<QrCodeResponse>  create(InventoryItemRequest request) {
         LOGGER.info("Creating inventory item");
-
         List<QrCodeResponse> qrCodes = new ArrayList<>();
-
         for (int i = 0; i < request.getNumberOfItems(); i++) {
         InventoryItem inventoryItem = mapToEntity(request);
         inventoryItem.setImportedDate(LocalDateTime.now());
@@ -72,6 +71,55 @@ public class InventoryItemService {
             );
             qrCodes.add(qrCode);
 
+        }
+        return qrCodes;
+    }
+
+    @Transactional
+    public List<QrCodeResponse> createQRCode(QrCodeRequest request) {
+        LOGGER.info("Creating QR codes for inventory items");
+        List<QrCodeResponse> qrCodes = new ArrayList<>();
+        LOGGER.info("Setting import order detail ID: {}", request.getImportOrderDetailId());
+        ImportOrderDetail importOrderDetail = importOrderDetailRepository.findById(request.getImportOrderDetailId())
+                .orElseThrow(() -> new EntityNotFoundException("Import order detail not found with id: " + request.getImportOrderDetailId()));
+
+        int list = 0;
+        if(request.getNumberOfQrCodes() == 0) {
+            list = importOrderDetail.getExpectQuantity();
+        }else {
+            list = request.getNumberOfQrCodes();
+        }
+        LOGGER.info("Number of QR codes to create: {}", list);
+        for (int i = 0; i < list; i++) {
+            InventoryItem inventoryItem = new InventoryItem();
+
+            inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
+                    importOrderDetail.getImportOrder().getTimeReceived()));
+            inventoryItem.setImportOrderDetail(importOrderDetail);
+            inventoryItem.setUpdatedDate(LocalDateTime.now());
+
+            if (request.getItemId() != null) {
+                LOGGER.info("Setting item ID: {}", request.getItemId());
+                Item item = itemRepository.findById(request.getItemId())
+                        .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId()));
+                inventoryItem.setItem(item);
+                if (item.getDaysUntilDue() != null && inventoryItem.getImportedDate() != null) {
+                    inventoryItem.setExpiredDate(inventoryItem.getImportedDate().plusDays(item.getDaysUntilDue()));
+                } else {
+                    LOGGER.warn("Imported date or daysUntilDue is null");
+                }
+            }
+
+            LOGGER.info("Saved inventory item: {}", inventoryItem);
+            InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
+            QrCodeResponse qrCode = new QrCodeResponse(
+                    savedItem.getId(),
+                    savedItem.getItem().getId(),
+                    savedItem.getImportOrderDetail() != null ? savedItem.getImportOrderDetail().getId() : null,
+                    savedItem.getExportRequestDetail() != null ? savedItem.getExportRequestDetail().getId() : null,
+                    savedItem.getQuantity()
+            );
+            qrCodes.add(qrCode);
         }
         return qrCodes;
     }
@@ -209,9 +257,6 @@ public class InventoryItemService {
         LOGGER.info("convert to inventory item entity from request: {}", request);
         inventoryItem.setReasonForDisposal(request.getReasonForDisposal() != null ? request.getReasonForDisposal() : null);
         inventoryItem.setQuantity(request.getQuantity() != null ? request.getQuantity() : null);
-        ImportOrderDetail importOrderDetail = importOrderDetailRepository.findById(request.getImportOrderDetailId())
-                .orElseThrow(() -> new EntityNotFoundException("Import order detail not found with id: " + request.getImportOrderDetailId()));
-        inventoryItem.setImportedDate(importOrderDetail.getImportOrder().getCreatedDate());
         if(request.getStatus() != null){
             inventoryItem.setStatus(request.getStatus());
         }
@@ -244,13 +289,17 @@ public class InventoryItemService {
 
         // Set import order detail reference
         if (request.getImportOrderDetailId() != null) {
-            inventoryItem.setImportOrderDetail(importOrderDetailRepository.findById(request.getImportOrderDetailId())
-                    .orElseThrow(() -> new EntityNotFoundException("Import order detail not found with id: " + request.getImportOrderDetailId())));
+            ImportOrderDetail importOrderDetail = importOrderDetailRepository.findById(request.getImportOrderDetailId())
+                    .orElseThrow(() -> new EntityNotFoundException("Import order detail not found with id: " + request.getImportOrderDetailId()));
+
+            inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
+                    importOrderDetail.getImportOrder().getTimeReceived()));
+            inventoryItem.setImportOrderDetail(importOrderDetail);
+            inventoryItem.setUpdatedDate(LocalDateTime.now());
         } else {
             inventoryItem.setImportOrderDetail(null);
         }
 
-        // Set stored location reference
         if (request.getStoredLocationId() != null) {
             StoredLocation storedLocation = storedLocationRepository.findById(request.getStoredLocationId())
                     .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getStoredLocationId()));
