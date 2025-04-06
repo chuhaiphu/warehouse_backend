@@ -100,7 +100,7 @@ public class PaperService {
 
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
         for(ImportOrderDetail importOrderDetail : importOrderDetails) {
-           List<InventoryItem> inventoryItemList = importOrderDetail.getInventoryItems();
+           List<InventoryItem> inventoryItemList = importOrderDetail.getItem().getInventoryItems();
             // If we have more inventory items than the actual quantity, delete the extras
             LOGGER.info("Deleting excess inventory items with import order detail id: {}", importOrderDetail.getId());
             if (inventoryItemList.size() > importOrderDetail.getActualQuantity()) {
