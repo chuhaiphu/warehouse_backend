@@ -5,7 +5,6 @@ import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.enums.DetailStatus;
-import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.repository.ImportOrderDetailRepository;

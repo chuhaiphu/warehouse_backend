@@ -219,11 +219,6 @@ public class InventoryItemService {
         return response;
     }
 
-    private InventoryItem mapToEntity(InventoryItemRequest request) {
-        InventoryItem inventoryItem = new InventoryItem();
-        return   updateEntityFromRequest(inventoryItem, request);
-    }
-
     private InventoryItem updateEntityFromRequest(InventoryItem inventoryItem, InventoryItemRequest request) {
         LOGGER.info("convert to inventory item entity from request: {}", request);
         inventoryItem.setReasonForDisposal(request.getReasonForDisposal() != null ? request.getReasonForDisposal() : null);

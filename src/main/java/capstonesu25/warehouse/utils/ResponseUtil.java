@@ -2,7 +2,6 @@ package capstonesu25.warehouse.utils;
 
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.model.responsedto.ResponseDTO;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

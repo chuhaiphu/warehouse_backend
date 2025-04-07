@@ -4,7 +4,6 @@ import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
-import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.repository.AccountRepository;
