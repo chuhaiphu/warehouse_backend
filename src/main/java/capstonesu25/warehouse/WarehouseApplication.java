@@ -154,10 +154,17 @@ public class WarehouseApplication {
 			));
 
 			Account acc1 = new Account(null, "admin@example.com", "12345", "123456789", "Admin User", "ACTIVE", true, false, AccountRole.ADMIN, null, null, null, null, null);
-			Account acc2 = new Account(null, "warehousekeeper@example.com", "12345", "987654321", "User One", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			Account acc2 = new Account(null, "wk.john@example.com", "12345", "987654321", "John Smith", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			
 			Account acc3 = new Account(null, "warehousemanager@example.com", "12345", "111222333", "User Two", "ACTIVE", true, false, AccountRole.WAREHOUSE_MANAGER, null, null, null, null, null);
 			Account acc4 = new Account(null, "department@example.com", "12345", "444555666", "Warehouse Manager", "ACTIVE", true, false, AccountRole.DEPARTMENT, null, null, null, null, null);
-			accountRepo.saveAll(List.of(acc1, acc2, acc3, acc4));
+			Account acc5 = new Account(null, "wk.sarah@example.com", "12345", "555111222", "Sarah Johnson", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			Account acc6 = new Account(null, "wk.michael@example.com", "12345", "555222333", "Michael Chen", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			Account acc7 = new Account(null, "wk.emily@example.com", "12345", "555333444", "Emily Rodriguez", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			Account acc8 = new Account(null, "wk.david@example.com", "12345", "555444555", "David Wilson", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			Account acc9 = new Account(null, "wk.lisa@example.com", "12345", "555555666", "Lisa Thompson", "ACTIVE", true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			
+			accountRepo.saveAll(List.of(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8, acc9));
 
 			System.out.println("Created example values successfully");
 		};
