@@ -5,9 +5,12 @@ import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ExportRequestDetail;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
+import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +23,7 @@ import java.util.List;
 public class ExportRequestService {
     private final ExportRequestRepository exportRequestRepository;
     private final AccountRepository accountRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
     public List<ExportRequestResponse> getAllExportRequests() {
         return exportRequestRepository.findAll().stream()
@@ -57,6 +61,19 @@ public class ExportRequestService {
 
         ExportRequest newExportRequest = exportRequestRepository.save(exportRequest);
         return mapToResponse(newExportRequest);
+    }
+
+    public ExportRequestResponse assignStaffToExportRequest(AssignStaffExportRequest request) {
+        LOGGER.info("Assigning staff to export request with ID: " + request.getExportRequestId());
+        ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
+        if (request.getAccountId() != null) {
+            LOGGER.info("Assigning staff with account ID: " + request.getAccountId() + " to export request");
+            exportRequest.setAssignedWareHouseKeeper(
+                accountRepository.findById(request.getAccountId()).orElseThrow()
+            );
+        }
+        exportRequestRepository.save(exportRequest);
+        return mapToResponse(exportRequest);
     }
 
     private ExportRequestResponse mapToResponse(ExportRequest exportRequest) {

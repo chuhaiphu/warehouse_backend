@@ -2,6 +2,7 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.exportrequest.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
+import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ExportRequestService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -78,6 +79,19 @@ public class ExportRequestController {
             exportRequestService.createExportRequest(request),
             HttpStatus.CREATED,
             "Successfully created export request"
+        );
+    }
+
+    @Operation(summary = "Assign warehouse keeper for export request")
+    @PostMapping("/assign-warehouse-keeper")
+    public ResponseEntity<?> updateExportRequest(
+        @RequestBody AssignStaffExportRequest request
+    ) {
+        LOGGER.info("Assigning warehouse keeper to export request");
+        return ResponseUtil.getObject(
+            exportRequestService.assignStaffToExportRequest(request),
+            HttpStatus.OK,
+            "Successfully updated export request"
         );
     }
 } 
