@@ -96,17 +96,18 @@ public class ImportOrderDetailService {
         List<ImportOrderDetail> importOrderDetails = importOrderDetailRepository
                 .findImportOrderDetailByImportOrder_Id(importOrderId);
 
-        Map<Long, ImportOrderDetail> detailMap = importOrderDetails.stream()
-                .collect(Collectors.toMap(d -> d.getItem().getId(), d -> d));
 
-        list.forEach(request -> {
-            ImportOrderDetail detail = detailMap.get(request.getItemId());
-            if (detail != null) {
-                updateOrderDetail(detail, request);
+       for(ImportOrderDetail importOrderDetail : importOrderDetails) {
+            for (ImportOrderDetailRequest request : list) {
+                if (importOrderDetail.getItem().getId().equals(request.getItemId())) {
+                    LOGGER.info("Updating import order detail for item id: {}", request.getItemId());
+                    updateOrderDetail(importOrderDetail, request);
+                    importOrderDetailRepository.save(importOrderDetail);
+                    break;
+                }
             }
-        });
+        }
 
-        importOrderDetailRepository.saveAll(importOrderDetails);
     }
 
     private void updateOrderedQuantityOfImportRequestDetail(Long importOrderId) {
@@ -130,12 +131,6 @@ public class ImportOrderDetailService {
     private void updateOrderDetail(ImportOrderDetail detail, ImportOrderDetailRequest request) {
         detail.setExpectQuantity(request.getQuantity());
         detail.setActualQuantity(request.getActualQuantity());
-        detail.setStatus(determineStatus(request.getActualQuantity(), request.getQuantity()));
-    }
-
-    private DetailStatus determineStatus(int actualQuantity, int expectedQuantity) {
-        if (actualQuantity == expectedQuantity) return DetailStatus.MATCH;
-        return actualQuantity < expectedQuantity ? DetailStatus.LACK : DetailStatus.EXCESS;
     }
 
     public void delete(Long importOrderDetailId) {
