@@ -4,7 +4,6 @@ import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
-import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
@@ -22,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
