@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.model.account;
 
 import capstonesu25.warehouse.enums.AccountRole;
+import capstonesu25.warehouse.enums.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ public class AccountResponse {
     private String email;
     private String phone;
     private String fullName;
-    private String status;
+    private AccountStatus status;
     private Boolean isEnable;
     private Boolean isBlocked;
     private AccountRole role;

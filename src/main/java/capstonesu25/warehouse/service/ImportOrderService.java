@@ -4,6 +4,9 @@ import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.enums.AccountRole;
+import capstonesu25.warehouse.enums.AccountStatus;
+import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.repository.AccountRepository;
@@ -82,6 +85,16 @@ public class ImportOrderService {
         
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
+        
+        // Validate account status and role
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot assign warehouse keeper: Account is not active");
+        }
+        
+        if (account.getRole() != AccountRole.WAREHOUSE_KEEPER) {
+            throw new IllegalStateException("Cannot assign warehouse keeper: Account is not a warehouse keeper");
+        }
+        importOrder.setStatus(ImportStatus.IN_PROGRESS);
         
         importOrder.setAssignedWareHouseKeeper(account);
         return mapToResponse(importOrderRepository.save(importOrder));

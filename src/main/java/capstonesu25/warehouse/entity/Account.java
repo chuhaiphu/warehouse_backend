@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.entity;
 import capstonesu25.warehouse.enums.AccountRole;
+import capstonesu25.warehouse.enums.AccountStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -37,7 +38,8 @@ public class Account implements UserDetails {
     private String fullName;
 
     @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
     @Column(name = "is_enable", nullable = false)
     private Boolean isEnable;
