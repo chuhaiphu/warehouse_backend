@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.entity;
 
+import capstonesu25.warehouse.enums.DetailStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,8 +22,11 @@ public class ExportRequestDetail {
     @Column(name = "quantity")
     private Integer quantity;
 
+    @Column(name = "actual_quantity")
+    private Integer actualQuantity;
+
     @Column(name = "status")
-    private String status;
+    private DetailStatus status;
 
     @ManyToOne
     @JoinColumn(name = "export_request_id")

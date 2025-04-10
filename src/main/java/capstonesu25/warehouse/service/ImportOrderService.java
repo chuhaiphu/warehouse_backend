@@ -100,6 +100,19 @@ public class ImportOrderService {
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
+    public void updateStatus(Long importOrderId, ImportStatus status) {
+        LOGGER.info("Update import order status");
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
+        if(status != ImportStatus.CANCELLED ) {
+            importOrder.setStatus(status);
+        }
+        if(importOrder.getPaper() != null && status == ImportStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot cancel import order with paper because it is already in progress");
+        }
+        importOrderRepository.save(importOrder);
+    }
+
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(
                 importOrder.getId(),

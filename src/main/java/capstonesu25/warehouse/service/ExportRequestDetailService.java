@@ -38,9 +38,18 @@ public class ExportRequestDetailService {
             ExportRequestDetail exportRequestDetail = new ExportRequestDetail();
             exportRequestDetail.setExportRequest(exportRequest);
             exportRequestDetail.setQuantity(row.getQuantity());
+            exportRequestDetail.setActualQuantity(0);
             exportRequestDetail.setItem(itemRepository.findById(row.getItemId())
                     .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId())));
             exportRequestDetailRepository.save(exportRequestDetail);
         }
+    }
+
+    public void updateActualQuantity(Long exportRequestDetailId, Integer actualQuantity) {
+        LOGGER.info("Updating actual quantity for export request detail with ID: {}", exportRequestDetailId);
+        ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
+                .orElseThrow(() -> new RuntimeException("Export request detail not found"));
+        exportRequestDetail.setActualQuantity(actualQuantity);
+        exportRequestDetailRepository.save(exportRequestDetail);
     }
 } 

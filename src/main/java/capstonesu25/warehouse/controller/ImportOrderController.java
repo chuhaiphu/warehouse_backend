@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.model.importorder.AssignWarehouseKeeperRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
@@ -77,6 +78,18 @@ public class ImportOrderController {
                 importOrderService.save(request),
                 HttpStatus.OK,
                 "Successfully updated import order"
+        );
+    }
+
+    @PutMapping("/update-status/{importOrderId}")
+    @Operation(summary = "Update the status of an import order")
+    public ResponseEntity<?> updateImportOrderStatus(@PathVariable Long importOrderId, @RequestParam ImportStatus status) {
+        LOGGER.info("Updating import order status");
+        importOrderService.updateStatus(importOrderId, status);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully updated import order status"
         );
     }
 

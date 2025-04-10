@@ -50,7 +50,19 @@ public class ImportRequestService {
         return mapToResponse(newImportRequest);
     }
 
-
+    public void updateImportRequestStatus(Long id, ImportStatus status) {
+        ImportRequest importRequest = importRequestRepository.findById(id).orElseThrow();
+        importRequest.setStatus(status);
+        if(status != ImportStatus.CANCELLED ) {
+            importRequest.setStatus(status);
+        }
+        if((importRequest.getImportOrders() != null
+        || importRequest.getExportRequest() != null)
+                && status == ImportStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot cancel import order with paper because it is already in progress");
+        }
+        importRequestRepository.save(importRequest);
+    }
 
     private ImportRequestResponse mapToResponse(ImportRequest importRequest) {
         return new ImportRequestResponse(

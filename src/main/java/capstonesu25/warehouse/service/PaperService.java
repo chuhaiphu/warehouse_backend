@@ -60,7 +60,6 @@ public class PaperService {
         Paper paper = paperRepository.findById(id).orElse(null);
         return paper != null ? convertToResponse(paper) : null;
     }
-
     public void createPaper(PaperRequest request) throws IOException {
         LOGGER.info("Creating paper");
         String signProviderUrl = cloudinaryUtil.uploadImage(request.getSignProviderUrl());
@@ -74,12 +73,12 @@ public class PaperService {
             LOGGER.error("Error creating paper: {}", e.getMessage());
             throw e;
         }
-        afterCreatedPaperUpdateItems(request);
-        autoFillLocation(request);
         if(request.getImportOrderId() != null) {
             updateImportRequest(request.getImportOrderId());
             updateImportOrder(request.getImportOrderId());
         }
+        afterCreatedPaperUpdateItems(request);
+        autoFillLocation(request);
     }
 
     //update inventory item and location
@@ -101,20 +100,6 @@ public class PaperService {
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
         for(ImportOrderDetail importOrderDetail : importOrderDetails) {
            List<InventoryItem> inventoryItemList = importOrderDetail.getItem().getInventoryItems();
-            // If we have more inventory items than the actual quantity, delete the extras
-            LOGGER.info("Deleting excess inventory items with import order detail id: {}", importOrderDetail.getId());
-            if (inventoryItemList.size() > importOrderDetail.getActualQuantity()) {
-                int itemsToDeleteCount = inventoryItemList.size() - importOrderDetail.getActualQuantity();
-
-                List<InventoryItem> inventoryItemsToDelete = inventoryItemList.stream()
-                        .filter(item -> item.getStatus() == null)
-                        .limit(itemsToDeleteCount)
-                        .toList();
-
-                for (InventoryItem item : inventoryItemsToDelete) {
-                    inventoryItemRepository.deleteById(item.getId());
-                }
-            }
             //get the stored location
             List<StoredLocation> storedLocationList = storedLocationRepository
                     .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(importOrderDetail.getItem().getId());
@@ -257,6 +242,9 @@ public class PaperService {
         }
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
         for(ImportOrderDetail importOrderDetail : importOrderDetails) {
+            LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
+            createInventoryItem(importOrderDetail);
+            LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
             if(importOrderDetail.getActualQuantity() == importOrderDetail.getExpectQuantity()) {
                 importOrderDetail.setStatus(DetailStatus.MATCH);
             } else if(importOrderDetail.getActualQuantity() > importOrderDetail.getExpectQuantity()) {
@@ -270,6 +258,22 @@ public class PaperService {
         importOrder.setStatus(ImportStatus.COMPLETED);
         importOrder.setUpdatedDate(LocalDateTime.now());
         importOrderRepository.save(importOrder);
+    }
+
+    private void createInventoryItem(ImportOrderDetail importOrderDetail) {
+        for(int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
+            InventoryItem inventoryItem = new InventoryItem();
+            inventoryItem.setItem(importOrderDetail.getItem());
+            inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
+                    importOrderDetail.getImportOrder().getTimeReceived()));
+            inventoryItem.setMeasurementValue(importOrderDetail.getItem().getMeasurementValue());
+            inventoryItem.setStatus(ItemStatus.AVAILABLE);
+            inventoryItem.setUpdatedDate(LocalDateTime.now());
+            if(importOrderDetail.getItem().getDaysUntilDue() != null) {
+                inventoryItem.setExpiredDate(inventoryItem.getImportedDate().plusDays(importOrderDetail.getItem().getDaysUntilDue()));
+            }
+            inventoryItemRepository.save(inventoryItem);
+        }
     }
 
     private Paper convertToEntity(PaperRequest request) {
