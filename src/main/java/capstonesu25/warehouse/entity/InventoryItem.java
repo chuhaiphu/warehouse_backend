@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -52,9 +53,9 @@ public class InventoryItem {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    @ManyToOne
-    @JoinColumn(name = "export_request_detail_id")
-    private ExportRequestDetail exportRequestDetail;
+    @ManyToMany(mappedBy = "inventoryItems")
+    private List<ExportRequestDetail> exportRequestDetails = new ArrayList<>();
+
 
     @ManyToOne
     @JoinColumn(name = "import_order_detail_id")

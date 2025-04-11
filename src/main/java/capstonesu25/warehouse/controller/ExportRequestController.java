@@ -94,4 +94,18 @@ public class ExportRequestController {
             "Successfully updated export request"
         );
     }
+
+    @Operation(summary = "Assign warehouse keeper for export request")
+    @PostMapping("/assign-warehouse-keeper/{exportRequestId}")
+    public ResponseEntity<?> assignWarehouseKeeper(
+        @PathVariable Long exportRequestId,
+        @RequestParam Long accountId
+    ) {
+        LOGGER.info("Assigning warehouse keeper to export request");
+        return ResponseUtil.getObject(
+            exportRequestService.assignStaff(exportRequestId, accountId),
+            HttpStatus.OK,
+            "Successfully updated export request"
+        );
+    }
 } 

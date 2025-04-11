@@ -30,7 +30,7 @@ public class InventoryItemResponse {
     private String itemCode;
 
     // Basic export request detail information
-    private Long exportRequestDetailId;
+    private List<Long> exportRequestDetailIds;
 
     // Basic import order detail information
     private Long importOrderDetailId;

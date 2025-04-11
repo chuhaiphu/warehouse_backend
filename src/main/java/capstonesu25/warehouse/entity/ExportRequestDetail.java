@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,11 +20,11 @@ public class ExportRequestDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "quantity")
-    private Integer quantity;
+    @Column(name = "measurement_value")
+    private Double measurementValue;
 
-    @Column(name = "actual_quantity")
-    private Integer actualQuantity;
+    @Column(name = "actual_measurement_value")
+    private Double actualMeasurementValue;
 
     @Column(name = "status")
     private DetailStatus status;
@@ -36,7 +37,13 @@ public class ExportRequestDetail {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    @OneToMany(mappedBy = "exportRequestDetail", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-    private List<InventoryItem> inventoryItems;
+    @ManyToMany
+    @JoinTable(
+            name = "export_request_detail_inventory_item",
+            joinColumns = @JoinColumn(name = "export_request_detail_id"),
+            inverseJoinColumns = @JoinColumn(name = "inventory_item_id")
+    )
+    private List<InventoryItem> inventoryItems = new ArrayList<>();
+
 
 }

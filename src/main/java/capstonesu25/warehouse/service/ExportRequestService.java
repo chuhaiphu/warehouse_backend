@@ -1,8 +1,10 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ExportRequestDetail;
+import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -74,6 +77,23 @@ public class ExportRequestService {
         }
         exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
+    }
+
+    public ExportRequestResponse assignStaff(Long exportRequestId, Long accountId) {
+        LOGGER.info("Assigning staff to export request with ID: " + exportRequestId);
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
+                .orElseThrow(() -> new NoSuchElementException("Export Request not found with ID: " + exportRequestId));
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
+        if(account.getStatus() !=  AccountStatus.ACTIVE) {
+            throw new IllegalArgumentException("Account is "+ account.getStatus());
+        }
+
+        exportRequest.setAssignedWareHouseKeeper(account);
+        LOGGER.info("Update account status to INACTIVE");
+        account.setStatus(AccountStatus.INACTIVE);
+        accountRepository.save(account);
+        return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
     private ExportRequestResponse mapToResponse(ExportRequest exportRequest) {

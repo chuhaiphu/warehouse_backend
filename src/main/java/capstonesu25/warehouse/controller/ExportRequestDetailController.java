@@ -1,6 +1,6 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestActualQuantity;
+import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestMeasurementValue;
 import capstonesu25.warehouse.service.ExportRequestDetailService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,11 +36,11 @@ public class ExportRequestDetailController {
 
     @Operation(summary = "Update actual quantity of export request detail")
     @PutMapping("/actual-quantity")
-    public ResponseEntity<?> updateActualQuantity(@RequestBody ExportRequestActualQuantity actualQuantity) {
-        LOGGER.info("Updating actual quantity for export request detail with ID: {}", actualQuantity.getExportRequestDetailId());
-        service.updateActualQuantity(actualQuantity.getExportRequestDetailId(), actualQuantity.getActualQuantity());
+    public ResponseEntity<?> updateActualQuantity(@RequestBody ExportRequestMeasurementValue request) {
+        LOGGER.info("Updating actual quantity for export request detail with ID: {}", request.getExportRequestDetailId());
         return ResponseUtil.getObject(
-            null,
+                service.updateActualMeasurementValue(
+                        request.getExportRequestDetailId(), request.getActualMeasurementValue()),
             HttpStatus.OK,
             "Successfully updated actual quantity"
         );

@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ExportRequestDetailExcelRow {
     private Long itemId;
-    private Integer quantity;
+    private Double measurementValue;
 } 
