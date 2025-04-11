@@ -66,8 +66,8 @@ public class ExportRequest {
     private LocalDateTime updatedDate;
 
     @ManyToOne
-    @JoinColumn(name = "assigned_warehouse_keeper_id")
-    private Account assignedWareHouseKeeper;
+    @JoinColumn(name = "assigned_staff_id")
+    private Account assignedStaff;
 
     @OneToOne(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private Paper paper;

@@ -1,9 +1,10 @@
 package capstonesu25.warehouse;
 
 import capstonesu25.warehouse.entity.*;
-import capstonesu25.warehouse.enums.AccountRole;
-import capstonesu25.warehouse.enums.AccountStatus;
+import capstonesu25.warehouse.model.account.RegisterRequest;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.service.AccountService;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,7 +25,8 @@ public class WarehouseApplication {
 			ItemRepository itemRepo,
 			ProviderRepository providerRepo,
 			StoredLocationRepository storedLocationRepo,
-			AccountRepository accountRepo
+			AccountRepository accountRepo,
+			AccountService accountService
 	) {
 		return args -> {
 			if (categoryRepo.count() > 0) {
@@ -154,18 +156,79 @@ public class WarehouseApplication {
 					locF1, locF2, locF3, locF4
 			));
 
-			Account acc1 = new Account(null, "admin@example.com", "12345", "123456789", "Admin User", AccountStatus.ACTIVE, true, false, AccountRole.ADMIN, null, null, null, null, null);
-			Account acc2 = new Account(null, "wk.john@example.com", "12345", "987654321", "John Smith", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
+			// Replace the direct account creation with RegisterRequest
+			RegisterRequest admin = RegisterRequest.builder()
+				.email("admin@example.com")
+				.password("12345")
+				.phone("123456789")
+				.fullName("Admin User")
+				.role("ADMIN")
+				.build();
+			accountService.register(admin);
+
+			RegisterRequest warehouseManager = RegisterRequest.builder()
+				.email("warehousemanager@example.com")
+				.password("12345")
+				.phone("111222333")
+				.fullName("User Two")
+				.role("WAREHOUSE_MANAGER")
+				.build();
+			accountService.register(warehouseManager);
+
+			RegisterRequest department = RegisterRequest.builder()
+				.email("department@example.com")
+				.password("12345")
+				.phone("444555666")
+				.fullName("Warehouse Manager")
+				.role("DEPARTMENT")
+				.build();
+			accountService.register(department);
+
+
+			RegisterRequest staff1 = RegisterRequest.builder()
+				.email("wk.john@example.com")
+				.password("12345")
+				.phone("987654321")
+				.fullName("John Smith")
+				.role("STAFF")
+				.build();
+			accountService.register(staff1);
 			
-			Account acc3 = new Account(null, "warehousemanager@example.com", "12345", "111222333", "User Two", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_MANAGER, null, null, null, null, null);
-			Account acc4 = new Account(null, "department@example.com", "12345", "444555666", "Warehouse Manager", AccountStatus.ACTIVE, true, false, AccountRole.DEPARTMENT, null, null, null, null, null);
-			Account acc5 = new Account(null, "wk.sarah@example.com", "12345", "555111222", "Sarah Johnson", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
-			Account acc6 = new Account(null, "wk.michael@example.com", "12345", "555222333", "Michael Chen", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
-			Account acc7 = new Account(null, "wk.emily@example.com", "12345", "555333444", "Emily Rodriguez", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
-			Account acc8 = new Account(null, "wk.david@example.com", "12345", "555444555", "David Wilson", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
-			Account acc9 = new Account(null, "wk.lisa@example.com", "12345", "555555666", "Lisa Thompson", AccountStatus.ACTIVE, true, false, AccountRole.WAREHOUSE_KEEPER, null, null, null, null, null);
-			
-			accountRepo.saveAll(List.of(acc1, acc2, acc3, acc4, acc5, acc6, acc7, acc8, acc9));
+			RegisterRequest staff2 = RegisterRequest.builder()
+				.email("wk.sarah@example.com")
+				.password("12345")
+				.phone("555111222")
+				.fullName("Sarah Johnson")
+				.role("STAFF")
+				.build();
+			accountService.register(staff2);
+
+			RegisterRequest staff3 = RegisterRequest.builder()
+				.email("wk.michael@example.com")
+				.password("12345")
+				.phone("555222333")
+				.fullName("Michael Chen")
+				.role("STAFF")
+				.build();
+			accountService.register(staff3);
+
+			RegisterRequest staff4 = RegisterRequest.builder()
+				.email("wk.emily@example.com")
+				.password("12345")
+				.phone("555333444")
+				.fullName("Emily Rodriguez")
+				.role("STAFF")
+				.build();
+			accountService.register(staff4);
+
+			RegisterRequest staff5 = RegisterRequest.builder()
+				.email("wk.david@example.com")
+				.password("12345")
+				.phone("555444555")
+				.fullName("David Wilson")
+				.role("STAFF")
+				.build();
+			accountService.register(staff5);
 
 			System.out.println("Created example values successfully");
 		};

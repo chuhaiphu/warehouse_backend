@@ -10,17 +10,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ImportRequestRequest {
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
+public class ImportRequestCreateRequest {
+    @NotNull(message = "Import reason cannot be null")
+    @NotBlank(message = "Import reason cannot be blank")
     private String importReason;
 
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
+    @NotNull(message = "Import type cannot be null")
     private ImportType importType;
 
     private Long exportRequestId;
-
-
-
-}
+} 

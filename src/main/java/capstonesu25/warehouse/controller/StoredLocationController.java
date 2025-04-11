@@ -12,13 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-
 @Controller
-@RequestMapping("/stored-locations")
+@RequestMapping("/stored-location")
 @RequiredArgsConstructor
 @Validated
 public class StoredLocationController {
@@ -27,8 +27,9 @@ public class StoredLocationController {
 
     @Operation(summary = "Get all stored locations with pagination", description = "Returns a list of all stored locations")
     @GetMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
-                                    @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all stored locations");
         Page<StoredLocationResponse> result = storedLocationService.getAllStoredLocations(page, limit);
         return ResponseUtil.getCollection(
@@ -40,38 +41,36 @@ public class StoredLocationController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get stored location by ID", description = "Returns a stored location by its ID")
     @GetMapping("/{storedLocationId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getById(@PathVariable Long storedLocationId) {
         LOGGER.info("Getting stored location by id: {}", storedLocationId);
         StoredLocationResponse result = storedLocationService.getStoredLocationById(storedLocationId);
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully retrieved stored location"
-        );
+                "Successfully retrieved stored location");
     }
 
     @Operation(summary = "Create a new stored location", description = "Creates a new stored location in the system")
     @PostMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> createStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Creating stored location");
         return ResponseUtil.getObject(
                 storedLocationService.create(request),
                 HttpStatus.CREATED,
-                "Successfully created stored location"
-        );
+                "Successfully created stored location");
     }
 
     @Operation(summary = "Get available stored locations", description = "Returns a list of all available stored locations")
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableLocations(@RequestParam(defaultValue = "1") int page,
-                                                   @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting available stored locations");
         Page<StoredLocationResponse> result = storedLocationService.getAvailableStoredLocations(page, limit);
         return ResponseUtil.getCollection(
@@ -83,16 +82,14 @@ public class StoredLocationController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get stored locations by zone", description = "Returns a list of stored locations filtered by zone")
     @GetMapping("/zone/{zone}")
     public ResponseEntity<?> getByZone(@PathVariable String zone,
-                                       @RequestParam(defaultValue = "1") int page,
-                                       @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting stored locations by zone: {}", zone);
         Page<StoredLocationResponse> result = storedLocationService.getByZone(zone, page, limit);
         return ResponseUtil.getCollection(
@@ -104,16 +101,14 @@ public class StoredLocationController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get stored locations by floor", description = "Returns a list of stored locations filtered by floor")
     @GetMapping("/floor/{floor}")
     public ResponseEntity<?> getByFloor(@PathVariable String floor,
-                                        @RequestParam(defaultValue = "1") int page,
-                                        @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting stored locations by floor: {}", floor);
         Page<StoredLocationResponse> result = storedLocationService.getByFloor(floor, page, limit);
         return ResponseUtil.getCollection(
@@ -125,20 +120,18 @@ public class StoredLocationController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
     @PutMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Updating stored location");
         return ResponseUtil.getObject(
                 storedLocationService.update(request),
                 HttpStatus.OK,
-                "Successfully updated stored location"
-        );
+                "Successfully updated stored location");
     }
 
     @Operation(summary = "Delete a stored location by ID", description = "Removes a stored location from the system")
@@ -149,8 +142,7 @@ public class StoredLocationController {
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully deleted stored location"
-        );
+                "Successfully deleted stored location");
     }
 
 }

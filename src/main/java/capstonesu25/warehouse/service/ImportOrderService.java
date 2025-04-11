@@ -7,8 +7,9 @@ import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.ImportStatus;
-import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
+import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
+import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
 import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.ImportOrderRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
@@ -21,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
-
 
 @Service
 @RequiredArgsConstructor
@@ -40,35 +40,71 @@ public class ImportOrderService {
     public Page<ImportOrderResponse> getImportOrdersByImportRequestId(Long id, int page, int limit) {
         LOGGER.info("Get import orders by import request id: " + id);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id,pageable);
+        Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id, pageable);
         return importOrders.map(this::mapToResponse);
     }
 
-    public ImportOrderResponse save (ImportOrderRequest request) {
-        LOGGER.info("Create import order");
-        ImportOrder importOrder;
-        if(request.getImportOrderId() != null) {
-             LOGGER.info("Update import order");
-             importOrder = importOrderRepository.findById(request.getImportOrderId())
-                     .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + request.getImportRequestId()));
-             importOrder.setStatus(request.getStatus());
-        }else {
-             LOGGER.info("Create import order");
-             importOrder = new ImportOrder();
-        }
-        ImportRequest importRequest = importRequestRepository.findById
-                (request.getImportRequestId()).orElseThrow();
+    public ImportOrderResponse create(ImportOrderCreateRequest request) {
+        LOGGER.info("Create new import order");
+        
+        ImportRequest importRequest = importRequestRepository.findById(request.getImportRequestId())
+                .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + request.getImportRequestId()));
+
+        ImportOrder importOrder = new ImportOrder();
         importOrder.setImportRequest(importRequest);
-        if(request.getAccountId() != null) {
-            importOrder.setAssignedWareHouseKeeper(accountRepository.findById
-                    (request.getAccountId()).orElseThrow());
+        importOrder.setStatus(ImportStatus.NOT_STARTED);
+        
+        if (request.getAccountId() != null) {
+            Account account = accountRepository.findById(request.getAccountId())
+                    .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
+            validateAccountForAssignment(account);
+            importOrder.setAssignedStaff(account);
+            importOrder.setStatus(ImportStatus.IN_PROGRESS);
         }
-        if (request.getNote() != null){
+        
+        if (request.getNote() != null) {
             importOrder.setNote(request.getNote());
         }
+        
         importOrder.setDateReceived(request.getDateReceived());
         importOrder.setTimeReceived(request.getTimeReceived());
+        
+        // Update import request status to IN_PROGRESS
+        importRequest.setStatus(ImportStatus.IN_PROGRESS);
+        importRequestRepository.save(importRequest);
+
         return mapToResponse(importOrderRepository.save(importOrder));
+    }
+
+    public ImportOrderResponse update(ImportOrderUpdateRequest request) {
+        LOGGER.info("Update import order");
+        
+        ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + request.getImportOrderId()));
+
+        if (request.getNote() != null) {
+            importOrder.setNote(request.getNote());
+        }
+        
+        if (request.getDateReceived() != null) {
+            importOrder.setDateReceived(request.getDateReceived());
+        }
+        
+        if (request.getTimeReceived() != null) {
+            importOrder.setTimeReceived(request.getTimeReceived());
+        }
+        
+        return mapToResponse(importOrderRepository.save(importOrder));
+    }
+
+    private void validateAccountForAssignment(Account account) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot assign staff: Account is not active");
+        }
+
+        if (account.getRole() != AccountRole.STAFF) {
+            throw new IllegalStateException("Cannot assign staff: Account is not a staff member");
+        }
     }
 
     public void delete(Long id) {
@@ -77,59 +113,39 @@ public class ImportOrderService {
         importOrderRepository.delete(importOrder);
     }
 
-    public ImportOrderResponse assignWarehouseKeeper(Long importOrderId, Long accountId) {
-        LOGGER.info("Assigning warehouse keeper to import order: " + importOrderId);
-        
+    public ImportOrderResponse assignStaff(Long importOrderId, Long accountId) {
+        LOGGER.info("Assigning staff to import order: " + importOrderId);
+
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
-        
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
+
+        validateAccountForAssignment(account);
         
-        // Validate account status and role
-        if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new IllegalStateException("Cannot assign warehouse keeper: Account is not active");
-        }
-        
-        if (account.getRole() != AccountRole.WAREHOUSE_KEEPER) {
-            throw new IllegalStateException("Cannot assign warehouse keeper: Account is not a warehouse keeper");
-        }
+        importOrder.setAssignedStaff(account);
         importOrder.setStatus(ImportStatus.IN_PROGRESS);
         
-        importOrder.setAssignedWareHouseKeeper(account);
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
-    public void updateStatus(Long importOrderId, ImportStatus status) {
-        LOGGER.info("Update import order status");
-        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
-                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
-        if(status != ImportStatus.CANCELLED ) {
-            importOrder.setStatus(status);
-        }
-        if(importOrder.getPaper() != null && status == ImportStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot cancel import order with paper because it is already in progress");
-        }
-        importOrderRepository.save(importOrder);
-    }
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(
                 importOrder.getId(),
-                importOrder.getImportRequest() != null? importOrder.getImportRequest().getId() : null,
+                importOrder.getImportRequest() != null ? importOrder.getImportRequest().getId() : null,
                 importOrder.getDateReceived(),
                 importOrder.getTimeReceived(),
                 importOrder.getNote(),
-                importOrder.getStatus() != null? importOrder.getStatus() : null,
-                importOrder.getImportOrderDetails() != null? importOrder.getImportOrderDetails().stream()
+                importOrder.getStatus() != null ? importOrder.getStatus() : null,
+                importOrder.getImportOrderDetails() != null ? importOrder.getImportOrderDetails().stream()
                         .map(ImportOrderDetail::getId).toList() : null,
                 importOrder.getCreatedBy(),
                 importOrder.getUpdatedBy(),
                 importOrder.getCreatedDate(),
                 importOrder.getUpdatedDate(),
-                importOrder.getPaper() != null? importOrder.getPaper().getId() : null,
-                importOrder.getAssignedWareHouseKeeper() != null?
-                    importOrder.getAssignedWareHouseKeeper().getId() : null
-                );
+                importOrder.getPaper() != null ? importOrder.getPaper().getId() : null,
+                importOrder.getAssignedStaff() != null ? importOrder.getAssignedStaff().getId() : null);
     }
 }

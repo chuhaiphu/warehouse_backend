@@ -1,7 +1,6 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.enums.ImportStatus;
-import capstonesu25.warehouse.model.importrequest.ImportRequestRequest;
+import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestService;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 
 @Controller
 @RequestMapping("/import-request")
@@ -34,14 +32,13 @@ public class ImportRequestController {
                 importRequestService.getAllImportRequests(),
                 HttpStatus.OK,
                 "Successfully retrieved all import requests",
-                null
-        );
+                null);
     }
 
     @Operation(summary = "Get paginated import requests")
     @GetMapping("/page")
     public ResponseEntity<?> getAllByPage(@RequestParam(defaultValue = "1") int page,
-                                          @RequestParam(defaultValue = "10") int limit){
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all import requests by page");
         Page<ImportRequestResponse> result = importRequestService.getAllImportRequestsByPage(page, limit);
         return ResponseUtil.getCollection(
@@ -53,44 +50,28 @@ public class ImportRequestController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
 
     }
+
     @Operation(summary = "Get import request by import request Id")
     @GetMapping("/{importRequestId}")
-    public ResponseEntity<?> getById(@PathVariable Long importRequestId){
+    public ResponseEntity<?> getById(@PathVariable Long importRequestId) {
         LOGGER.info("Getting import request by id");
         ImportRequestResponse result = importRequestService.getImportRequestById(importRequestId);
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully retrieved import request"
-        );
+                "Successfully retrieved import request");
     }
 
     @Operation(summary = "Create a new import request")
     @PostMapping()
-    public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestRequest request){
+    public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestCreateRequest request) {
         LOGGER.info("Creating import request");
         return ResponseUtil.getObject(
                 importRequestService.createImportRequest(request),
                 HttpStatus.CREATED,
-                "Successfully created import request"
-        );
-    }
-
-    @Operation(summary = "Update import request status")
-    @PutMapping("/update-status/{importRequestId}")
-    public ResponseEntity<?> updateImportRequestStatus(@PathVariable Long importRequestId,
-                                                       @RequestParam ImportStatus status){
-        LOGGER.info("Updating import request status");
-        importRequestService.updateImportRequestStatus(importRequestId, status);
-        return ResponseUtil.getObject(
-              null,
-                HttpStatus.OK,
-                "Successfully updated import request status"
-        );
+                "Successfully created import request");
     }
 }

@@ -1,5 +1,9 @@
 package capstonesu25.warehouse.enums;
 
 public enum AccountRole {
-    DEPARTMENT, WAREHOUSE_KEEPER, ADMIN, WAREHOUSE_MANAGER, ACCOUNTING
+    DEPARTMENT,
+    STAFF,
+    WAREHOUSE_MANAGER,
+    ACCOUNTING,
+    ADMIN;
 }

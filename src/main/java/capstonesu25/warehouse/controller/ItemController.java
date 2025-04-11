@@ -12,13 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-
 @Controller
-@RequestMapping("/items")
+@RequestMapping("/item")
 @RequiredArgsConstructor
 @Validated
 public class ItemController {
@@ -27,8 +27,9 @@ public class ItemController {
 
     @Operation(summary = "Get all items with pagination")
     @GetMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
-                                    @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all items");
         Page<ItemResponse> result = itemService.getAllItems(page, limit);
         return ResponseUtil.getCollection(
@@ -40,28 +41,27 @@ public class ItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get item by ID")
     @GetMapping("/{itemId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getById(@PathVariable Long itemId) {
         LOGGER.info("Getting item by id: {}", itemId);
         ItemResponse result = itemService.getItemById(itemId);
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully retrieved item"
-        );
+                "Successfully retrieved item");
     }
 
     @Operation(summary = "Get items by category ID")
     @GetMapping("/category/{categoryId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getItemsByCategory(@PathVariable Long categoryId,
-                                                @RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting items by category id: {}", categoryId);
         Page<ItemResponse> result = itemService.getItemsByCategoryId(categoryId, page, limit);
         return ResponseUtil.getCollection(
@@ -73,16 +73,15 @@ public class ItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get items by provider ID")
     @GetMapping("/provider/{providerId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getItemsByProvider(@PathVariable Long providerId,
-                                                @RequestParam(defaultValue = "1") int page,
-                                                @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting items by provider id: {}", providerId);
         Page<ItemResponse> result = itemService.getItemsByProviderId(providerId, page, limit);
         return ResponseUtil.getCollection(
@@ -94,31 +93,29 @@ public class ItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Create a new item")
     @PostMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> createItem(@RequestBody ItemRequest request) {
         LOGGER.info("Creating item");
         return ResponseUtil.getObject(
                 itemService.create(request),
                 HttpStatus.CREATED,
-                "Successfully created item"
-        );
+                "Successfully created item");
     }
 
     @Operation(summary = "Update an existing item")
     @PutMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> updateItem(@RequestBody ItemRequest request) {
         LOGGER.info("Updating item");
         return ResponseUtil.getObject(
                 itemService.update(request),
                 HttpStatus.OK,
-                "Successfully updated item"
-        );
+                "Successfully updated item");
     }
 
     @Operation(summary = "Delete an item by ID")
@@ -129,8 +126,7 @@ public class ItemController {
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully deleted item"
-        );
+                "Successfully deleted item");
     }
 
 }
