@@ -1,7 +1,7 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportOrderDetailService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -31,9 +31,9 @@ public class ImportOrderDetailController {
     @Operation(summary = "Get paginated import order details by import order ID")
     @GetMapping("/page/{importOrderId}")
     @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> getImportOrderDetail(@PathVariable Long importOrderId,
+    public ResponseEntity<?> getImportOrderDetails(@PathVariable Long importOrderId,
             @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting import order detail");
+        LOGGER.info("Getting import order details");
         Page<ImportOrderDetailResponse> result = service.getAllByImportOrderId(importOrderId, page, limit);
         return ResponseUtil.getCollection(
                 result.getContent(),
@@ -47,54 +47,52 @@ public class ImportOrderDetailController {
                         page));
     }
 
-    @Operation(summary = "Get all import order details by import order ID")
-    @GetMapping("/{importOrderId}")
+    @Operation(summary = "Get import order detail by ID")
+    @GetMapping("/{importOrderDetailId}")
     @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> getImportOrderDetail(@PathVariable Long importOrderId) {
+    public ResponseEntity<?> getImportOrderDetail(@PathVariable Long importOrderDetailId) {
         LOGGER.info("Getting import order detail");
-        var result = service.getById(importOrderId);
-        return ResponseUtil.getCollection(
+        var result = service.getById(importOrderDetailId);
+        return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully get import order detail",
-                null
-
-        );
+                "Successfully get import order detail");
     }
 
-    @Operation(summary = "Create import order details from file upload")
+    @Operation(summary = "Create import order details from Excel file")
     @PostMapping("/{importOrderId}")
-    public ResponseEntity<?> createImportOrderDetail(@RequestPart MultipartFile file,
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<?> createImportOrderDetails(@RequestPart MultipartFile file,
             @PathVariable Long importOrderId) {
-        LOGGER.info("Creating import order detail");
-        service.create(file, importOrderId);
+        LOGGER.info("Creating import order details from Excel file");
+        service.createFromExcel(file, importOrderId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.CREATED,
-                "Successfully created import order");
+                "Successfully created import order details");
     }
 
-    @Operation(summary = "Update import order details")
+    @Operation(summary = "Update actual quantities of import order details")
     @PutMapping("/{importOrderId}")
     @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> updateImportOrderDetail(@RequestBody List<ImportOrderDetailRequest> requestList,
+    public ResponseEntity<?> updateActualQuantities(@RequestBody List<ImportOrderDetailUpdateRequest> requests,
             @PathVariable Long importOrderId) {
-        LOGGER.info("Updating import order detail");
-        service.updateImportOrderDetail(requestList, importOrderId);
+        LOGGER.info("Updating actual quantities of import order details");
+        service.updateActualQuantities(requests, importOrderId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully updated import order");
+                "Successfully updated actual quantities");
     }
 
-    @Operation(summary = "Delete import order details by import order ID")
-    @DeleteMapping("/{importOrderId}")
-    public ResponseEntity<?> deleteImportOrderDetail(@PathVariable Long importOrderId) {
+    @Operation(summary = "Delete import order detail by ID")
+    @DeleteMapping("/{importOrderDetailId}")
+    public ResponseEntity<?> deleteImportOrderDetail(@PathVariable Long importOrderDetailId) {
         LOGGER.info("Deleting import order detail");
-        service.delete(importOrderId);
+        service.delete(importOrderDetailId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully deleted import order");
+                "Successfully deleted import order detail");
     }
 }

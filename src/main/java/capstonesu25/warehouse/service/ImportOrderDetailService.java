@@ -4,8 +4,10 @@ import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
-import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
+import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailCreateRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
 import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
 import capstonesu25.warehouse.repository.ImportOrderRepository;
 import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
@@ -47,24 +49,30 @@ public class ImportOrderDetailService {
         return mapToResponse(importOrderDetail);
     }
 
-    public void create(MultipartFile file, Long importOrderId) {
-        LOGGER.info("Creating import order detail");
-        LOGGER.info("Finding import order by id: {}", importOrderId);
-
-        ImportOrder importRequest = importOrderRepository.findById(importOrderId)
+    public void createFromExcel(MultipartFile file, Long importOrderId) {
+        LOGGER.info("Creating import order details from Excel file");
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
-        List<ImportOrderDetailRequest> list = ExcelUtil.processExcelFile(file, ImportOrderDetailRequest.class);
+        List<ImportOrderDetailCreateRequest> requests = ExcelUtil.processExcelFile(file, ImportOrderDetailCreateRequest.class);
 
-        if (list.isEmpty()) {
+        if (requests.isEmpty()) {
             throw new IllegalArgumentException("Import order detail list cannot be empty");
         }
 
-        Long providerId = itemRepository.findById(list.get(0).getItemId())
-                .map(item -> item.getProvider().getId())
-                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + list.get(0).getItemId()));
+        validateSameProvider(requests);
+        createImportOrderDetails(importOrder, requests);
+        updateOrderedQuantityOfImportRequestDetail(importOrderId);
+        
+        LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
+    }
 
-        for (ImportOrderDetailRequest request : list) {
+    private void validateSameProvider(List<ImportOrderDetailCreateRequest> requests) {
+        Long providerId = itemRepository.findById(requests.get(0).getItemId())
+                .map(item -> item.getProvider().getId())
+                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + requests.get(0).getItemId()));
+
+        for (ImportOrderDetailCreateRequest request : requests) {
             Long currentProviderId = itemRepository.findById(request.getItemId())
                     .map(item -> item.getProvider().getId())
                     .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + request.getItemId()));
@@ -73,38 +81,48 @@ public class ImportOrderDetailService {
                 throw new IllegalArgumentException("All items must belong to the same provider.");
             }
         }
-
-        for (ImportOrderDetailRequest request : list) {
-            ImportOrderDetail importOrderDetail = new ImportOrderDetail();
-            importOrderDetail.setImportOrder(importRequest);
-            importOrderDetail.setExpectQuantity(request.getQuantity());
-            importOrderDetail.setItem(itemRepository.findById(request.getItemId()).orElseThrow());
-            importOrderDetail.setActualQuantity(0);
-            importOrderDetailRepository.save(importOrderDetail);
-        }
-        updateOrderedQuantityOfImportRequestDetail(importOrderId);
-        LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
     }
 
-
-    public void updateImportOrderDetail(List<ImportOrderDetailRequest> list, Long importOrderId) {
-        LOGGER.info("Updating import order detail for ImportOrder ID: {}", importOrderId);
-
-        List<ImportOrderDetail> importOrderDetails = importOrderDetailRepository
-                .findImportOrderDetailByImportOrder_Id(importOrderId);
-
-
-       for(ImportOrderDetail importOrderDetail : importOrderDetails) {
-            for (ImportOrderDetailRequest request : list) {
-                if (importOrderDetail.getItem().getId().equals(request.getItemId())) {
-                    LOGGER.info("Updating import order detail for item id: {}", request.getItemId());
-                    updateOrderDetail(importOrderDetail, request);
-                    importOrderDetailRepository.save(importOrderDetail);
-                    break;
-                }
-            }
+    private void createImportOrderDetails(ImportOrder importOrder, List<ImportOrderDetailCreateRequest> requests) {
+        for (ImportOrderDetailCreateRequest request : requests) {
+            ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setImportOrder(importOrder);
+            detail.setExpectQuantity(request.getQuantity());
+            detail.setActualQuantity(0);
+            detail.setStatus(DetailStatus.LACK);
+            detail.setItem(itemRepository.findById(request.getItemId()).orElseThrow());
+            importOrderDetailRepository.save(detail);
         }
+    }
 
+    public void updateActualQuantities(List<ImportOrderDetailUpdateRequest> requests, Long importOrderId) {
+        LOGGER.info("Updating actual quantities for ImportOrder ID: {}", importOrderId);
+
+        importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+
+        List<ImportOrderDetail> details = importOrderDetailRepository.findImportOrderDetailByImportOrder_Id(importOrderId);
+
+        for (ImportOrderDetail detail : details) {
+            requests.stream()
+                    .filter(request -> request.getItemId().equals(detail.getItem().getId()))
+                    .findFirst()
+                    .ifPresent(request -> {
+                        detail.setActualQuantity(request.getActualQuantity());
+                        updateDetailStatus(detail);
+                        importOrderDetailRepository.save(detail);
+                    });
+        }
+    }
+
+    private void updateDetailStatus(ImportOrderDetail detail) {
+        if (detail.getActualQuantity() < detail.getExpectQuantity()) {
+            detail.setStatus(DetailStatus.LACK);
+        } else if (detail.getActualQuantity() > detail.getExpectQuantity()) {
+            detail.setStatus(DetailStatus.EXCESS);
+        } else {
+            detail.setStatus(DetailStatus.MATCH);
+        }
     }
 
     private void updateOrderedQuantityOfImportRequestDetail(Long importOrderId) {
@@ -112,22 +130,16 @@ public class ImportOrderDetailService {
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
         ImportRequest importRequest = importOrder.getImportRequest();
-        LOGGER.info("Finding import request by id: {}", importRequest.getId());
+        
         for (ImportRequestDetail detail : importRequest.getDetails()) {
-            for(ImportOrderDetail orderDetail : importOrder.getImportOrderDetails()) {
-                if(detail.getItem().getId().equals(orderDetail.getItem().getId())){
-                    LOGGER.info("Updating ordered quantity for item id: {}", detail.getItem().getId());
-                    detail.setOrderedQuantity(detail.getOrderedQuantity() + orderDetail.getExpectQuantity());
-                    importRequestDetailRepository.save(detail);
-                    break;
-                }
-            }
+            importOrder.getImportOrderDetails().stream()
+                    .filter(orderDetail -> orderDetail.getItem().getId().equals(detail.getItem().getId()))
+                    .findFirst()
+                    .ifPresent(orderDetail -> {
+                        detail.setOrderedQuantity(detail.getOrderedQuantity() + orderDetail.getExpectQuantity());
+                        importRequestDetailRepository.save(detail);
+                    });
         }
-    }
-
-    private void updateOrderDetail(ImportOrderDetail detail, ImportOrderDetailRequest request) {
-        detail.setExpectQuantity(request.getQuantity());
-        detail.setActualQuantity(request.getActualQuantity());
     }
 
     public void delete(Long importOrderDetailId) {
@@ -143,7 +155,7 @@ public class ImportOrderDetailService {
                 importOrderDetail.getItem().getName(),
                 importOrderDetail.getExpectQuantity(),
                 importOrderDetail.getActualQuantity(),
-                importOrderDetail.getStatus() != null ? importOrderDetail.getStatus() : null
+                importOrderDetail.getStatus()
         );
     }
 }

@@ -1,6 +1,5 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestDetailService;
@@ -65,19 +64,6 @@ public class ImportRequestDetailController {
                 null,
                 HttpStatus.CREATED,
                 "Successfully created import request");
-    }
-
-    @Operation(summary = "Update import request details")
-    @PutMapping("/{importRequestDetailId}")
-    public ResponseEntity<?> updateImportRequestDetail(
-            @RequestBody ImportRequestDetailRequest importRequestDetailRequest,
-            @PathVariable Long importRequestDetailId) {
-        LOGGER.info("Updating import request detail");
-        service.updateImportRequestDetail(importRequestDetailRequest, importRequestDetailId);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully updated import request");
     }
 
     @Operation(summary = "Delete import request details by import request ID")

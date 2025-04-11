@@ -1,7 +1,6 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.enums.ImportStatus;
-import capstonesu25.warehouse.model.importrequest.ImportRequestRequest;
+import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestService;
@@ -68,23 +67,11 @@ public class ImportRequestController {
 
     @Operation(summary = "Create a new import request")
     @PostMapping()
-    public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestRequest request) {
+    public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestCreateRequest request) {
         LOGGER.info("Creating import request");
         return ResponseUtil.getObject(
                 importRequestService.createImportRequest(request),
                 HttpStatus.CREATED,
                 "Successfully created import request");
-    }
-
-    @Operation(summary = "Update import request status")
-    @PutMapping("/update-status/{importRequestId}")
-    public ResponseEntity<?> updateImportRequestStatus(@PathVariable Long importRequestId,
-            @RequestParam ImportStatus status) {
-        LOGGER.info("Updating import request status");
-        importRequestService.updateImportRequestStatus(importRequestId, status);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully updated import request status");
     }
 }

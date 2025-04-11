@@ -51,9 +51,6 @@ public class JwtService {
         // Add claims specific to access token
         claims.put("role", extractRoleFromUserDetails(userDetails));
         claims.put("token_type", "ACCESS");
-        claims.put("permissions", userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList());
         
         return buildToken(
             claims,

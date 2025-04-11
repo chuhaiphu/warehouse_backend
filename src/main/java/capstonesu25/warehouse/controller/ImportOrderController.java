@@ -1,9 +1,9 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.model.importorder.AssignStaffRequest;
-import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
+import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
+import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportOrderService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -18,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 
 @Controller
 @RequestMapping("/import-order")
@@ -39,7 +38,7 @@ public class ImportOrderController {
         return ResponseUtil.getCollection(
                 result.getContent(),
                 HttpStatus.OK,
-                "Successfully get import request detail",
+                "Successfully get import orders",
                 new MetaDataDTO(
                         result.hasNext(),
                         result.hasPrevious(),
@@ -62,10 +61,10 @@ public class ImportOrderController {
 
     @Operation(summary = "Create a new import order")
     @PostMapping()
-    public ResponseEntity<?> createImportOrder(@RequestBody ImportOrderRequest request) {
+    public ResponseEntity<?> createImportOrder(@RequestBody ImportOrderCreateRequest request) {
         LOGGER.info("Creating import order");
         return ResponseUtil.getObject(
-                importOrderService.save(request),
+                importOrderService.create(request),
                 HttpStatus.CREATED,
                 "Successfully created import order");
     }
@@ -73,25 +72,12 @@ public class ImportOrderController {
     @Operation(summary = "Update an existing import order")
     @PutMapping()
     @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderRequest request) {
+    public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderUpdateRequest request) {
         LOGGER.info("Updating import order");
         return ResponseUtil.getObject(
-                importOrderService.save(request),
+                importOrderService.update(request),
                 HttpStatus.OK,
                 "Successfully updated import order");
-    }
-
-    @PutMapping("/update-status/{importOrderId}")
-    @Operation(summary = "Update the status of an import order")
-    @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> updateImportOrderStatus(@PathVariable Long importOrderId,
-            @RequestParam ImportStatus status) {
-        LOGGER.info("Updating import order status");
-        importOrderService.updateStatus(importOrderId, status);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully updated import order status");
     }
 
     @Operation(summary = "Delete an import order by ID")

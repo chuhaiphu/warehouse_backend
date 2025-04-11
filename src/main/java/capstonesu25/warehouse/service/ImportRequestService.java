@@ -4,64 +4,75 @@ import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.enums.ImportStatus;
-import capstonesu25.warehouse.model.importrequest.ImportRequestRequest;
+import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
+import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
     private final ExportRequestRepository exportRequestRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
 
     public List<ImportRequestResponse> getAllImportRequests() {
+        LOGGER.info("Get all import requests");
         return importRequestRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
-    public Page<ImportRequestResponse> getAllImportRequestsByPage(int page, int limit){
+    public Page<ImportRequestResponse> getAllImportRequestsByPage(int page, int limit) {
+        LOGGER.info("Get all import requests by page");
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportRequest> importRequests = importRequestRepository.findAll(pageable);
         return importRequests.map(this::mapToResponse);
     }
+
     public ImportRequestResponse getImportRequestById(Long id) {
-        ImportRequest importRequest = importRequestRepository.findById(id).orElseThrow();
+        LOGGER.info("Get import request by id: " + id);
+        ImportRequest importRequest = importRequestRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + id));
         return mapToResponse(importRequest);
     }
 
-    public ImportRequestResponse createImportRequest(ImportRequestRequest request) {
+    public ImportRequestResponse createImportRequest(ImportRequestCreateRequest request) {
+        LOGGER.info("Create new import request");
+        
         ImportRequest importRequest = new ImportRequest();
-        if(request.getExportRequestId() != null) {
-            importRequest.setExportRequest(exportRequestRepository.findById(request.getExportRequestId()).orElseThrow());
-        }
         importRequest.setImportReason(request.getImportReason());
         importRequest.setType(request.getImportType());
         importRequest.setStatus(ImportStatus.NOT_STARTED);
-        ImportRequest newImportRequest = importRequestRepository.save(importRequest);
-        return mapToResponse(newImportRequest);
+        
+        if (request.getExportRequestId() != null) {
+            importRequest.setExportRequest(exportRequestRepository.findById(request.getExportRequestId())
+                    .orElseThrow(() -> new NoSuchElementException("ExportRequest not found with ID: " + request.getExportRequestId())));
+        }
+        
+        return mapToResponse(importRequestRepository.save(importRequest));
     }
 
-    public void updateImportRequestStatus(Long id, ImportStatus status) {
-        ImportRequest importRequest = importRequestRepository.findById(id).orElseThrow();
-        importRequest.setStatus(status);
-        if(status != ImportStatus.CANCELLED ) {
-            importRequest.setStatus(status);
-        }
-        if((importRequest.getImportOrders() != null
-        || importRequest.getExportRequest() != null)
-                && status == ImportStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot cancel import order with paper because it is already in progress");
-        }
-        importRequestRepository.save(importRequest);
+    public ImportRequestResponse updateImportRequest(ImportRequestUpdateRequest request) {
+        LOGGER.info("Update import request");
+        
+        ImportRequest importRequest = importRequestRepository.findById(request.getImportRequestId())
+                .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + request.getImportRequestId()));
+        
+        importRequest.setImportReason(request.getImportReason());
+        
+        return mapToResponse(importRequestRepository.save(importRequest));
     }
 
     private ImportRequestResponse mapToResponse(ImportRequest importRequest) {
@@ -84,6 +95,4 @@ public class ImportRequestService {
                 importRequest.getUpdatedDate()
         );
     }
-
-
 }
