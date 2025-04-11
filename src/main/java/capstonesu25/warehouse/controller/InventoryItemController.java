@@ -22,147 +22,147 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("/inventory-items")
+@RequestMapping("/inventory-item")
 @RequiredArgsConstructor
 @Validated
 public class InventoryItemController {
-    private final InventoryItemService inventoryItemService;
-    private static final Logger LOGGER = LoggerFactory.getLogger(InventoryItemController.class);
+	private final InventoryItemService inventoryItemService;
+	private static final Logger LOGGER = LoggerFactory.getLogger(InventoryItemController.class);
 
-    @Operation(summary = "Get all inventory items with pagination")
-    @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting all inventory items");
-        Page<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems(page, limit);
-        return ResponseUtil.getCollection(
-                result.getContent(),
-                HttpStatus.OK,
-                "Successfully get all inventory items with pagination",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
-    }
+	@Operation(summary = "Get all inventory items with pagination")
+	@GetMapping
+	@PreAuthorize("hasRole('STAFF')")
+	public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int limit) {
+		LOGGER.info("Getting all inventory items");
+		Page<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems(page, limit);
+		return ResponseUtil.getCollection(
+				result.getContent(),
+				HttpStatus.OK,
+				"Successfully get all inventory items with pagination",
+				new MetaDataDTO(
+						result.hasNext(),
+						result.hasPrevious(),
+						limit,
+						(int) result.getTotalElements(),
+						page));
+	}
 
-    @Operation(summary = "Get inventory item by ID")
-    @GetMapping("/{inventoryItemId}")
-    @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> getById(@PathVariable Long inventoryItemId) {
-        LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
-        InventoryItemResponse result = inventoryItemService.getInventoryItemById(inventoryItemId);
-        return ResponseUtil.getObject(
-                result,
-                HttpStatus.OK,
-                "Successfully retrieved inventory item");
-    }
+	@Operation(summary = "Get inventory item by ID")
+	@GetMapping("/{inventoryItemId}")
+	@PreAuthorize("hasRole('STAFF')")
+	public ResponseEntity<?> getById(@PathVariable Long inventoryItemId) {
+		LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
+		InventoryItemResponse result = inventoryItemService.getInventoryItemById(inventoryItemId);
+		return ResponseUtil.getObject(
+				result,
+				HttpStatus.OK,
+				"Successfully retrieved inventory item");
+	}
 
-    @Operation(summary = "Get inventory items by import order detail ID")
-    @GetMapping("/import-order-detail/{importOrderDetailId}")
-    public ResponseEntity<?> getByImportOrderDetailId(@PathVariable Long importOrderDetailId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
-        Page<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page,
-                limit);
-        return ResponseUtil.getCollection(
-                result.getContent(),
-                HttpStatus.OK,
-                "Successfully get inventory items by import order detail ID",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
-    }
+	@Operation(summary = "Get inventory items by import order detail ID")
+	@GetMapping("/import-order-detail/{importOrderDetailId}")
+	public ResponseEntity<?> getByImportOrderDetailId(@PathVariable Long importOrderDetailId,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int limit) {
+		LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
+		Page<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page,
+				limit);
+		return ResponseUtil.getCollection(
+				result.getContent(),
+				HttpStatus.OK,
+				"Successfully get inventory items by import order detail ID",
+				new MetaDataDTO(
+						result.hasNext(),
+						result.hasPrevious(),
+						limit,
+						(int) result.getTotalElements(),
+						page));
+	}
 
-    @Operation(summary = "Get inventory items by export request detail ID")
-    @GetMapping("/export-request-detail/{exportRequestDetailId}")
-    public ResponseEntity<?> getByExportRequestDetailId(@PathVariable Long exportRequestDetailId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
-        Page<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId,
-                page, limit);
-        return ResponseUtil.getCollection(
-                result.getContent(),
-                HttpStatus.OK,
-                "Successfully get inventory items by export request detail ID",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
-    }
+	@Operation(summary = "Get inventory items by export request detail ID")
+	@GetMapping("/export-request-detail/{exportRequestDetailId}")
+	public ResponseEntity<?> getByExportRequestDetailId(@PathVariable Long exportRequestDetailId,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int limit) {
+		LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
+		Page<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId,
+				page, limit);
+		return ResponseUtil.getCollection(
+				result.getContent(),
+				HttpStatus.OK,
+				"Successfully get inventory items by export request detail ID",
+				new MetaDataDTO(
+						result.hasNext(),
+						result.hasPrevious(),
+						limit,
+						(int) result.getTotalElements(),
+						page));
+	}
 
-    @Operation(summary = "Get inventory items by stored location ID")
-    @GetMapping("/stored-location/{storedLocationId}")
-    public ResponseEntity<?> getByStoredLocationId(@PathVariable Long storedLocationId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting inventory items by stored location id: {}", storedLocationId);
-        Page<InventoryItemResponse> result = inventoryItemService.getByStoredLocationId(storedLocationId, page, limit);
-        return ResponseUtil.getCollection(
-                result.getContent(),
-                HttpStatus.OK,
-                "Successfully get inventory items by stored location ID",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
-    }
+	@Operation(summary = "Get inventory items by stored location ID")
+	@GetMapping("/stored-location/{storedLocationId}")
+	public ResponseEntity<?> getByStoredLocationId(@PathVariable Long storedLocationId,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int limit) {
+		LOGGER.info("Getting inventory items by stored location id: {}", storedLocationId);
+		Page<InventoryItemResponse> result = inventoryItemService.getByStoredLocationId(storedLocationId, page, limit);
+		return ResponseUtil.getCollection(
+				result.getContent(),
+				HttpStatus.OK,
+				"Successfully get inventory items by stored location ID",
+				new MetaDataDTO(
+						result.hasNext(),
+						result.hasPrevious(),
+						limit,
+						(int) result.getTotalElements(),
+						page));
+	}
 
-    @Operation(summary = "Create a new inventory item with QR codes")
-    @PostMapping("/create-with-qr")
-    public ResponseEntity<?> createInventoryItemWithQrCode(@RequestBody QrCodeRequest request) {
-        LOGGER.info("Creating inventory item with QR codes");
-        List<QrCodeResponse> responses = inventoryItemService.createQRCode(request);
-        return ResponseUtil.getCollection(
-                responses,
-                HttpStatus.CREATED,
-                "Successfully created inventory item with QR codes",
-                null);
-    }
+	@Operation(summary = "Create a new inventory item with QR codes")
+	@PostMapping("/create-with-qr")
+	public ResponseEntity<?> createInventoryItemWithQrCode(@RequestBody QrCodeRequest request) {
+		LOGGER.info("Creating inventory item with QR codes");
+		List<QrCodeResponse> responses = inventoryItemService.createQRCode(request);
+		return ResponseUtil.getCollection(
+				responses,
+				HttpStatus.CREATED,
+				"Successfully created inventory item with QR codes",
+				null);
+	}
 
-    @Operation(summary = "Get QR codes by inventory item IDs")
-    @PostMapping("/qr-codes")
-    public ResponseEntity<?> getListQrCodes(@RequestBody List<Long> inventoryItemIds) {
-        LOGGER.info("Getting QR codes by inventory item IDs");
-        List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
-        return ResponseUtil.getCollection(
-                result,
-                HttpStatus.OK,
-                "Successfully retrieved QR codes",
-                null);
-    }
+	@Operation(summary = "Get QR codes by inventory item IDs")
+	@PostMapping("/qr-codes")
+	public ResponseEntity<?> getListQrCodes(@RequestBody List<Long> inventoryItemIds) {
+		LOGGER.info("Getting QR codes by inventory item IDs");
+		List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
+		return ResponseUtil.getCollection(
+				result,
+				HttpStatus.OK,
+				"Successfully retrieved QR codes",
+				null);
+	}
 
-    @Operation(summary = "Update an existing inventory item")
-    @PutMapping
-    @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
-        LOGGER.info("Updating inventory item");
-        return ResponseUtil.getObject(
-                inventoryItemService.update(request),
-                HttpStatus.OK,
-                "Successfully updated inventory item");
-    }
+	@Operation(summary = "Update an existing inventory item")
+	@PutMapping
+	@PreAuthorize("hasRole('STAFF')")
+	public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
+		LOGGER.info("Updating inventory item");
+		return ResponseUtil.getObject(
+				inventoryItemService.update(request),
+				HttpStatus.OK,
+				"Successfully updated inventory item");
+	}
 
-    @Operation(summary = "Delete an inventory item by ID")
-    @DeleteMapping("/{inventoryItemId}")
-    public ResponseEntity<?> deleteInventoryItem(@PathVariable Long inventoryItemId) {
-        LOGGER.info("Deleting inventory item");
-        inventoryItemService.delete(inventoryItemId);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully deleted inventory item");
-    }
+	@Operation(summary = "Delete an inventory item by ID")
+	@DeleteMapping("/{inventoryItemId}")
+	public ResponseEntity<?> deleteInventoryItem(@PathVariable Long inventoryItemId) {
+		LOGGER.info("Deleting inventory item");
+		inventoryItemService.delete(inventoryItemId);
+		return ResponseUtil.getObject(
+				null,
+				HttpStatus.OK,
+				"Successfully deleted inventory item");
+	}
 
 }

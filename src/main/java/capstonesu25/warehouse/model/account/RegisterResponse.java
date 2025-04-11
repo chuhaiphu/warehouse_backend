@@ -5,9 +5,7 @@ import capstonesu25.warehouse.enums.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;;
 
 @Data
 @Builder
@@ -22,5 +20,4 @@ public class RegisterResponse {
     private AccountStatus status;
     private Boolean isEnable;
     private Boolean isBlocked;
-    private LocalDateTime createdDate;
 }

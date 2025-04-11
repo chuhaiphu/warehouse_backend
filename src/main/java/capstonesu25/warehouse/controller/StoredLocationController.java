@@ -18,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/stored-locations")
+@RequestMapping("/stored-location")
 @RequiredArgsConstructor
 @Validated
 public class StoredLocationController {

@@ -19,7 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 
 @Controller
-@RequestMapping("/providers")
+@RequestMapping("/provider")
 @RequiredArgsConstructor
 @Validated
 public class ProviderController {

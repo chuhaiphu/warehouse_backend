@@ -18,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/items")
+@RequestMapping("/item")
 @RequiredArgsConstructor
 @Validated
 public class ItemController {
