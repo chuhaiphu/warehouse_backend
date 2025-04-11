@@ -1,7 +1,7 @@
 package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.enums.ImportStatus;
-import capstonesu25.warehouse.model.importorder.AssignWarehouseKeeperRequest;
+import capstonesu25.warehouse.model.importorder.AssignStaffRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,10 +30,12 @@ public class ImportOrderController {
 
     @Operation(summary = "Get all import orders for a specific import request")
     @GetMapping("/page/{importRequestId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getAll(@PathVariable Long importRequestId, @RequestParam(defaultValue = "1") int page,
-                                    @RequestParam(defaultValue = "10") int limit){
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all import orders");
-        Page<ImportOrderResponse> result =  importOrderService.getImportOrdersByImportRequestId(importRequestId, page, limit);
+        Page<ImportOrderResponse> result = importOrderService.getImportOrdersByImportRequestId(importRequestId, page,
+                limit);
         return ResponseUtil.getCollection(
                 result.getContent(),
                 HttpStatus.OK,
@@ -42,81 +45,77 @@ public class ImportOrderController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get import order by ID")
     @GetMapping("/{importOrderId}")
-    public ResponseEntity<?> getById(@PathVariable Long importOrderId){
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<?> getById(@PathVariable Long importOrderId) {
         LOGGER.info("Getting import order by id");
         ImportOrderResponse result = importOrderService.getImportOrderById(importOrderId);
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully retrieved import order"
-        );
+                "Successfully retrieved import order");
     }
 
     @Operation(summary = "Create a new import order")
     @PostMapping()
-    public ResponseEntity<?> createImportOrder(@RequestBody ImportOrderRequest request){
+    public ResponseEntity<?> createImportOrder(@RequestBody ImportOrderRequest request) {
         LOGGER.info("Creating import order");
         return ResponseUtil.getObject(
                 importOrderService.save(request),
                 HttpStatus.CREATED,
-                "Successfully created import order"
-        );
+                "Successfully created import order");
     }
 
     @Operation(summary = "Update an existing import order")
     @PutMapping()
-    public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderRequest request){
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderRequest request) {
         LOGGER.info("Updating import order");
         return ResponseUtil.getObject(
                 importOrderService.save(request),
                 HttpStatus.OK,
-                "Successfully updated import order"
-        );
+                "Successfully updated import order");
     }
 
     @PutMapping("/update-status/{importOrderId}")
     @Operation(summary = "Update the status of an import order")
-    public ResponseEntity<?> updateImportOrderStatus(@PathVariable Long importOrderId, @RequestParam ImportStatus status) {
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<?> updateImportOrderStatus(@PathVariable Long importOrderId,
+            @RequestParam ImportStatus status) {
         LOGGER.info("Updating import order status");
         importOrderService.updateStatus(importOrderId, status);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully updated import order status"
-        );
+                "Successfully updated import order status");
     }
 
     @Operation(summary = "Delete an import order by ID")
     @DeleteMapping("/{importOrderId}")
-    public ResponseEntity<?> deleteImportOrder(@PathVariable Long importOrderId){
+    public ResponseEntity<?> deleteImportOrder(@PathVariable Long importOrderId) {
         LOGGER.info("Deleting import order");
         importOrderService.delete(importOrderId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully deleted import order"
-        );
+                "Successfully deleted import order");
     }
 
-    @Operation(summary = "Assign warehouse keeper to an import order")
-    @PostMapping("/assign-warehouse-keeper")
-    public ResponseEntity<?> assignWarehouseKeeper(@RequestBody AssignWarehouseKeeperRequest request) {
-        LOGGER.info("Assigning warehouse keeper to import order");
-        ImportOrderResponse result = importOrderService.assignWarehouseKeeper(
-                request.getImportOrderId(), 
+    @Operation(summary = "Assign staff to an import order")
+    @PostMapping("/assign-staff")
+    public ResponseEntity<?> assignStaff(@RequestBody AssignStaffRequest request) {
+        LOGGER.info("Assigning staff to import order");
+        ImportOrderResponse result = importOrderService.assignStaff(
+                request.getImportOrderId(),
                 request.getAccountId());
-        
+
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully assigned warehouse keeper to import order"
-        );
+                "Successfully assigned staff to import order");
     }
 }

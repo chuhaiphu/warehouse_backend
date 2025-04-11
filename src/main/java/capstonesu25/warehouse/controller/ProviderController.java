@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 @Controller
@@ -27,6 +28,7 @@ public class ProviderController {
 
     @Operation(summary = "Get all providers", description = "Returns a list of all providers with pagination")
     @GetMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
                                     @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all providers");
@@ -47,6 +49,7 @@ public class ProviderController {
 
     @Operation(summary = "Get provider by ID", description = "Returns a provider by its ID")
     @GetMapping("/{providerId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getById(@PathVariable Long providerId) {
         LOGGER.info("Getting provider by id: {}", providerId);
         ProviderResponse result = providerService.getProviderById(providerId);
@@ -59,6 +62,7 @@ public class ProviderController {
 
     @Operation(summary = "Create a new provider", description = "Creates a new provider in the system")
     @PostMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> createProvider(@RequestBody ProviderRequest request) {
         LOGGER.info("Creating provider");
         providerService.create(request);
@@ -71,6 +75,7 @@ public class ProviderController {
 
     @Operation(summary = "Update an existing provider", description = "Updates an existing provider's information")
     @PutMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> updateProvider(@RequestBody ProviderRequest request) {
         LOGGER.info("Updating provider");
         return ResponseUtil.getObject(

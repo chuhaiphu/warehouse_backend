@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,13 +14,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/categories")
+@RequestMapping("/category")
 @RequiredArgsConstructor
 @Validated
 public class CategoryController {
     private final CategoryService categoryService;
+
     @Operation(summary = "Get all categories")
     @GetMapping()
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getAll(){
         return ResponseUtil.getCollection(
                 categoryService.getAllCategories(),
@@ -31,6 +34,7 @@ public class CategoryController {
 
     @Operation(summary = "Get category by id")
     @GetMapping("{categoryId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getById(@PathVariable Long categoryId) {
         return ResponseUtil.getObject(
                 categoryService.getCategoryById(categoryId),
@@ -38,5 +42,4 @@ public class CategoryController {
                 "Fetch all categories successfully"
         );
     }
-
 }

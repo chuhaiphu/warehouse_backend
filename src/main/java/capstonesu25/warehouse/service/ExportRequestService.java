@@ -57,7 +57,7 @@ public class ExportRequestService {
         exportRequest.setStatus("NOT_STARTED");
         
         if (request.getAssignedWareHouseKeeperId() != null) {
-            exportRequest.setAssignedWareHouseKeeper(
+            exportRequest.setAssignedStaff(
                 accountRepository.findById(request.getAssignedWareHouseKeeperId()).orElseThrow()
             );
         }
@@ -71,7 +71,7 @@ public class ExportRequestService {
         ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
         if (request.getAccountId() != null) {
             LOGGER.info("Assigning staff with account ID: " + request.getAccountId() + " to export request");
-            exportRequest.setAssignedWareHouseKeeper(
+            exportRequest.setAssignedStaff(
                 accountRepository.findById(request.getAccountId()).orElseThrow()
             );
         }
@@ -89,7 +89,7 @@ public class ExportRequestService {
             throw new IllegalArgumentException("Account is "+ account.getStatus());
         }
 
-        exportRequest.setAssignedWareHouseKeeper(account);
+        exportRequest.setAssignedStaff(account);
         LOGGER.info("Update account status to INACTIVE");
         account.setStatus(AccountStatus.INACTIVE);
         accountRepository.save(account);
@@ -107,7 +107,7 @@ public class ExportRequestService {
             exportRequest.getType(),
             exportRequest.getExportDate(),
             exportRequest.getExportTime(),
-            exportRequest.getAssignedWareHouseKeeper() != null ? exportRequest.getAssignedWareHouseKeeper().getId() : null,
+            exportRequest.getAssignedStaff() != null ? exportRequest.getAssignedStaff().getId() : null,
             exportRequest.getPaper() != null ? exportRequest.getPaper().getId() : null,
             exportRequest.getImportRequests() != null ?
                 exportRequest.getImportRequests().stream().map(ImportRequest::getId).toList() :

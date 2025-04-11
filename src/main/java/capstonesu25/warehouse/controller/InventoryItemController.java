@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -30,8 +31,9 @@ public class InventoryItemController {
 
     @Operation(summary = "Get all inventory items with pagination")
     @GetMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
-                                    @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all inventory items");
         Page<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems(page, limit);
         return ResponseUtil.getCollection(
@@ -43,30 +45,29 @@ public class InventoryItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get inventory item by ID")
     @GetMapping("/{inventoryItemId}")
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> getById(@PathVariable Long inventoryItemId) {
         LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
         InventoryItemResponse result = inventoryItemService.getInventoryItemById(inventoryItemId);
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
-                "Successfully retrieved inventory item"
-        );
+                "Successfully retrieved inventory item");
     }
 
     @Operation(summary = "Get inventory items by import order detail ID")
     @GetMapping("/import-order-detail/{importOrderDetailId}")
     public ResponseEntity<?> getByImportOrderDetailId(@PathVariable Long importOrderDetailId,
-                                                      @RequestParam(defaultValue = "1") int page,
-                                                      @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
-        Page<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page, limit);
+        Page<InventoryItemResponse> result = inventoryItemService.getByImportOrderDetailId(importOrderDetailId, page,
+                limit);
         return ResponseUtil.getCollection(
                 result.getContent(),
                 HttpStatus.OK,
@@ -76,18 +77,17 @@ public class InventoryItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get inventory items by export request detail ID")
     @GetMapping("/export-request-detail/{exportRequestDetailId}")
     public ResponseEntity<?> getByExportRequestDetailId(@PathVariable Long exportRequestDetailId,
-                                                        @RequestParam(defaultValue = "1") int page,
-                                                        @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
-        Page<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId, page, limit);
+        Page<InventoryItemResponse> result = inventoryItemService.getByExportRequestDetailId(exportRequestDetailId,
+                page, limit);
         return ResponseUtil.getCollection(
                 result.getContent(),
                 HttpStatus.OK,
@@ -97,16 +97,14 @@ public class InventoryItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Get inventory items by stored location ID")
     @GetMapping("/stored-location/{storedLocationId}")
     public ResponseEntity<?> getByStoredLocationId(@PathVariable Long storedLocationId,
-                                                   @RequestParam(defaultValue = "1") int page,
-                                                   @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting inventory items by stored location id: {}", storedLocationId);
         Page<InventoryItemResponse> result = inventoryItemService.getByStoredLocationId(storedLocationId, page, limit);
         return ResponseUtil.getCollection(
@@ -118,9 +116,7 @@ public class InventoryItemController {
                         result.hasPrevious(),
                         limit,
                         (int) result.getTotalElements(),
-                        page
-                )
-        );
+                        page));
     }
 
     @Operation(summary = "Create a new inventory item with QR codes")
@@ -132,8 +128,7 @@ public class InventoryItemController {
                 responses,
                 HttpStatus.CREATED,
                 "Successfully created inventory item with QR codes",
-                null
-        );
+                null);
     }
 
     @Operation(summary = "Get QR codes by inventory item IDs")
@@ -145,19 +140,18 @@ public class InventoryItemController {
                 result,
                 HttpStatus.OK,
                 "Successfully retrieved QR codes",
-                null
-        );
+                null);
     }
 
     @Operation(summary = "Update an existing inventory item")
     @PutMapping
+    @PreAuthorize("hasRole('STAFF')")
     public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
         LOGGER.info("Updating inventory item");
         return ResponseUtil.getObject(
                 inventoryItemService.update(request),
                 HttpStatus.OK,
-                "Successfully updated inventory item"
-        );
+                "Successfully updated inventory item");
     }
 
     @Operation(summary = "Delete an inventory item by ID")
@@ -168,8 +162,7 @@ public class InventoryItemController {
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.OK,
-                "Successfully deleted inventory item"
-        );
+                "Successfully deleted inventory item");
     }
 
 }

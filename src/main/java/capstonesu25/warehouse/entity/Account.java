@@ -60,15 +60,15 @@ public class Account implements UserDetails {
     @Column(name = "verification_token_expiry")
     private LocalDateTime verificationTokenExpiry;
 
-    @OneToMany(mappedBy = "assignedWareHouseKeeper", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToMany(mappedBy = "assignedStaff", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<ImportOrder> importOrders;
 
-    @OneToMany(mappedBy = "assignedWareHouseKeeper", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToMany(mappedBy = "assignedStaff", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<ExportRequest> exportRequests;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override

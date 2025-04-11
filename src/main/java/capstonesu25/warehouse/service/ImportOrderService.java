@@ -60,7 +60,7 @@ public class ImportOrderService {
                 (request.getImportRequestId()).orElseThrow();
         importOrder.setImportRequest(importRequest);
         if(request.getAccountId() != null) {
-            importOrder.setAssignedWareHouseKeeper(accountRepository.findById
+            importOrder.setAssignedStaff(accountRepository.findById
                     (request.getAccountId()).orElseThrow());
         }
         if (request.getNote() != null){
@@ -77,8 +77,8 @@ public class ImportOrderService {
         importOrderRepository.delete(importOrder);
     }
 
-    public ImportOrderResponse assignWarehouseKeeper(Long importOrderId, Long accountId) {
-        LOGGER.info("Assigning warehouse keeper to import order: " + importOrderId);
+    public ImportOrderResponse assignStaff(Long importOrderId, Long accountId) {
+        LOGGER.info("Assigning staff to import order: " + importOrderId);
         
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
@@ -88,15 +88,15 @@ public class ImportOrderService {
         
         // Validate account status and role
         if (account.getStatus() != AccountStatus.ACTIVE) {
-            throw new IllegalStateException("Cannot assign warehouse keeper: Account is not active");
+            throw new IllegalStateException("Cannot assign staff: Account is not active");
         }
         
-        if (account.getRole() != AccountRole.WAREHOUSE_KEEPER) {
-            throw new IllegalStateException("Cannot assign warehouse keeper: Account is not a warehouse keeper");
+        if (account.getRole() != AccountRole.STAFF) {
+            throw new IllegalStateException("Cannot assign staff: Account is not a staff member");
         }
         importOrder.setStatus(ImportStatus.IN_PROGRESS);
         
-        importOrder.setAssignedWareHouseKeeper(account);
+        importOrder.setAssignedStaff(account);
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
@@ -128,8 +128,8 @@ public class ImportOrderService {
                 importOrder.getCreatedDate(),
                 importOrder.getUpdatedDate(),
                 importOrder.getPaper() != null? importOrder.getPaper().getId() : null,
-                importOrder.getAssignedWareHouseKeeper() != null?
-                    importOrder.getAssignedWareHouseKeeper().getId() : null
+                importOrder.getAssignedStaff() != null?
+                    importOrder.getAssignedStaff().getId() : null
                 );
     }
 }
