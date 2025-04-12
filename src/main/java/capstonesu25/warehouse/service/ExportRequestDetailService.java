@@ -113,16 +113,10 @@ public class ExportRequestDetailService {
             case RETURN -> {
 
             }
-            case BORROWING, PARTIAL -> {
-                autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
-            }
-            case LIQUIDATION -> {
-                autoChooseInventoryItemsForLiquidation(exportRequestDetail);
-            }
-            default -> {
-                // case PRODUCTION
-                autoChooseInventoryItemsForProduction(exportRequestDetail);
-            }
+            case BORROWING, PARTIAL -> autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
+            case LIQUIDATION -> autoChooseInventoryItemsForLiquidation(exportRequestDetail);
+            default -> // case PRODUCTION
+                    autoChooseInventoryItemsForProduction(exportRequestDetail);
         }
     }
 

@@ -76,13 +76,18 @@ public class PaperService {
         if(request.getImportOrderId() != null) {
             updateImportRequest(request.getImportOrderId());
             updateImportOrder(request.getImportOrderId());
+            autoFillLocationForImport(request);
         }
+        if(request.getExportRequestId() != null) {
+            updateExportRequest(request.getExportRequestId());
+            updateInventoryItemAndLocationAfterExport(request.getExportRequestId());
+        }
+
         afterCreatedPaperUpdateItems(request);
-        autoFillLocation(request);
     }
 
     //update inventory item and location
-    private void autoFillLocation(PaperRequest request) {
+    private void autoFillLocationForImport(PaperRequest request) {
         LOGGER.info("Auto fill location");
         LOGGER.info("Import Order ID: {}", request.getImportOrderId());
 
@@ -258,6 +263,45 @@ public class PaperService {
         importOrder.setStatus(ImportStatus.COMPLETED);
         importOrder.setUpdatedDate(LocalDateTime.now());
         importOrderRepository.save(importOrder);
+    }
+
+    private void updateExportRequest(Long exportRequestId) {
+        LOGGER.info("Updating export request after paper creation");
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElse(null);
+        if (exportRequest == null) {
+            LOGGER.warn("Export request not found");
+            return;
+        }
+        exportRequest.setStatus(ImportStatus.COMPLETED);
+        exportRequestRepository.save(exportRequest);
+    }
+
+    private void updateInventoryItemAndLocationAfterExport(Long exportRequestId) {
+        LOGGER.info("Updating inventory item after export request");
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElse(null);
+        if (exportRequest == null) {
+            LOGGER.warn("Export request not found");
+            return;
+        }
+        List<ExportRequestDetail> exportRequestDetails = exportRequest.getExportRequestDetails();
+        for(ExportRequestDetail exportRequestDetail : exportRequestDetails) {
+            for(InventoryItem inventoryItem : exportRequestDetail.getInventoryItems()) {
+                LOGGER.info("Updating inventory item id: {}", inventoryItem.getId());
+                inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+                inventoryItemRepository.save(inventoryItem);
+
+                StoredLocation location = inventoryItem.getStoredLocation();
+                if (location != null) {
+                    LOGGER.info("Updating stored location id: {}", location.getId());
+                    location.setCurrentCapacity(location.getCurrentCapacity() - inventoryItem.getMeasurementValue());
+                    location.setFulled(false);
+                    if(location.getCurrentCapacity() == 0) {
+                        location.setUsed(false);
+                    }
+                    storedLocationRepository.save(location);
+                }
+            }
+        }
     }
 
     private void createInventoryItem(ImportOrderDetail importOrderDetail) {
