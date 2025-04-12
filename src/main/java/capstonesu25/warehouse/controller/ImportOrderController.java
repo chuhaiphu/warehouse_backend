@@ -104,4 +104,23 @@ public class ImportOrderController {
                 HttpStatus.OK,
                 "Successfully assigned staff to import order");
     }
+
+    @Operation(summary = "Get import orders by staff ID")
+    @GetMapping("/staff/{staffId}")
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<?> getByStaffId(@PathVariable Long staffId, @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
+        LOGGER.info("Getting import orders by staff id");
+        Page<ImportOrderResponse> result = importOrderService.getImportOrdersByStaffId(staffId, page, limit);
+        return ResponseUtil.getCollection(
+                result.getContent(),
+                HttpStatus.OK,
+                "Successfully get import orders by staff",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page));
+    }
 }

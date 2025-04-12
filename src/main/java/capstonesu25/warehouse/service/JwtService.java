@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import capstonesu25.warehouse.enums.TokenType;
+import capstonesu25.warehouse.entity.Account;
 
 import java.security.Key;
 import java.util.Date;
@@ -47,27 +48,31 @@ public class JwtService {
     }
 
     public String generateAccessToken(UserDetails userDetails) {
+        Account account = (Account) userDetails;
         Map<String, Object> claims = new HashMap<>();
         // Add claims specific to access token
         claims.put("role", extractRoleFromUserDetails(userDetails));
         claims.put("token_type", "ACCESS");
+        claims.put("email", account.getEmail());
         
         return buildToken(
             claims,
-            userDetails.getUsername(),
+            account.getId().toString(),
             jwtTokenExpiration,
             getAccessSecretKey()
         );
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
+        Account account = (Account) userDetails;
         Map<String, Object> claims = new HashMap<>();
         // Add claims specific to refresh token
         claims.put("token_type", "REFRESH");
+        claims.put("email", account.getEmail());
         
         return buildToken(
             claims,
-            userDetails.getUsername(),
+            account.getId().toString(),
             jwtRefreshTokenExpiration,
             getRefreshSecretKey()
         );
@@ -80,7 +85,7 @@ public class JwtService {
                 .orElse(null);
     }
 
-    private String buildToken(Map<String, Object> extraClaims, String subject, long expiration, Key secretKey) {
+    private String buildToken(Map<String, Object> extraClaims, String subject, Long expiration, Key secretKey) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(subject)
@@ -113,8 +118,8 @@ public class JwtService {
     }
 
     public Boolean isTokenValid(String token, UserDetails userDetails, TokenType tokenType) {
-        final String userName = extractUserName(token, tokenType);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token, tokenType));
+        final String email = extractClaim(token, claims -> claims.get("email", String.class), tokenType);
+        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token, tokenType));
     }
 
     public boolean isTokenExpired(String token, TokenType tokenType) {

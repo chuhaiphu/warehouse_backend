@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ImportOrderRepository extends JpaRepository<ImportOrder, Long>{
     Page<ImportOrder> findImportOrdersByImportRequest_Id(Long id, Pageable pageable);
+    Page<ImportOrder> findImportOrdersByAssignedStaff_Id(Long staffId, Pageable pageable);
 }

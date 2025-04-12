@@ -1,6 +1,14 @@
 spring:
   application:
     name: warehouse
+    security:
+      jwt:
+        access_token:
+          secret: ${JWT_ACCESS_TOKEN_SECRET}
+          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+        refresh_token:
+          secret: ${JWT_REFRESH_TOKEN_SECRET}
+          expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
   datasource:
     url: ${DATASOURCE_URL}
     username: ${DATASOURCE_USERNAME}

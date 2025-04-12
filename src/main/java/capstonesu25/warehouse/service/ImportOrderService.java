@@ -130,6 +130,12 @@ public class ImportOrderService {
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
+    public Page<ImportOrderResponse> getImportOrdersByStaffId(Long staffId, int page, int limit) {
+        LOGGER.info("Get import orders by staff id: " + staffId);
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByAssignedStaff_Id(staffId, pageable);
+        return importOrders.map(this::mapToResponse);
+    }
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(
