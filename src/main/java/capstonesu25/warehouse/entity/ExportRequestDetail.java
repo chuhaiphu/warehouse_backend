@@ -23,8 +23,11 @@ public class ExportRequestDetail {
     @Column(name = "measurement_value")
     private Double measurementValue;
 
-    @Column(name = "actual_measurement_value")
-    private Double actualMeasurementValue;
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    @Column(name = "actual_quantity")
+    private Integer actualQuantity;
 
     @Column(name = "status")
     private DetailStatus status;

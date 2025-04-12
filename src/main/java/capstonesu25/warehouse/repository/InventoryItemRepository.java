@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -16,6 +18,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, Lo
     @Query("SELECT i FROM InventoryItem i JOIN i.exportRequestDetails d WHERE d.id = :exportRequestDetailId")
     Page<InventoryItem> findByExportRequestDetailId(@Param("exportRequestDetailId") Long exportRequestDetailId, Pageable pageable);
     Page<InventoryItem> findByStoredLocationId(Long storedLocationId, Pageable pageable);
+    List<InventoryItem> findByItem_IdAndParentNull(Long itemId);
     List<InventoryItem> findByItem_Id(Long itemId);
+    List<InventoryItem> findByItem_IdAndExpiredDateLessThanEqual(Long itemId, LocalDateTime expiredDate);
 
 }

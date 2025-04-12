@@ -14,7 +14,8 @@ import java.util.List;
 public class ExportRequestDetailResponse {
     private Long id;
     private Double measurementValue;
-    private Double actualMeasurementValue;
+    private Integer actualQuantity;
+    private Integer quantity;
     private DetailStatus status;
     private Long exportRequestId;
     private Long itemId;

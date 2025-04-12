@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExportRequestMeasurementValue {
+public class ExportRequestActualQuantity {
     @NotNull(message = "Export request detail ID cannot be null")
     private Long exportRequestDetailId;
 
-    @NotNull(message = "Actual measurement value cannot be null")
-    private Double actualMeasurementValue;
+    @NotNull(message = "Actual quantity cannot be null")
+    private Integer actualQuantity;
 }
