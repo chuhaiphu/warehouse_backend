@@ -22,7 +22,7 @@ public class CategoryController {
 
     @Operation(summary = "Get all categories")
     @GetMapping()
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getAll(){
         return ResponseUtil.getCollection(
                 categoryService.getAllCategories(),
@@ -34,7 +34,7 @@ public class CategoryController {
 
     @Operation(summary = "Get category by id")
     @GetMapping("{categoryId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getById(@PathVariable Long categoryId) {
         return ResponseUtil.getObject(
                 categoryService.getCategoryById(categoryId),

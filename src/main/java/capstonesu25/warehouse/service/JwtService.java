@@ -50,10 +50,10 @@ public class JwtService {
     public String generateAccessToken(UserDetails userDetails) {
         Account account = (Account) userDetails;
         Map<String, Object> claims = new HashMap<>();
-        // Add claims specific to access token
-        claims.put("role", extractRoleFromUserDetails(userDetails));
         claims.put("token_type", "ACCESS");
+        claims.put("role", extractRoleFromUserDetails(userDetails));
         claims.put("email", account.getEmail());
+        claims.put("full_name", account.getFullName());
         
         return buildToken(
             claims,
@@ -66,7 +66,6 @@ public class JwtService {
     public String generateRefreshToken(UserDetails userDetails) {
         Account account = (Account) userDetails;
         Map<String, Object> claims = new HashMap<>();
-        // Add claims specific to refresh token
         claims.put("token_type", "REFRESH");
         claims.put("email", account.getEmail());
         

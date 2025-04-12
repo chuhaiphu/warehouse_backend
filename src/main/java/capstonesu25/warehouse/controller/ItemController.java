@@ -27,7 +27,7 @@ public class ItemController {
 
     @Operation(summary = "Get all items with pagination")
     @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all items");
@@ -46,7 +46,7 @@ public class ItemController {
 
     @Operation(summary = "Get item by ID")
     @GetMapping("/{itemId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getById(@PathVariable Long itemId) {
         LOGGER.info("Getting item by id: {}", itemId);
         ItemResponse result = itemService.getItemById(itemId);
@@ -58,7 +58,7 @@ public class ItemController {
 
     @Operation(summary = "Get items by category ID")
     @GetMapping("/category/{categoryId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getItemsByCategory(@PathVariable Long categoryId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
@@ -78,7 +78,7 @@ public class ItemController {
 
     @Operation(summary = "Get items by provider ID")
     @GetMapping("/provider/{providerId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getItemsByProvider(@PathVariable Long providerId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
@@ -98,7 +98,7 @@ public class ItemController {
 
     @Operation(summary = "Create a new item")
     @PostMapping
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> createItem(@RequestBody ItemRequest request) {
         LOGGER.info("Creating item");
         return ResponseUtil.getObject(
@@ -109,7 +109,7 @@ public class ItemController {
 
     @Operation(summary = "Update an existing item")
     @PutMapping
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> updateItem(@RequestBody ItemRequest request) {
         LOGGER.info("Updating item");
         return ResponseUtil.getObject(

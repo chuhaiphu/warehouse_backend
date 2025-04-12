@@ -1,7 +1,6 @@
 package capstonesu25.warehouse.model.exportrequest.exportborrowing;
 
 import capstonesu25.warehouse.enums.ExportType;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;

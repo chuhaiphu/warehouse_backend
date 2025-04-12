@@ -30,7 +30,7 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Get paginated import order details by import order ID")
     @GetMapping("/page/{importOrderId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getImportOrderDetails(@PathVariable Long importOrderId,
             @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting import order details");
@@ -49,7 +49,7 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Get import order detail by ID")
     @GetMapping("/{importOrderDetailId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getImportOrderDetail(@PathVariable Long importOrderDetailId) {
         LOGGER.info("Getting import order detail");
         var result = service.getById(importOrderDetailId);
@@ -61,7 +61,7 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Create import order details from Excel file")
     @PostMapping("/{importOrderId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> createImportOrderDetails(@RequestPart MultipartFile file,
             @PathVariable Long importOrderId) {
         LOGGER.info("Creating import order details from Excel file");
@@ -74,7 +74,7 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Update actual quantities of import order details")
     @PutMapping("/{importOrderId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> updateActualQuantities(@RequestBody List<ImportOrderDetailUpdateRequest> requests,
             @PathVariable Long importOrderId) {
         LOGGER.info("Updating actual quantities of import order details");

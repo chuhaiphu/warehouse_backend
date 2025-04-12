@@ -32,7 +32,7 @@ public class PaperController {
 
     @Operation(summary = "Get all papers with pagination")
     @GetMapping("")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all papers");
@@ -51,7 +51,7 @@ public class PaperController {
 
     @Operation(summary = "Get paper by ID")
     @GetMapping("/{paperId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getById(@PathVariable Long paperId) {
         LOGGER.info("Getting paper by id: {}", paperId);
         PaperResponse result = paperService.getPaperById(paperId);
@@ -63,7 +63,7 @@ public class PaperController {
 
     @Operation(summary = "Get papers by import order ID")
     @GetMapping("import-order/{importOrderId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getByImportOrderId(@PathVariable Long importOrderId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
@@ -78,7 +78,7 @@ public class PaperController {
 
     @Operation(summary = "Get papers by export request ID")
     @GetMapping("export-order/{exportRequestId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getByExportRequestId(@PathVariable Long exportRequestId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
@@ -93,7 +93,7 @@ public class PaperController {
 
     @Operation(summary = "Create a new paper with file upload")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> createPaper(@ModelAttribute PaperRequest request) {
         LOGGER.info("Creating paper");
         try {

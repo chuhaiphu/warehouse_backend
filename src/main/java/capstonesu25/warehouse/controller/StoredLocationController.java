@@ -27,7 +27,7 @@ public class StoredLocationController {
 
     @Operation(summary = "Get all stored locations with pagination", description = "Returns a list of all stored locations")
     @GetMapping
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all stored locations");
@@ -46,7 +46,7 @@ public class StoredLocationController {
 
     @Operation(summary = "Get stored location by ID", description = "Returns a stored location by its ID")
     @GetMapping("/{storedLocationId}")
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> getById(@PathVariable Long storedLocationId) {
         LOGGER.info("Getting stored location by id: {}", storedLocationId);
         StoredLocationResponse result = storedLocationService.getStoredLocationById(storedLocationId);
@@ -58,7 +58,7 @@ public class StoredLocationController {
 
     @Operation(summary = "Create a new stored location", description = "Creates a new stored location in the system")
     @PostMapping
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> createStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Creating stored location");
         return ResponseUtil.getObject(
@@ -125,7 +125,7 @@ public class StoredLocationController {
 
     @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
     @PutMapping
-    @PreAuthorize("hasRole('STAFF')")
+    
     public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
         LOGGER.info("Updating stored location");
         return ResponseUtil.getObject(

@@ -307,6 +307,7 @@ public class PaperService {
     private void createInventoryItem(ImportOrderDetail importOrderDetail) {
         for(int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
             InventoryItem inventoryItem = new InventoryItem();
+            inventoryItem.setImportOrderDetail(importOrderDetail);
             inventoryItem.setItem(importOrderDetail.getItem());
             inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
                     importOrderDetail.getImportOrder().getTimeReceived()));

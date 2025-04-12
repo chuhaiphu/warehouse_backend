@@ -31,7 +31,7 @@ public class InventoryItemController {
 
 	@Operation(summary = "Get all inventory items with pagination")
 	@GetMapping
-	@PreAuthorize("hasRole('STAFF')")
+	
 	public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
 			@RequestParam(defaultValue = "10") int limit) {
 		LOGGER.info("Getting all inventory items");
@@ -50,7 +50,7 @@ public class InventoryItemController {
 
 	@Operation(summary = "Get inventory item by ID")
 	@GetMapping("/{inventoryItemId}")
-	@PreAuthorize("hasRole('STAFF')")
+	
 	public ResponseEntity<?> getById(@PathVariable Long inventoryItemId) {
 		LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
 		InventoryItemResponse result = inventoryItemService.getInventoryItemById(inventoryItemId);
@@ -145,7 +145,7 @@ public class InventoryItemController {
 
 	@Operation(summary = "Update an existing inventory item")
 	@PutMapping
-	@PreAuthorize("hasRole('STAFF')")
+	
 	public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
 		LOGGER.info("Updating inventory item");
 		return ResponseUtil.getObject(
