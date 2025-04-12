@@ -16,6 +16,9 @@ import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +38,21 @@ public class ExportRequestDetailService {
     private final InventoryItemRepository inventoryItemRepository;
     private static final Integer LIQUIDATION = 30;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestDetailService.class);
+
+    public Page<ExportRequestDetailResponse> getAllByExportRequestId(Long exportRequestId, int page, int limit) {
+        LOGGER.info("Getting all export request detail by export request id: {}", exportRequestId);
+        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
+        Page<ExportRequestDetail> exportRequestDetailPage = exportRequestDetailRepository
+                .findExportRequestDetailByExportRequest_Id(exportRequestId, pageable);
+        return exportRequestDetailPage.map(this::mapToResponse);
+    }
+
+    public ExportRequestDetailResponse getById(Long exportRequestDetailId) {
+        LOGGER.info("Getting export request detail by id: {}", exportRequestDetailId);
+        ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
+                .orElseThrow(() -> new RuntimeException("Export request detail not found"));
+        return mapToResponse(exportRequestDetail);
+    }
 
     public void createExportRequestDetail(MultipartFile file, Long exportRequestId) {
         LOGGER.info("Creating export request detail");
@@ -87,7 +105,7 @@ public class ExportRequestDetailService {
         } else {
             exportRequestDetail.setStatus(DetailStatus.MATCH);
         }
-        return mapToEntity(exportRequestDetailRepository.save(exportRequestDetail));
+        return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }
 
     private void chooseInventoryItemsForThoseCases(ExportRequestDetail exportRequestDetail) {
@@ -213,7 +231,7 @@ public class ExportRequestDetailService {
         exportRequestDetailRepository.save(exportRequestDetail);
     }
 
-    private ExportRequestDetailResponse mapToEntity(ExportRequestDetail exportRequestDetail) {
+    private ExportRequestDetailResponse mapToResponse(ExportRequestDetail exportRequestDetail) {
         ExportRequestDetailResponse response = new ExportRequestDetailResponse();
         response.setId(exportRequestDetail.getId());
         response.setMeasurementValue(exportRequestDetail.getMeasurementValue());
