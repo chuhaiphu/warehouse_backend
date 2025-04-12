@@ -1,4 +1,6 @@
 package capstonesu25.warehouse.entity;
+import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.enums.ImportStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -38,16 +40,25 @@ public class ExportRequest {
     private String receiverAddress;
 
     @Column(name = "status")
-    private String status;
+    private ImportStatus status;
 
     @Column(name = "type")
-    private String type;
+    private ExportType type;
 
     @Column(name = "export_date")
     private LocalDate exportDate;
 
     @Column(name = "export_time")
     private LocalTime exportTime;
+
+    @Column(name = "expected_return_date")
+    private LocalDate expectedReturnDate;
+
+    @Column(name = "provider_id")
+    private Long providerId;
+
+    @Column(name = "department_id")
+    private Long departmentId;
 
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)

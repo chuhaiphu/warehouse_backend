@@ -1,5 +1,7 @@
 package capstonesu25.warehouse.model.exportrequest;
 
+import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.enums.ImportStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,10 +20,13 @@ public class ExportRequestResponse {
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;
-    private String status;
-    private String type;
+    private Long departmentId;
+    private Long providerId;
+    private ImportStatus status;
+    private ExportType type;
     private LocalDate exportDate;
     private LocalTime exportTime;
+    private LocalDate expectedReturnDate;
     private Long assignedWareHouseKeeperId;
     private Long paperId;
     private List<Long> importRequestIds;

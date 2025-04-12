@@ -1,7 +1,11 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.exportrequest.ExportRequestRequest;
+import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
+import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
+import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialRequest;
+import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
+import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ExportRequestService;
@@ -71,16 +75,61 @@ public class ExportRequestController {
         );
     }
 
-    @Operation(summary = "Create a new export request")
+    @Operation(summary = "Create a new export request for production")
     @PostMapping()
     public ResponseEntity<?> createExportRequest(@RequestBody ExportRequestRequest request) {
         LOGGER.info("Creating export request");
         return ResponseUtil.getObject(
-            exportRequestService.createExportRequest(request),
+            exportRequestService.createExportProductionRequest(request),
             HttpStatus.CREATED,
             "Successfully created export request"
         );
     }
+
+    @Operation(summary = "Create a new export request for return")
+    @PostMapping("/return")
+    public ResponseEntity<?> createExportRequestForReturn(@RequestBody ExportReturnRequest request) {
+        LOGGER.info("Creating export request for return");
+        return ResponseUtil.getObject(
+            exportRequestService.createExportReturnRequest(request),
+            HttpStatus.CREATED,
+            "Successfully created export request for return"
+        );
+    }
+
+    @Operation(summary = "Create a new export request for borrowing")
+    @PostMapping("/borrow")
+    public ResponseEntity<?> createExportRequestForBorrow(@RequestBody ExportBorrowingRequest request) {
+        LOGGER.info("Creating export request for borrowing");
+        return ResponseUtil.getObject(
+            exportRequestService.createExportBorrowingRequest(request),
+            HttpStatus.CREATED,
+            "Successfully created export request for borrowing"
+        );
+    }
+
+    @Operation(summary = "Create a new export request for liquidation")
+    @PostMapping("/liquidation")
+    public ResponseEntity<?> createExportRequestForLiquidation(@RequestBody ExportLiquidationRequest request) {
+        LOGGER.info("Creating export request for liquidation");
+        return ResponseUtil.getObject(
+            exportRequestService.createExportLiquidationRequest(request),
+            HttpStatus.CREATED,
+            "Successfully created export request for liquidation"
+        );
+    }
+
+    @Operation(summary = "Create a new export request for partial")
+    @PostMapping("/partial")
+    public ResponseEntity<?> createExportRequestForPartial(@RequestBody ExportPartialRequest request) {
+        LOGGER.info("Creating export request for partial");
+        return ResponseUtil.getObject(
+            exportRequestService.createExportPartialRequest(request),
+            HttpStatus.CREATED,
+            "Successfully created export request for partial"
+        );
+    }
+
 
     @Operation(summary = "Assign warehouse keeper for export request")
     @PostMapping("/assign-warehouse-keeper")
@@ -95,17 +144,4 @@ public class ExportRequestController {
         );
     }
 
-    @Operation(summary = "Assign warehouse keeper for export request")
-    @PostMapping("/assign-warehouse-keeper/{exportRequestId}")
-    public ResponseEntity<?> assignWarehouseKeeper(
-        @PathVariable Long exportRequestId,
-        @RequestParam Long accountId
-    ) {
-        LOGGER.info("Assigning warehouse keeper to export request");
-        return ResponseUtil.getObject(
-            exportRequestService.assignStaff(exportRequestId, accountId),
-            HttpStatus.OK,
-            "Successfully updated export request"
-        );
-    }
 } 

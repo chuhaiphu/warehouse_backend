@@ -1,5 +1,6 @@
-package capstonesu25.warehouse.model.exportrequest;
+package capstonesu25.warehouse.model.exportrequest.exportpartial;
 
+import capstonesu25.warehouse.enums.ExportType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -12,26 +13,20 @@ import java.time.LocalTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExportRequestRequest {
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
+public class ExportPartialRequest {
     private String exportReason;
 
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
     private String receiverName;
 
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
     private String receiverPhone;
 
-    @NotNull(message = "cannot be null")
-    @NotBlank(message = "cannot be blank")
+    private Long departmentId;
+
     private String receiverAddress;
 
     @NotNull(message = "cannot be null")
     @NotBlank(message = "cannot be blank")
-    private String type;
+    private ExportType type;
 
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
@@ -39,5 +34,4 @@ public class ExportRequestRequest {
     @NotNull(message = "cannot be null")
     private LocalTime exportTime;
 
-    private Long assignedWareHouseKeeperId;
-} 
+}

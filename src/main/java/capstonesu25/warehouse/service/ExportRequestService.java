@@ -1,15 +1,20 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ExportRequestDetail;
-import capstonesu25.warehouse.enums.AccountStatus;
-import capstonesu25.warehouse.model.exportrequest.ExportRequestRequest;
+import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
+import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
+import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialRequest;
+import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
+import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
+import capstonesu25.warehouse.repository.ImportRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +24,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class ExportRequestService {
     private final ExportRequestRepository exportRequestRepository;
     private final AccountRepository accountRepository;
+    private final ImportRequestRepository importRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
     public List<ExportRequestResponse> getAllExportRequests() {
@@ -45,16 +51,139 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
-    public ExportRequestResponse createExportRequest(ExportRequestRequest request) {
+    public ExportRequestResponse createExportPartialRequest (ExportPartialRequest request) {
+        LOGGER.info("Creating export partial request");
+        if(!checkType(ExportType.PARTIAL, request.getType())) {
+            LOGGER.error("Invalid export type: " + request.getType());
+            throw new IllegalArgumentException("Invalid export type: " + request.getType());
+        }
+        if(request.getDepartmentId() == null && request.getReceiverName() == null
+                && request.getReceiverPhone() == null && request.getReceiverAddress() == null) {
+            LOGGER.error("Department ID, receiver name, phone, and address cannot be null");
+            throw new IllegalArgumentException("Department ID, receiver name, phone, and address cannot be null");
+        }
+
+        ExportRequest exportRequest = new ExportRequest();
+        if(request.getDepartmentId() != null) {
+            exportRequest.setDepartmentId(request.getDepartmentId());
+        }
+        exportRequest.setReceiverName(request.getReceiverName());
+        exportRequest.setReceiverPhone(request.getReceiverPhone());
+        exportRequest.setReceiverAddress(request.getReceiverAddress());
+        exportRequest.setExportReason(request.getExportReason());
+        exportRequest.setType(request.getType());
+        exportRequest.setExportDate(request.getExportDate());
+        exportRequest.setExportTime(request.getExportTime());
+        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+    public ExportRequestResponse createExportLiquidationRequest(ExportLiquidationRequest request) {
+        LOGGER.info("Creating export liquidation request");
+        if(!checkType(ExportType.LIQUIDATION, request.getType())) {
+            LOGGER.error("Invalid export type: " + request.getType());
+            throw new IllegalArgumentException("Invalid export type: " + request.getType());
+        }
+
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setReceiverName(request.getReceiverName());
+        exportRequest.setReceiverPhone(request.getReceiverPhone());
+        exportRequest.setReceiverAddress(request.getReceiverAddress());
+        exportRequest.setExportReason(request.getExportReason());
+        exportRequest.setType(request.getType());
+        exportRequest.setExportDate(request.getExportDate());
+        exportRequest.setExportTime(request.getExportTime());
+        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+    public ExportRequestResponse createExportBorrowingRequest(ExportBorrowingRequest request) {
+        LOGGER.info("Creating export borrowing request");
+        if(!checkType(ExportType.BORROWING, request.getType())) {
+            LOGGER.error("Invalid export type: " + request.getType());
+            throw new IllegalArgumentException("Invalid export type: " + request.getType());
+        }
+
+        if(request.getDepartmentId() == null && request.getReceiverName() == null
+                && request.getReceiverPhone() == null && request.getReceiverAddress() == null) {
+            LOGGER.error("Department ID, receiver name, phone, and address cannot be null");
+            throw new IllegalArgumentException("Department ID, receiver name, phone, and address cannot be null");
+        }
+
+        ExportRequest exportRequest = new ExportRequest();
+        if(request.getDepartmentId() != null) {
+            exportRequest.setDepartmentId(request.getDepartmentId());
+        }
+        exportRequest.setReceiverName(request.getReceiverName());
+        exportRequest.setReceiverPhone(request.getReceiverPhone());
+        exportRequest.setReceiverAddress(request.getReceiverAddress());
+        exportRequest.setExportReason(request.getExportReason());
+        exportRequest.setType(request.getType());
+        exportRequest.setExportDate(request.getExportDate());
+        exportRequest.setExportTime(request.getExportTime());
+        exportRequest.setExpectedReturnDate(request.getExpectedReturnDate());
+        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+    public ExportRequestResponse createExportReturnRequest(ExportReturnRequest request) {
+        LOGGER.info("Creating export production request");
+        if(!checkType(ExportType.RETURN, request.getType())) {
+            LOGGER.error("Invalid export type: " + request.getType());
+            throw new IllegalArgumentException("Invalid export type: " + request.getType());
+        }
+
+        List<ImportRequest> list = request.getImportRequestIds().stream()
+            .map(importRequestId -> importRequestRepository.findById(importRequestId).orElseThrow())
+            .toList();
+
+        LOGGER.info("Check if any import request in request is invalid");
+        for(ImportRequest importRequest : list ) {
+            if(!Objects.equals(importRequest.getProvider().getId(), request.getProviderId())) {
+                LOGGER.error("Invalid import request: " + importRequest.getId());
+                throw new IllegalArgumentException("Invalid import request: " + importRequest.getId());
+            }
+        }
+
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setExportReason(request.getExportReason());
+        exportRequest.setProviderId(request.getProviderId());
+        exportRequest.setType(request.getType());
+        exportRequest.setExportDate(request.getExportDate());
+        exportRequest.setExportTime(request.getExportTime());
+        exportRequest.setImportRequests(list);
+        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+    public ExportRequestResponse createExportProductionRequest(ExportRequestRequest request) {
+        LOGGER.info("Creating export production request");
+        if(!checkType(ExportType.PRODUCTION, request.getType())) {
+            LOGGER.error("Invalid export type: " + request.getType());
+            throw new IllegalArgumentException("Invalid export type: " + request.getType());
+        }
+        if(request.getDepartmentId() == null && request.getReceiverName() == null
+        && request.getReceiverPhone() == null && request.getReceiverAddress() == null) {
+            LOGGER.error("Department ID, receiver name, phone, and address cannot be null");
+            throw new IllegalArgumentException("Department ID, receiver name, phone, and address cannot be null");
+        }
+
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportReason(request.getExportReason());
+        if(request.getDepartmentId() != null) {
+            exportRequest.setDepartmentId(request.getDepartmentId());
+        }
         exportRequest.setReceiverName(request.getReceiverName());
         exportRequest.setReceiverPhone(request.getReceiverPhone());
         exportRequest.setReceiverAddress(request.getReceiverAddress());
         exportRequest.setType(request.getType());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
-        exportRequest.setStatus("NOT_STARTED");
+        exportRequest.setStatus(ImportStatus.NOT_STARTED);
         
         if (request.getAssignedWareHouseKeeperId() != null) {
             exportRequest.setAssignedStaff(
@@ -79,21 +208,8 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
-    public ExportRequestResponse assignStaff(Long exportRequestId, Long accountId) {
-        LOGGER.info("Assigning staff to export request with ID: " + exportRequestId);
-        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
-                .orElseThrow(() -> new NoSuchElementException("Export Request not found with ID: " + exportRequestId));
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
-        if(account.getStatus() !=  AccountStatus.ACTIVE) {
-            throw new IllegalArgumentException("Account is "+ account.getStatus());
-        }
-
-        exportRequest.setAssignedStaff(account);
-        LOGGER.info("Update account status to INACTIVE");
-        account.setStatus(AccountStatus.INACTIVE);
-        accountRepository.save(account);
-        return mapToResponse(exportRequestRepository.save(exportRequest));
+    private boolean checkType(ExportType expect, ExportType actual) {
+        return expect == actual;
     }
 
     private ExportRequestResponse mapToResponse(ExportRequest exportRequest) {
@@ -103,10 +219,13 @@ public class ExportRequestService {
             exportRequest.getReceiverName(),
             exportRequest.getReceiverPhone(),
             exportRequest.getReceiverAddress(),
+            exportRequest.getDepartmentId(),
+            exportRequest.getProviderId(),
             exportRequest.getStatus(),
             exportRequest.getType(),
             exportRequest.getExportDate(),
             exportRequest.getExportTime(),
+            exportRequest.getExpectedReturnDate(),
             exportRequest.getAssignedStaff() != null ? exportRequest.getAssignedStaff().getId() : null,
             exportRequest.getPaper() != null ? exportRequest.getPaper().getId() : null,
             exportRequest.getImportRequests() != null ?
