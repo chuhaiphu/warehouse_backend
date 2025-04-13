@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,6 +44,12 @@ public class ExportRequestService {
     public Page<ExportRequestResponse> getAllExportRequestsByPage(int page, int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ExportRequest> exportRequests = exportRequestRepository.findAll(pageable);
+        return exportRequests.map(this::mapToResponse);
+    }
+
+    public Page<ExportRequestResponse> getAllExportRequestByAssignStaff( Long staffId, int page, int limit) {
+        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdDate"));
+        Page<ExportRequest> exportRequests = exportRequestRepository.findAllByAssignedStaff_Id(staffId, pageable);
         return exportRequests.map(this::mapToResponse);
     }
 

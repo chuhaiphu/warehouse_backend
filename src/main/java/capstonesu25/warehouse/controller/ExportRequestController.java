@@ -75,6 +75,28 @@ public class ExportRequestController {
         );
     }
 
+    @Operation(summary = "Get list export request by staff Id")
+    @GetMapping("/staff/{staffId}")
+    public ResponseEntity<?> getByStaffId(@PathVariable Long staffId,
+                                          @RequestParam(defaultValue = "1") int page,
+                                          @RequestParam(defaultValue = "10") int limit) {
+        LOGGER.info("Getting export request by staff id");
+        Page<ExportRequestResponse> result
+                = exportRequestService.getAllExportRequestByAssignStaff(staffId, page, limit);
+        return ResponseUtil.getCollection(
+                result.getContent(),
+                HttpStatus.OK,
+                "Successfully get paginated export requests by staff id",
+                new MetaDataDTO(
+                        result.hasNext(),
+                        result.hasPrevious(),
+                        limit,
+                        (int) result.getTotalElements(),
+                        page
+                )
+        );
+    }
+
     @Operation(summary = "Create a new export request for production")
     @PostMapping()
     public ResponseEntity<?> createExportRequest(@RequestBody ExportRequestRequest request) {
