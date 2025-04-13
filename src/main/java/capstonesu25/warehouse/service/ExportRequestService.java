@@ -1,9 +1,7 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Account;
-import capstonesu25.warehouse.entity.ExportRequest;
-import capstonesu25.warehouse.entity.ImportRequest;
-import capstonesu25.warehouse.entity.ExportRequestDetail;
+import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.enums.ImportStatus;
@@ -195,9 +193,12 @@ public class ExportRequestService {
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
         
         if (request.getAssignedWareHouseKeeperId() != null) {
-            exportRequest.setAssignedStaff(
-                accountRepository.findById(request.getAssignedWareHouseKeeperId()).orElseThrow()
-            );
+            Account account = accountRepository.findById(request.getAssignedWareHouseKeeperId())
+                .orElseThrow(() -> new IllegalArgumentException("Account not found with ID: " + request.getAssignedWareHouseKeeperId()));
+            validateAccountForAssignment(account);
+            updateAccountStatusForExportRequest(account, exportRequest);
+            exportRequest.setAssignedStaff(account);
+
         }
 
         ExportRequest newExportRequest = exportRequestRepository.save(exportRequest);
@@ -213,8 +214,7 @@ public class ExportRequestService {
                     () -> new IllegalArgumentException("Staff not found with ID: " + request.getAccountId())
             );
             validateAccountForAssignment(staff);
-            staff.setStatus(AccountStatus.INACTIVE);
-            accountRepository.save(staff);
+            updateAccountStatusForExportRequest(staff, exportRequest);
             exportRequest.setAssignedStaff(staff);
         }
         exportRequestRepository.save(exportRequest);
@@ -258,6 +258,22 @@ public class ExportRequestService {
         if (account.getStatus() != AccountStatus.ACTIVE) {
             throw new IllegalStateException("Cannot assign staff: Account is not active");
         }
-        throw new IllegalStateException("Cannot assign staff: Account is terminated");
+
+        if (account.getRole() != AccountRole.STAFF) {
+            throw new IllegalStateException("Cannot assign staff: Account is not a staff member");
+        }
+    }
+
+    private void updateAccountStatusForExportRequest(Account account, ExportRequest exportRequest) {
+        LOGGER.info("Update account status to INACTIVE");
+        if(exportRequest.getAssignedStaff() != null) {
+            // If the import order is being reassigned, set the previous staff's status to ACTIVE
+            LOGGER.info("Update previous staff status to ACTIVE");
+            Account preStaff = exportRequest.getAssignedStaff();
+            preStaff.setStatus(AccountStatus.ACTIVE);
+            accountRepository.save(preStaff);
+        }
+        account.setStatus(AccountStatus.INACTIVE);
+        accountRepository.save(account);
     }
 } 

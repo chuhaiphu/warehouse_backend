@@ -58,6 +58,7 @@ public class ImportOrderService {
             Account account = accountRepository.findById(request.getAccountId())
                     .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
             validateAccountForAssignment(account);
+            updateAccountStatusForImportRequest(account, importOrder);
             importOrder.setAssignedStaff(account);
             importOrder.setStatus(ImportStatus.IN_PROGRESS);
         }
@@ -107,6 +108,19 @@ public class ImportOrderService {
         }
     }
 
+    private void updateAccountStatusForImportRequest(Account account, ImportOrder importOrder) {
+        LOGGER.info("Update account status to INACTIVE");
+        if(importOrder.getAssignedStaff() != null) {
+            // If the import order is being reassigned, set the previous staff's status to ACTIVE
+            LOGGER.info("Update previous staff status to ACTIVE");
+            Account preStaff = importOrder.getAssignedStaff();
+            preStaff.setStatus(AccountStatus.ACTIVE);
+            accountRepository.save(preStaff);
+        }
+        account.setStatus(AccountStatus.INACTIVE);
+        accountRepository.save(account);
+    }
+
     public void delete(Long id) {
         LOGGER.info("Delete import order");
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
@@ -123,9 +137,7 @@ public class ImportOrderService {
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
         LOGGER.info("Update account status to INACTIVE");
         validateAccountForAssignment(account);
-        LOGGER.info("Update account status to INACTIVE");
-        account.setStatus(AccountStatus.INACTIVE);
-        accountRepository.save(account);
+        updateAccountStatusForImportRequest(account, importOrder);
         importOrder.setAssignedStaff(account);
         importOrder.setStatus(ImportStatus.IN_PROGRESS);
         
