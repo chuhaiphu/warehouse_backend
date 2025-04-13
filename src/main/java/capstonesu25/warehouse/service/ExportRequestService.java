@@ -1,8 +1,10 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ExportRequestDetail;
+import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
@@ -207,9 +209,13 @@ public class ExportRequestService {
         ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
         if (request.getAccountId() != null) {
             LOGGER.info("Assigning staff with account ID: " + request.getAccountId() + " to export request");
-            exportRequest.setAssignedStaff(
-                accountRepository.findById(request.getAccountId()).orElseThrow()
+            Account staff = accountRepository.findById(request.getAccountId()).orElseThrow(
+                    () -> new IllegalArgumentException("Staff not found with ID: " + request.getAccountId())
             );
+            validateAccountForAssignment(staff);
+            staff.setStatus(AccountStatus.INACTIVE);
+            accountRepository.save(staff);
+            exportRequest.setAssignedStaff(staff);
         }
         exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
@@ -246,5 +252,12 @@ public class ExportRequestService {
             exportRequest.getCreatedDate(),
             exportRequest.getUpdatedDate()
         );
+    }
+
+    private void validateAccountForAssignment(Account account) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot assign staff: Account is not active");
+        }
+        throw new IllegalStateException("Cannot assign staff: Account is terminated");
     }
 } 

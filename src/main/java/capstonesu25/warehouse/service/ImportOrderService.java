@@ -121,9 +121,11 @@ public class ImportOrderService {
 
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
-
+        LOGGER.info("Update account status to INACTIVE");
         validateAccountForAssignment(account);
-        
+        LOGGER.info("Update account status to INACTIVE");
+        account.setStatus(AccountStatus.INACTIVE);
+        accountRepository.save(account);
         importOrder.setAssignedStaff(account);
         importOrder.setStatus(ImportStatus.IN_PROGRESS);
         
