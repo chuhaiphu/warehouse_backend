@@ -137,6 +137,13 @@ public class ImportOrderService {
         return importOrders.map(this::mapToResponse);
     }
 
+    public Page<ImportOrderResponse> getAllImportOrders(int page, int limit) {
+        LOGGER.info("Get all import orders");
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        Page<ImportOrder> importOrders = importOrderRepository.findAll(pageable);
+        return importOrders.map(this::mapToResponse);
+    }
+
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(
                 importOrder.getId(),

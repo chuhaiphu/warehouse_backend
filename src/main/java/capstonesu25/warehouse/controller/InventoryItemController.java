@@ -2,7 +2,6 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
-import capstonesu25.warehouse.model.inventoryitem.QrCodeRequest;
 import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
@@ -119,20 +118,8 @@ public class InventoryItemController {
 						page));
 	}
 
-	@Operation(summary = "Create a new inventory item with QR codes")
-	@PostMapping("/create-with-qr")
-	public ResponseEntity<?> createInventoryItemWithQrCode(@RequestBody QrCodeRequest request) {
-		LOGGER.info("Creating inventory item with QR codes");
-		List<QrCodeResponse> responses = inventoryItemService.createQRCode(request);
-		return ResponseUtil.getCollection(
-				responses,
-				HttpStatus.CREATED,
-				"Successfully created inventory item with QR codes",
-				null);
-	}
-
 	@Operation(summary = "Get QR codes by inventory item IDs")
-	@PostMapping("/qr-codes")
+	@GetMapping("/qr-codes")
 	public ResponseEntity<?> getListQrCodes(@RequestBody List<Long> inventoryItemIds) {
 		LOGGER.info("Getting QR codes by inventory item IDs");
 		List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
