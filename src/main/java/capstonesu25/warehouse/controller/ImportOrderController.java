@@ -141,4 +141,15 @@ public class ImportOrderController {
                         (int) result.getTotalElements(),
                         page));
     }
+
+    @Operation(summary = "Cancel an import order")
+    @PostMapping("/cancel/{importOrderId}")
+    public ResponseEntity<?> cancelImportOrder(@PathVariable Long importOrderId) {
+        LOGGER.info("Cancelling import order");
+        ImportOrderResponse result = importOrderService.cancelImportOrder(importOrderId);
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully cancelled import order");
+    }
 }

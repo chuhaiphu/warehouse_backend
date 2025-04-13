@@ -75,22 +75,6 @@ public class AccountController {
         );
     }
 
-    @Operation(summary = "Get accounts by role with pagination")
-    @GetMapping("/role/{role}/paged")
-    public ResponseEntity<?> getAccountsByRoleWithPagination(
-            @PathVariable AccountRole role,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
-        LOGGER.info("Getting paginated accounts by role: {}, page: {}, limit: {}", role, page, limit);
-        Page<AccountResponse> accounts = accountService.getAccountsByRoleWithPagination(role, page, limit);
-        return ResponseUtil.getCollection(
-                accounts,
-                HttpStatus.OK,
-                "Successfully retrieved paginated accounts by role",
-                null
-        );
-    }
-
     @Operation(summary = "Find account by email")
     @GetMapping("/by-email")
     public ResponseEntity<?> findAccountByEmail(@RequestParam String email) {
@@ -103,25 +87,46 @@ public class AccountController {
         );
     }
 
-    @Operation(summary = "Test authentication endpoint")
-    @GetMapping("/test-authentication")
-    public ResponseEntity<?> testAuthentication() {
-        LOGGER.info("Testing authentication");
-        return ResponseUtil.getObject(
-                "Authentication successful",
-                HttpStatus.OK,
-                "Authentication test passed"
-        );
+    @Operation(summary = "Find account by id")
+    @GetMapping("/by-id")
+    public ResponseEntity<?> findAccountById(@RequestParam Long id) {
+        LOGGER.info("Finding account by id: {}", id);
+        AccountResponse account = accountService.findAccountById(id);
+        return ResponseUtil.getObject(account, HttpStatus.OK, "Account found successfully");
     }
 
-    @Operation(summary = "Test authorization endpoint")
-    @GetMapping("/test-authorization")
-    public ResponseEntity<?> testAuthorization() {
-        LOGGER.info("Testing authorization");
-        return ResponseUtil.getObject(
-                "Authorization successful",
+    // @Operation(summary = "Test authentication endpoint")
+    // @GetMapping("/test-authentication")
+    // public ResponseEntity<?> testAuthentication() {
+    //     LOGGER.info("Testing authentication");
+    //     return ResponseUtil.getObject(
+    //             "Authentication successful",
+    //             HttpStatus.OK,
+    //             "Authentication test passed"
+    //     );
+    // }
+
+    // @Operation(summary = "Test authorization endpoint")
+    // @GetMapping("/test-authorization")
+    // public ResponseEntity<?> testAuthorization() {
+    //     LOGGER.info("Testing authorization");
+    //     return ResponseUtil.getObject(
+    //             "Authorization successful",
+    //             HttpStatus.OK,
+    //             "Authorization test passed"
+    //     );
+    // }
+
+    @Operation(summary = "Get all active staff accounts")
+    @GetMapping("/active-staff")
+    public ResponseEntity<?> getActiveStaffs() {
+        LOGGER.info("Getting all active staff accounts");
+        List<AccountResponse> accounts = accountService.getActiveStaffs();
+        return ResponseUtil.getCollection(
+                accounts,
                 HttpStatus.OK,
-                "Authorization test passed"
+                "Successfully retrieved active staff accounts",
+                null
         );
     }
 }

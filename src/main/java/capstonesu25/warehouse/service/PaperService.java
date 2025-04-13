@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.enums.ItemStatus;
@@ -32,7 +33,7 @@ public class PaperService {
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
     private final ImportRequestRepository importRequestRepository;
-
+    private final AccountRepository accountRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PaperService.class);
     private final InventoryItemRepository inventoryItemRepository;
@@ -74,11 +75,25 @@ public class PaperService {
             throw e;
         }
         if(request.getImportOrderId() != null) {
+            ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElse(null);
+            if (importOrder != null && importOrder.getAssignedStaff() != null) {
+                LOGGER.info("Setting import order staff status back to ACTIVE");
+                Account staff = importOrder.getAssignedStaff();
+                staff.setStatus(AccountStatus.ACTIVE);
+                accountRepository.save(staff);
+            }
             updateImportRequest(request.getImportOrderId());
             updateImportOrder(request.getImportOrderId());
             autoFillLocationForImport(request);
         }
         if(request.getExportRequestId() != null) {
+            ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElse(null);
+            if (exportRequest != null && exportRequest.getAssignedStaff() != null) {
+                LOGGER.info("Setting export request staff status back to ACTIVE");
+                Account staff = exportRequest.getAssignedStaff();
+                staff.setStatus(AccountStatus.ACTIVE);
+                accountRepository.save(staff);
+            }
             updateExportRequest(request.getExportRequestId());
             updateInventoryItemAndLocationAfterExport(request.getExportRequestId());
         }

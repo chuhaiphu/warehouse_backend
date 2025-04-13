@@ -2,6 +2,8 @@ package capstonesu25.warehouse.repository;
 
 import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.enums.AccountRole;
+import capstonesu25.warehouse.enums.AccountStatus;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +19,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Boolean existsByEmail(String email);
     Optional<Account> findByRefreshToken(String jwt);
     Optional<Account> findByVerificationToken(String token);
+    List<Account> findByRoleAndStatus(AccountRole accountRole, AccountStatus accountStatus);
 }

@@ -127,6 +127,19 @@ public class AccountService implements LogoutHandler {
         return mapToResponse(account);
     }
 
+    public AccountResponse findAccountById(Long id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        return mapToResponse(account);
+    }
+
+    public List<AccountResponse> getActiveStaffs() {
+        return accountRepository.findByRoleAndStatus(AccountRole.STAFF, AccountStatus.ACTIVE)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         final String authHeader = request.getHeader("Authorization");

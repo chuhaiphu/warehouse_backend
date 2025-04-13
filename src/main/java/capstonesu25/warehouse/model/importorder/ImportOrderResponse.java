@@ -25,5 +25,5 @@ public class ImportOrderResponse {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     private Long paperIds;
-    private Long assignedWareHouseKeeperId;
+    private Long assignedStaffId;
 }

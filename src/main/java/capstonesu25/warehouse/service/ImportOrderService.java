@@ -158,6 +158,41 @@ public class ImportOrderService {
         return importOrders.map(this::mapToResponse);
     }
 
+    public ImportOrderResponse cancelImportOrder(Long importOrderId) {
+        LOGGER.info("Cancelling import order with ID: " + importOrderId);
+        
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+                
+        // Can only cancel orders that are NOT_STARTED or IN_PROGRESS
+        if (importOrder.getStatus() == ImportStatus.COMPLETED || importOrder.getStatus() == ImportStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot cancel import order with status: " + importOrder.getStatus());
+        }
+        
+        // Update ordered quantities in import request details
+        ImportRequest importRequest = importOrder.getImportRequest();
+        for (ImportOrderDetail orderDetail : importOrder.getImportOrderDetails()) {
+            importRequest.getDetails().stream()
+                    .filter(requestDetail -> requestDetail.getItem().getId().equals(orderDetail.getItem().getId()))
+                    .findFirst()
+                    .ifPresent(requestDetail -> {
+                        requestDetail.setOrderedQuantity(requestDetail.getOrderedQuantity() - orderDetail.getExpectQuantity());
+                        importRequestRepository.save(importRequest);
+                    });
+        }
+        
+        // If staff was assigned, set them back to ACTIVE
+        if (importOrder.getAssignedStaff() != null) {
+            Account staff = importOrder.getAssignedStaff();
+            staff.setStatus(AccountStatus.ACTIVE);
+            accountRepository.save(staff);
+            importOrder.setAssignedStaff(null);
+        }
+        
+        importOrder.setStatus(ImportStatus.CANCELLED);
+        return mapToResponse(importOrderRepository.save(importOrder));
+    }
+
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
         return new ImportOrderResponse(
                 importOrder.getId(),
