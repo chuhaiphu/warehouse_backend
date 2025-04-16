@@ -2,6 +2,7 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
+import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.Provider;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailExcelRow;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
@@ -35,33 +36,47 @@ public class ImportRequestDetailService {
 
     public void createImportRequestDetail(MultipartFile file, Long importRequestId) {
         LOGGER.info("Creating import order detail");
-        LOGGER.info("Finding import order by id: {}", importRequestId);
-
-        ImportRequest importRequest = importRequestRepository.findById(importRequestId)
+        
+        // Get the original import request to copy its properties
+        ImportRequest originalRequest = importRequestRepository.findById(importRequestId)
                 .orElseThrow(() -> new RuntimeException("Import order not found"));
 
-        // Process Excel file using the new DTO
+        // Process Excel file using the DTO
         List<ImportRequestDetailExcelRow> excelRows = ExcelUtil.processExcelFile(file, ImportRequestDetailExcelRow.class);
 
-        // Group by providerId
+        // Group by providerId using the item's provider
         Map<Long, List<ImportRequestDetailExcelRow>> rowsByProvider = excelRows.stream()
-                .collect(Collectors.groupingBy(ImportRequestDetailExcelRow::getProviderId));
+                .collect(Collectors.groupingBy(row -> {
+                    Item item = itemRepository.findById(row.getItemId())
+                            .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId()));
+                    return item.getProvider().getId();
+                }));
 
         // Process each provider group
         for (Map.Entry<Long, List<ImportRequestDetailExcelRow>> entry : rowsByProvider.entrySet()) {
             Long providerId = entry.getKey();
             List<ImportRequestDetailExcelRow> rows = entry.getValue();
 
-            LOGGER.info("Update provider for import request with providerId: {}", providerId);
+            // Create new ImportRequest for each provider
+            ImportRequest newImportRequest = new ImportRequest();
+            // Copy properties from original request
+            newImportRequest.setImportReason(originalRequest.getImportReason());
+            newImportRequest.setStatus(originalRequest.getStatus());
+            newImportRequest.setType(originalRequest.getType());
+            newImportRequest.setExportRequest(originalRequest.getExportRequest());
+
+            // Set provider for the new import request
             Provider provider = providerRepository.findById(providerId)
                     .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + providerId));
-            importRequest.setProvider(provider);
-            importRequestRepository.save(importRequest);
+            newImportRequest.setProvider(provider);
+            
+            // Save the new import request
+            ImportRequest savedImportRequest = importRequestRepository.save(newImportRequest);
 
-            // Create import request details
+            // Create import request details for this provider
             for (ImportRequestDetailExcelRow row : rows) {
                 ImportRequestDetail importRequestDetail = new ImportRequestDetail();
-                importRequestDetail.setImportRequest(importRequest);
+                importRequestDetail.setImportRequest(savedImportRequest);
                 importRequestDetail.setExpectQuantity(row.getQuantity());
                 importRequestDetail.setItem(itemRepository.findById(row.getItemId())
                         .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId())));
@@ -70,6 +85,9 @@ public class ImportRequestDetailService {
                 importRequestDetailRepository.save(importRequestDetail);
             }
         }
+        
+        // Delete the original empty import request
+        importRequestRepository.deleteById(importRequestId);
     }
 
 

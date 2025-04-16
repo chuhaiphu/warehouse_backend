@@ -30,7 +30,7 @@ public class JwtService {
     @Value("${spring.application.security.jwt.refresh_token.expiration}")
     private Long jwtRefreshTokenExpiration;
 
-    public String extractUserName(String token, TokenType tokenType) {
+    public String extractAccountId(String token, TokenType tokenType) {
         return extractClaim(token, Claims::getSubject, tokenType);
     }
 

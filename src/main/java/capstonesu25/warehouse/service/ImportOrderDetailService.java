@@ -5,7 +5,7 @@ import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.enums.DetailStatus;
-import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailCreateRequest;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailExcelRow;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
 import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
@@ -54,12 +54,13 @@ public class ImportOrderDetailService {
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
-        List<ImportOrderDetailCreateRequest> requests = ExcelUtil.processExcelFile(file, ImportOrderDetailCreateRequest.class);
+        List<ImportOrderDetailExcelRow> requests = ExcelUtil.processExcelFile(file, ImportOrderDetailExcelRow.class);
 
         if (requests.isEmpty()) {
             throw new IllegalArgumentException("Import order detail list cannot be empty");
         }
 
+        validateItemsExistInImportRequest(requests, importOrder.getImportRequest());
         validateSameProvider(requests);
         createImportOrderDetails(importOrder, requests);
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
@@ -67,12 +68,29 @@ public class ImportOrderDetailService {
         LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
     }
 
-    private void validateSameProvider(List<ImportOrderDetailCreateRequest> requests) {
+    private void validateItemsExistInImportRequest(List<ImportOrderDetailExcelRow> requests, ImportRequest importRequest) {
+        List<Long> validItemIds = importRequest.getDetails().stream()
+                .map(detail -> detail.getItem().getId())
+                .toList();
+
+        List<Long> invalidItemIds = requests.stream()
+                .map(ImportOrderDetailExcelRow::getItemId)
+                .filter(itemId -> !validItemIds.contains(itemId))
+                .toList();
+
+        if (!invalidItemIds.isEmpty()) {
+            throw new IllegalArgumentException(
+                "The following items are not in the original Import Request: " + invalidItemIds
+            );
+        }
+    }
+
+    private void validateSameProvider(List<ImportOrderDetailExcelRow> requests) {
         Long providerId = itemRepository.findById(requests.get(0).getItemId())
                 .map(item -> item.getProvider().getId())
                 .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + requests.get(0).getItemId()));
 
-        for (ImportOrderDetailCreateRequest request : requests) {
+        for (ImportOrderDetailExcelRow request : requests) {
             Long currentProviderId = itemRepository.findById(request.getItemId())
                     .map(item -> item.getProvider().getId())
                     .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + request.getItemId()));
@@ -83,8 +101,8 @@ public class ImportOrderDetailService {
         }
     }
 
-    private void createImportOrderDetails(ImportOrder importOrder, List<ImportOrderDetailCreateRequest> requests) {
-        for (ImportOrderDetailCreateRequest request : requests) {
+    private void createImportOrderDetails(ImportOrder importOrder, List<ImportOrderDetailExcelRow> requests) {
+        for (ImportOrderDetailExcelRow request : requests) {
             ImportOrderDetail detail = new ImportOrderDetail();
             detail.setImportOrder(importOrder);
             detail.setExpectQuantity(request.getQuantity());

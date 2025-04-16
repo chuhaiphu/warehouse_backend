@@ -91,10 +91,9 @@ public class AccountService implements LogoutHandler {
         }
 
         final String refreshToken = authHeader.substring(7);
-        final String userEmail = jwtService.extractUserName(refreshToken, TokenType.REFRESH);
-
-        if (userEmail != null) {
-            Account account = accountRepository.findByEmail(userEmail)
+        final String accountId = jwtService.extractAccountId(refreshToken, TokenType.REFRESH);
+        if (accountId != null) {
+            Account account = accountRepository.findById(Long.parseLong(accountId))
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
             if (jwtService.isTokenValid(refreshToken, account, TokenType.REFRESH)) {
