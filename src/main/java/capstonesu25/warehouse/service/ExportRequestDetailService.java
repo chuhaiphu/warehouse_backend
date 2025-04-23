@@ -100,10 +100,10 @@ public class ExportRequestDetailService {
         ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
                 .orElseThrow(() -> new RuntimeException("Export request detail not found"));
         exportRequestDetail.setActualQuantity(actual);
-        if(!Objects.equals(actual, exportRequestDetail.getQuantity())) {
-            exportRequestDetail.setStatus(DetailStatus.LACK);
-        } else {
+        if(Objects.equals(actual, exportRequestDetail.getQuantity())) {
             exportRequestDetail.setStatus(DetailStatus.MATCH);
+        } else {
+            throw new RuntimeException("Actual quantity does not match requested quantity");
         }
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }
