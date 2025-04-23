@@ -7,6 +7,8 @@ import capstonesu25.warehouse.enums.AccountStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -21,5 +23,11 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByRefreshToken(String jwt);
     Optional<Account> findByVerificationToken(String token);
     List<Account> findByRoleAndStatus(AccountRole accountRole, AccountStatus accountStatus);
-    List<Account> findDistinctByRoleAndStatusAndStaffPerformances_Date(AccountRole accountRole, AccountStatus accountStatus, LocalDate date);
+    @Query("SELECT DISTINCT a FROM Account a " +
+            "JOIN a.staffPerformances sp " +
+            "WHERE a.role = :role AND a.status = :status AND sp.date = :date")
+    List<Account> findActiveStaffsWithPerformanceOnDate(
+            @Param("role") AccountRole role,
+            @Param("status") AccountStatus status,
+            @Param("date") LocalDate date);
 }

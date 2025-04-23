@@ -121,6 +121,7 @@ public class ImportOrderService {
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
         staffPerformance.setDate(importOrder.getDateReceived());
+        staffPerformance.setAssignedStaff(account);
         staffPerformanceRepository.save(staffPerformance);
     }
 
@@ -152,6 +153,7 @@ public class ImportOrderService {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
         validateAccountForAssignment(account);
+        setTimeForStaffPerformance(account, importOrder);
 //        updateAccountStatusForImportRequest(account, importOrder);
         importOrder.setAssignedStaff(account);
         importOrder.setStatus(ImportStatus.IN_PROGRESS);

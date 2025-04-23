@@ -12,6 +12,8 @@ import capstonesu25.warehouse.repository.AccountRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,7 @@ public class AccountService implements LogoutHandler {
     private final AccountRepository accountRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
@@ -145,14 +148,32 @@ public class AccountService implements LogoutHandler {
     }
 
     public List<AccountResponse> getAllActiveStaffsInDate(LocalDate date) {
-        List<Account> accounts = accountRepository.findDistinctByRoleAndStatusAndStaffPerformances_Date(
+        LOGGER.info("Get all active staffs ");
+        List<Account> accountFinding = accountRepository.findByRoleAndStatus(
                 AccountRole.STAFF,
-                AccountStatus.ACTIVE,
-                date
+                AccountStatus.ACTIVE
         );
+
+        List<Account> accounts = new ArrayList<>();
+        for(Account account : accountFinding) {
+            for(ImportOrder importOrder : account.getImportOrders()) {
+                if(importOrder.getDateReceived().equals(date)) {
+                    accounts.add(account);
+                    LOGGER.info("Account {} has import order on date {}", account.getEmail(), date);
+                    break;
+                }
+            }
+        }
+
         List <AccountResponse> accountResponses = new ArrayList<>();
         for(Account account : accounts) {
-            List<StaffPerformance> staffPerformances = account.getStaffPerformances();
+            List<StaffPerformance> staffPerformances = account.getStaffPerformances()
+                    .stream()
+                    .filter(staffPerformance -> staffPerformance.getDate().equals(date))
+                    .toList();
+            if (staffPerformances.isEmpty()) {
+                LOGGER.warn("Account {} has no performance on date {}", account.getEmail(), date);
+            }
             LocalTime totalActualWorkingTimeOfRequestInDay = LocalTime.of(0, 0);
             LocalTime totalExpectedWorkingTimeOfRequestInDay = LocalTime.of(0, 0);
 
