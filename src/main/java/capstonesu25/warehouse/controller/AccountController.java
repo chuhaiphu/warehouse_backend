@@ -10,12 +10,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -129,4 +129,17 @@ public class AccountController {
                 null
         );
     }
+    @Operation(summary = "Get all active staff accounts with date")
+    @GetMapping("/active-staff/{date}")
+    public ResponseEntity<?> getActiveStaffsInDay(@PathVariable LocalDate date) {
+        LOGGER.info("Getting all active staff accounts with date: {}", date);
+        List<AccountResponse> accounts = accountService.getAllActiveStaffsInDate(date);
+        return ResponseUtil.getCollection(
+                accounts,
+                HttpStatus.OK,
+                "Successfully retrieved active staff accounts with date",
+                null
+        );
+    }
+
 }

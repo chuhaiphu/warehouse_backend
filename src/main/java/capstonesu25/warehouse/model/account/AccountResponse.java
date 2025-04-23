@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -20,6 +21,8 @@ public class AccountResponse {
     private Boolean isEnable;
     private Boolean isBlocked;
     private AccountRole role;
+    private LocalTime totalActualWorkingTimeOfRequestInDay;
+    private LocalTime totalExpectedWorkingTimeOfRequestInDay;
     private List<Long> importOrderIds;
     private List<Long> exportRequestIds;
 } 

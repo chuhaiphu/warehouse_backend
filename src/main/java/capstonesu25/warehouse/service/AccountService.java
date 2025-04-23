@@ -3,6 +3,7 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.entity.ImportOrder;
+import capstonesu25.warehouse.entity.StaffPerformance;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.TokenType;
@@ -24,6 +25,10 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -139,6 +144,59 @@ public class AccountService implements LogoutHandler {
                 .toList();
     }
 
+    public List<AccountResponse> getAllActiveStaffsInDate(LocalDate date) {
+        List<Account> accounts = accountRepository.findDistinctByRoleAndStatusAndStaffPerformances_Date(
+                AccountRole.STAFF,
+                AccountStatus.ACTIVE,
+                date
+        );
+        List <AccountResponse> accountResponses = new ArrayList<>();
+        for(Account account : accounts) {
+            List<StaffPerformance> staffPerformances = account.getStaffPerformances();
+            LocalTime totalActualWorkingTimeOfRequestInDay = LocalTime.of(0, 0);
+            LocalTime totalExpectedWorkingTimeOfRequestInDay = LocalTime.of(0, 0);
+
+            for(StaffPerformance performance : staffPerformances) {
+                totalExpectedWorkingTimeOfRequestInDay = totalExpectedWorkingTimeOfRequestInDay.
+                        plusMinutes(performance.getExpectedWorkingTime().toSecondOfDay() / 60);
+
+                if (performance.getActualWorkingTime() != null) {
+                    totalActualWorkingTimeOfRequestInDay = totalActualWorkingTimeOfRequestInDay.
+                            plusMinutes(performance.getActualWorkingTime().toSecondOfDay() / 60);
+                }
+            }
+            AccountResponse accountResponse = new AccountResponse(
+                    account.getId(),
+                    account.getEmail(),
+                    account.getPhone(),
+                    account.getFullName(),
+                    account.getStatus(),
+                    account.getIsEnable(),
+                    account.getIsBlocked(),
+                    account.getRole(),
+                    totalActualWorkingTimeOfRequestInDay,
+                    totalExpectedWorkingTimeOfRequestInDay,
+                    account.getImportOrders() != null ?
+                            account.getImportOrders().stream().map(ImportOrder::getId).toList() :
+                            List.of(),
+                    account.getExportRequests() != null ?
+                            account.getExportRequests().stream().map(ExportRequest::getId).toList() :
+                            List.of()
+            );
+            accountResponses.add(accountResponse);
+        }
+        accountResponses.forEach(accountResponse -> {
+            if (accountResponse.getTotalExpectedWorkingTimeOfRequestInDay() == null) {
+                accountResponse.setTotalActualWorkingTimeOfRequestInDay(LocalTime.of(0, 0));
+            }
+        });
+        accountResponses.sort(Comparator.comparing(AccountResponse::getTotalExpectedWorkingTimeOfRequestInDay));
+
+        return accountResponses;
+    }
+
+
+
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         final String authHeader = request.getHeader("Authorization");
@@ -165,6 +223,8 @@ public class AccountService implements LogoutHandler {
                 account.getIsEnable(),
                 account.getIsBlocked(),
                 account.getRole(),
+                null,
+                null,
                 account.getImportOrders() != null ?
                         account.getImportOrders().stream().map(ImportOrder::getId).toList() :
                         List.of(),

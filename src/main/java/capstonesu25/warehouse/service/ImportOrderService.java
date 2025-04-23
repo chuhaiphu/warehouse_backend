@@ -1,18 +1,13 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Account;
-import capstonesu25.warehouse.entity.ImportOrder;
-import capstonesu25.warehouse.entity.ImportOrderDetail;
-import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
-import capstonesu25.warehouse.repository.AccountRepository;
-import capstonesu25.warehouse.repository.ImportOrderRepository;
-import capstonesu25.warehouse.repository.ImportRequestRepository;
+import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -29,6 +26,8 @@ public class ImportOrderService {
     private final ImportOrderRepository importOrderRepository;
     private final ImportRequestRepository importRequestRepository;
     private final AccountRepository accountRepository;
+    private final StaffPerformanceRepository staffPerformanceRepository;
+    private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(Long id) {
@@ -58,7 +57,7 @@ public class ImportOrderService {
             Account account = accountRepository.findById(request.getAccountId())
                     .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
             validateAccountForAssignment(account);
-            updateAccountStatusForImportRequest(account, importOrder);
+//            updateAccountStatusForImportRequest(account, importOrder);
             importOrder.setAssignedStaff(account);
             importOrder.setStatus(ImportStatus.IN_PROGRESS);
         }
@@ -108,6 +107,23 @@ public class ImportOrderService {
         }
     }
 
+    private void setTimeForStaffPerformance(Account account, ImportOrder importOrder) {
+        Configuration configuration = configurationRepository.findById(1L)
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found with ID: 1"));
+        int totalMinutes = 0;
+        for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+            LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+            totalMinutes += detail.getExpectQuantity() * detail.getItem().getCountingMinutes();
+        }
+
+        LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
+        staffPerformance.setDate(importOrder.getDateReceived());
+        staffPerformanceRepository.save(staffPerformance);
+    }
+
     private void updateAccountStatusForImportRequest(Account account, ImportOrder importOrder) {
         LOGGER.info("Update account status to INACTIVE");
         if(importOrder.getAssignedStaff() != null) {
@@ -135,9 +151,8 @@ public class ImportOrderService {
 
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
-        LOGGER.info("Update account status to INACTIVE");
         validateAccountForAssignment(account);
-        updateAccountStatusForImportRequest(account, importOrder);
+//        updateAccountStatusForImportRequest(account, importOrder);
         importOrder.setAssignedStaff(account);
         importOrder.setStatus(ImportStatus.IN_PROGRESS);
         

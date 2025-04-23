@@ -44,6 +44,13 @@ public class Item {
     @Column(name = "maximum_stock_quantity")
     private Integer maximumStockQuantity;
 
+    @Column(name = "counting_minutes")
+    private Integer countingMinutes;
+
+    @ManyToOne
+    @JoinColumn(name = "configuration_id")
+    private Configuration configuration;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
@@ -51,6 +58,7 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "provider_id")
     private Provider provider;
+
 
     @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<ImportOrderDetail> importOrderDetails;
