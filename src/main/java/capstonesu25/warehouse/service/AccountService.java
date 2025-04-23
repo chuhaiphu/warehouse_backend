@@ -149,21 +149,10 @@ public class AccountService implements LogoutHandler {
 
     public List<AccountResponse> getAllActiveStaffsInDate(LocalDate date) {
         LOGGER.info("Get all active staffs ");
-        List<Account> accountFinding = accountRepository.findByRoleAndStatus(
+        List<Account> accounts = accountRepository.findByRoleAndStatus(
                 AccountRole.STAFF,
                 AccountStatus.ACTIVE
         );
-
-        List<Account> accounts = new ArrayList<>();
-        for(Account account : accountFinding) {
-            for(ImportOrder importOrder : account.getImportOrders()) {
-                if(importOrder.getDateReceived().equals(date)) {
-                    accounts.add(account);
-                    LOGGER.info("Account {} has import order on date {}", account.getEmail(), date);
-                    break;
-                }
-            }
-        }
 
         List <AccountResponse> accountResponses = new ArrayList<>();
         for(Account account : accounts) {
