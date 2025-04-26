@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface StaffPerformanceRepository extends JpaRepository<StaffPerformance, Long> {
     List<StaffPerformance> findByAssignedStaff_IdAndDate(Long accountId, LocalDate date);
+    StaffPerformance findByImportOrderIdAndAssignedStaff_Id(Long importOrderId, Long accountId);
 }

@@ -18,6 +18,12 @@ public class StaffPerformance {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "import_order_id")
+    private Long importOrderId;
+
+    @Column(name = "export_request_id")
+    private Long exportRequestId;
+
     @Column(name = "date")
     private LocalDate date;
 

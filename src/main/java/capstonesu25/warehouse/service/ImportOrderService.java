@@ -115,15 +115,15 @@ public class ImportOrderService {
             LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
             totalMinutes += detail.getExpectQuantity() * detail.getItem().getCountingMinutes();
         }
-
         LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
-
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
         staffPerformance.setDate(importOrder.getDateReceived());
+        staffPerformance.setImportOrderId(importOrder.getId());
         staffPerformance.setAssignedStaff(account);
         staffPerformanceRepository.save(staffPerformance);
     }
+
 
     private void updateAccountStatusForImportRequest(Account account, ImportOrder importOrder) {
         LOGGER.info("Update account status to INACTIVE");
@@ -149,7 +149,15 @@ public class ImportOrderService {
 
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
-
+        if(importOrder.getAssignedStaff() != null) {
+            LOGGER.info("Return working for pre staff: {}",importOrder.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository.
+                    findByImportOrderIdAndAssignedStaff_Id(importOrderId,importOrder.getAssignedStaff().getId());
+            if(staffPerformance != null) {
+            LOGGER.info("Delete working time for pre staff: {}",importOrder.getAssignedStaff().getEmail());
+                staffPerformanceRepository.delete(staffPerformance);
+            }
+        }
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
         validateAccountForAssignment(account);
