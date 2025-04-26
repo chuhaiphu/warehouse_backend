@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -57,7 +58,6 @@ public class ImportOrderService {
             Account account = accountRepository.findById(request.getAccountId())
                     .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
             validateAccountForAssignment(account);
-//            updateAccountStatusForImportRequest(account, importOrder);
             importOrder.setAssignedStaff(account);
             importOrder.setStatus(ImportStatus.IN_PROGRESS);
         }
@@ -65,7 +65,7 @@ public class ImportOrderService {
         if (request.getNote() != null) {
             importOrder.setNote(request.getNote());
         }
-        
+        validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
         importOrder.setDateReceived(request.getDateReceived());
         importOrder.setTimeReceived(request.getTimeReceived());
         
@@ -124,6 +124,30 @@ public class ImportOrderService {
         staffPerformanceRepository.save(staffPerformance);
     }
 
+    private void validateForTimeDate(LocalDate date, LocalTime time) {
+        LOGGER.info("Validating time and date for import order");
+        Configuration configuration = configurationRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found with name: importOrder"));
+
+        long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
+                + configuration.getCreateRequestTimeAtLeast().getMinute();
+
+        LOGGER.info("Check if date is in the past");
+        if(date.isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Cannot set time for import order: Date is in the past");
+        }
+
+        LOGGER.info("Check if time set is too early");
+        if (date.isEqual(LocalDate.now()) &&
+                LocalTime.now()
+                        .plusMinutes(minutesToAdd)
+                        .isBefore(time)) {
+            throw new IllegalStateException("Cannot set time for import order: Time is too early");
+        }
+
+    }
+
 
     private void updateAccountStatusForImportRequest(Account account, ImportOrder importOrder) {
         LOGGER.info("Update account status to INACTIVE");
@@ -162,7 +186,6 @@ public class ImportOrderService {
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
         validateAccountForAssignment(account);
         setTimeForStaffPerformance(account, importOrder);
-//        updateAccountStatusForImportRequest(account, importOrder);
         importOrder.setAssignedStaff(account);
         importOrder.setStatus(ImportStatus.IN_PROGRESS);
         

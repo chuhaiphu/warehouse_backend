@@ -12,9 +12,7 @@ import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequest
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
-import capstonesu25.warehouse.repository.AccountRepository;
-import capstonesu25.warehouse.repository.ExportRequestRepository;
-import capstonesu25.warehouse.repository.ImportRequestRepository;
+import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 @Service
@@ -33,6 +34,8 @@ public class ExportRequestService {
     private final ExportRequestRepository exportRequestRepository;
     private final AccountRepository accountRepository;
     private final ImportRequestRepository importRequestRepository;
+    private final StaffPerformanceRepository staffPerformanceRepository;
+    private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
     public List<ExportRequestResponse> getAllExportRequests() {
@@ -79,6 +82,8 @@ public class ExportRequestService {
         exportRequest.setReceiverAddress(request.getReceiverAddress());
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setType(request.getType());
+
+        validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
@@ -99,6 +104,8 @@ public class ExportRequestService {
         exportRequest.setReceiverAddress(request.getReceiverAddress());
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setType(request.getType());
+
+        validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
@@ -128,6 +135,8 @@ public class ExportRequestService {
         exportRequest.setReceiverAddress(request.getReceiverAddress());
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setType(request.getType());
+
+        validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setExpectedReturnDate(request.getExpectedReturnDate());
@@ -159,6 +168,8 @@ public class ExportRequestService {
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setProviderId(request.getProviderId());
         exportRequest.setType(request.getType());
+
+        validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setImportRequests(list);
@@ -188,6 +199,8 @@ public class ExportRequestService {
         exportRequest.setReceiverPhone(request.getReceiverPhone());
         exportRequest.setReceiverAddress(request.getReceiverAddress());
         exportRequest.setType(request.getType());
+
+        validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
@@ -208,17 +221,45 @@ public class ExportRequestService {
     public ExportRequestResponse assignStaffToExportRequest(AssignStaffExportRequest request) {
         LOGGER.info("Assigning staff to export request with ID: " + request.getExportRequestId());
         ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
+
+        if(exportRequest.getAssignedStaff() != null) {
+            LOGGER.info("Return working for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository.
+                    findByExportRequestIdAndAssignedStaff_Id(exportRequest.getId(),exportRequest.getAssignedStaff().getId());
+            if(staffPerformance != null) {
+                LOGGER.info("Delete working time for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
+                staffPerformanceRepository.delete(staffPerformance);
+            }
+        }
+
         if (request.getAccountId() != null) {
             LOGGER.info("Assigning staff with account ID: " + request.getAccountId() + " to export request");
             Account staff = accountRepository.findById(request.getAccountId()).orElseThrow(
                     () -> new IllegalArgumentException("Staff not found with ID: " + request.getAccountId())
             );
             validateAccountForAssignment(staff);
-            updateAccountStatusForExportRequest(staff, exportRequest);
+            setTimeForStaffPerformance(staff, exportRequest);
             exportRequest.setAssignedStaff(staff);
         }
         exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
+    }
+
+    private void setTimeForStaffPerformance(Account account, ExportRequest exportRequest) {
+        Configuration configuration = configurationRepository.findById(1L)
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found with ID: 1"));
+        int totalMinutes = 0;
+        for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
+            LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+            totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
+        }
+        LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
+        staffPerformance.setDate(exportRequest.getExportDate());
+        staffPerformance.setImportOrderId(exportRequest.getId());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformanceRepository.save(staffPerformance);
     }
 
     private boolean checkType(ExportType expect, ExportType actual) {
@@ -275,5 +316,28 @@ public class ExportRequestService {
         }
         account.setStatus(AccountStatus.INACTIVE);
         accountRepository.save(account);
+    }
+    private void validateForTimeDate(LocalDate date, LocalTime time) {
+        LOGGER.info("Validating time and date for import order");
+        Configuration configuration = configurationRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found with name: importOrder"));
+
+        long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
+                + configuration.getCreateRequestTimeAtLeast().getMinute();
+
+        LOGGER.info("Check if date is in the past");
+        if(date.isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Cannot set time for import order: Date is in the past");
+        }
+
+        LOGGER.info("Check if time set is too early");
+        if (date.isEqual(LocalDate.now()) &&
+                LocalTime.now()
+                        .plusMinutes(minutesToAdd)
+                        .isBefore(time)) {
+            throw new IllegalStateException("Cannot set time for import order: Time is too early");
+        }
+
     }
 } 
