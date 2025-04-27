@@ -57,8 +57,8 @@ public class WarehouseApplication {
 			Configuration configuration = new Configuration(
 					null,
 					null,
-					LocalTime.parse("06:00"),
-					LocalTime.parse("05:00"),
+					LocalTime.parse("07:00"),
+					LocalTime.parse("17:00"),
 					LocalTime.parse("04:00"),
 					LocalTime.parse("02:00"),
 					LocalTime.parse("01:00")
