@@ -119,7 +119,7 @@ public class InventoryItemController {
 	}
 
 	@Operation(summary = "Get QR codes by inventory item IDs")
-	@GetMapping("/qr-codes")
+	@PostMapping("/qr-codes")
 	public ResponseEntity<?> getListQrCodes(@RequestBody List<Long> inventoryItemIds) {
 		LOGGER.info("Getting QR codes by inventory item IDs");
 		List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
