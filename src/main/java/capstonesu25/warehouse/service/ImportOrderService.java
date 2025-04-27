@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -108,8 +107,6 @@ public class ImportOrderService {
     }
 
     private void setTimeForStaffPerformance(Account account, ImportOrder importOrder) {
-        Configuration configuration = configurationRepository.findById(1L)
-                .orElseThrow(() -> new NoSuchElementException("Configuration not found with ID: 1"));
         int totalMinutes = 0;
         for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
             LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
@@ -142,24 +139,10 @@ public class ImportOrderService {
         if (date.isEqual(LocalDate.now()) &&
                 LocalTime.now()
                         .plusMinutes(minutesToAdd)
-                        .isBefore(time)) {
+                        .isAfter(time)) {
             throw new IllegalStateException("Cannot set time for import order: Time is too early");
         }
 
-    }
-
-
-    private void updateAccountStatusForImportRequest(Account account, ImportOrder importOrder) {
-        LOGGER.info("Update account status to INACTIVE");
-        if(importOrder.getAssignedStaff() != null) {
-            // If the import order is being reassigned, set the previous staff's status to ACTIVE
-            LOGGER.info("Update previous staff status to ACTIVE");
-            Account preStaff = importOrder.getAssignedStaff();
-            preStaff.setStatus(AccountStatus.ACTIVE);
-            accountRepository.save(preStaff);
-        }
-        account.setStatus(AccountStatus.INACTIVE);
-        accountRepository.save(account);
     }
 
     public void delete(Long id) {

@@ -246,8 +246,6 @@ public class ExportRequestService {
     }
 
     private void setTimeForStaffPerformance(Account account, ExportRequest exportRequest) {
-        Configuration configuration = configurationRepository.findById(1L)
-                .orElseThrow(() -> new NoSuchElementException("Configuration not found with ID: 1"));
         int totalMinutes = 0;
         for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
             LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
@@ -335,7 +333,7 @@ public class ExportRequestService {
         if (date.isEqual(LocalDate.now()) &&
                 LocalTime.now()
                         .plusMinutes(minutesToAdd)
-                        .isBefore(time)) {
+                        .isAfter(time)) {
             throw new IllegalStateException("Cannot set time for import order: Time is too early");
         }
 
