@@ -2,8 +2,6 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
-import capstonesu25.warehouse.model.account.AccountResponse;
-import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
@@ -19,7 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
@@ -35,6 +35,7 @@ public class ImportOrderService {
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final StoredLocationRepository storedLocationRepository;
+    private final ItemRepository itemRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(Long id) {
@@ -239,6 +240,7 @@ public class ImportOrderService {
         updateImportRequest(importOrder);
         updateImportOrder(importOrder);
         autoFillLocationForImport(importOrder);
+        handleImportItems(importOrder);
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
@@ -334,6 +336,7 @@ public class ImportOrderService {
     }
 
     private void createInventoryItem(ImportOrderDetail importOrderDetail) {
+        LOGGER.info("Creating inventory item for import order detail id: {}", importOrderDetail.getId());
         for(int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
             InventoryItem inventoryItem = new InventoryItem();
             inventoryItem.setImportOrderDetail(importOrderDetail);
@@ -348,6 +351,25 @@ public class ImportOrderService {
             }
             inventoryItemRepository.save(inventoryItem);
         }
+    }
+
+    private void handleImportItems(ImportOrder importOrder) {
+        LOGGER.info("Handling import items for import order id: {}", importOrder.getId());
+        Map<Long, Item> updatedItems = new HashMap<>();
+
+        for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+            for (InventoryItem inventoryItem : detail.getInventoryItems()) {
+                Item item = inventoryItem.getItem();
+                if (item != null) {
+                    item.setTotalMeasurementValue(item.getTotalMeasurementValue() + inventoryItem.getMeasurementValue());
+                    item.setQuantity(item.getQuantity() + 1);
+                    updatedItems.put(item.getId(), item);
+                }
+            }
+        }
+
+        itemRepository.saveAll(updatedItems.values());
+        LOGGER.info("Updated {} imported items", updatedItems.size());
     }
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {

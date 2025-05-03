@@ -259,6 +259,9 @@ public class AccountService implements LogoutHandler {
                         accountResponse.getId(),
                         exportRequest.getCountingDate()
                 );
+                if(checkExportRequest.isEmpty()) {
+                    responses.add(accountResponse);
+                }
                 for(ExportRequest exportCheck : checkExportRequest) {
                     int totalMinutes = 0;
                     for (ExportRequestDetail detail : exportCheck.getExportRequestDetails()) {
