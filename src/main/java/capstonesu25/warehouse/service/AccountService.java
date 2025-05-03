@@ -216,7 +216,7 @@ public class AccountService implements LogoutHandler {
             LOGGER.info("Get all active staffs in date {} for import order", date);
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Import order not found"));
-
+            LOGGER.info("Import order date: {} and Request date: {}", importOrder.getDateReceived(), request.getDate());
             if(importOrder.getDateReceived() != request.getDate()) {
                 return accountResponses;
             }
@@ -226,15 +226,20 @@ public class AccountService implements LogoutHandler {
                        accountResponse.getId(),
                        importOrder.getDateReceived()
                );
-               for(ImportOrder orderCheck : checkImportOrder) {
-                   int totalMinutes = 0;
-                   for (ImportOrderDetail detail : orderCheck.getImportOrderDetails()) {
-                       LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
-                       totalMinutes += detail.getExpectQuantity() * detail.getItem().getCountingMinutes();
-                   }
-                   LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
-                   if(importOrder.getTimeReceived().isAfter(orderCheck.getTimeReceived().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
-                       responses.add(accountResponse);
+               if(checkImportOrder.isEmpty()) {
+                   responses.add(accountResponse);
+               }
+               else {
+                   for (ImportOrder orderCheck : checkImportOrder) {
+                       int totalMinutes = 0;
+                       for (ImportOrderDetail detail : orderCheck.getImportOrderDetails()) {
+                           LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+                           totalMinutes += detail.getExpectQuantity() * detail.getItem().getCountingMinutes();
+                       }
+                       LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+                       if (importOrder.getTimeReceived().isAfter(orderCheck.getTimeReceived().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
+                           responses.add(accountResponse);
+                       }
                    }
                }
             }

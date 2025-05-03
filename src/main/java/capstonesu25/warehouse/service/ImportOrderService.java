@@ -76,23 +76,9 @@ public class ImportOrderService {
             importOrder.setDateReceived(request.getDateReceived());
             importOrder.setTimeReceived(request.getTimeReceived());
         }
-
         importRequest.setStatus(ImportStatus.IN_PROGRESS);
-
         importRequestRepository.save(importRequest);
-
         ImportOrder order = importOrderRepository.save(importOrder);
-
-        //auto assign staff
-        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
-        activeAccountRequest.setDate(order.getDateReceived());
-        activeAccountRequest.setImportOrderId(order.getId());
-
-        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
-        Account account = accountRepository.findById(accountResponse.get(0).getId())
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
-        order.setAssignedStaff(account);
-        setTimeForStaffPerformance(account, order);
         return mapToResponse(importOrderRepository.save(order));
     }
 

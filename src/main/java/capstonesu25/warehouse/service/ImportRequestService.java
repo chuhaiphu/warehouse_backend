@@ -92,7 +92,8 @@ public class ImportRequestService {
                 importRequest.getCreatedBy(),
                 importRequest.getUpdatedBy(),
                 importRequest.getCreatedDate(),
-                importRequest.getUpdatedDate()
+                importRequest.getUpdatedDate(),
+                importRequest.getBatchCode()
         );
     }
 }

@@ -25,5 +25,7 @@ public class ImportRequestResponse {
     private String updatedBy;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+    private String batchCode;
+
 
 }

@@ -12,8 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportOrderDetailExcelRow {
-    private List<Long> itemId;
-    private List<Integer> quantity;
+    private Long itemId;
+    private Integer quantity;
     private LocalDate dateReceived;
     private LocalTime timeReceived;
     private String note;

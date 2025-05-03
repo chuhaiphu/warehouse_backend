@@ -7,6 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -64,21 +67,47 @@ public class ExcelUtil {
             return null;
         }
 
+        if (fieldType == LocalDate.class && DateUtil.isCellDateFormatted(cell)) {
+            return cell.getDateCellValue()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+        }
+
+        if (fieldType == LocalTime.class && DateUtil.isCellDateFormatted(cell)) {
+            return cell.getDateCellValue()
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalTime();
+        }
+
         return switch (cell.getCellType()) {
-            case STRING -> cell.getStringCellValue();
+            case STRING -> {
+                if (fieldType == Integer.class || fieldType == int.class) {
+                    yield Integer.parseInt(cell.getStringCellValue());
+                } else if (fieldType == Long.class) {
+                    yield Long.parseLong(cell.getStringCellValue());
+                } else if (fieldType == Double.class) {
+                    yield Double.parseDouble(cell.getStringCellValue());
+                }
+                yield cell.getStringCellValue();
+            }
             case NUMERIC -> {
                 double numericValue = cell.getNumericCellValue();
                 if (fieldType == Long.class) {
                     yield (long) numericValue;
                 } else if (fieldType == Integer.class || fieldType == int.class) {
                     yield (int) numericValue;
-                } else {
+                } else if (fieldType == Double.class) {
                     yield numericValue;
+                } else {
+                    yield numericValue; // fallback
                 }
             }
             case BOOLEAN -> cell.getBooleanCellValue();
             default -> null;
         };
     }
+
 
 }

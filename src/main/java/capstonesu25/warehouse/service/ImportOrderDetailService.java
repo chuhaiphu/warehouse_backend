@@ -2,6 +2,8 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.model.account.AccountResponse;
+import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailExcelRow;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
@@ -29,6 +31,9 @@ public class ImportOrderDetailService {
     private final ItemRepository itemRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
     private final ConfigurationRepository configurationRepository;
+    private final AccountRepository accountRepository;
+    private final AccountService accountService;
+    private final StaffPerformanceRepository staffPerformanceRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
@@ -68,16 +73,17 @@ public class ImportOrderDetailService {
     }
 
 
+
     private void validateItemsExistInImportRequest(List<ImportOrderDetailExcelRow> requests, ImportRequest importRequest) {
         List<Long> validItemIds = importRequest.getDetails().stream()
                 .map(detail -> detail.getItem().getId())
                 .toList();
 
-        List<Long> allItemIdsFromExcel = requests.stream()
-                .flatMap(request -> request.getItemId().stream())
+        List<Long> itemIdsFromExcel = requests.stream()
+                .map(ImportOrderDetailExcelRow::getItemId)
                 .toList();
 
-        List<Long> invalidItemIds = allItemIdsFromExcel.stream()
+        List<Long> invalidItemIds = itemIdsFromExcel.stream()
                 .filter(itemId -> !validItemIds.contains(itemId))
                 .distinct()
                 .toList();
@@ -89,30 +95,25 @@ public class ImportOrderDetailService {
         }
     }
 
-
     private void validateSameProvider(List<ImportOrderDetailExcelRow> requests) {
-        if (requests.isEmpty() || requests.get(0).getItemId().isEmpty()) {
-            throw new IllegalArgumentException("Item list cannot be empty for provider validation");
+        if (requests.isEmpty()) {
+            throw new IllegalArgumentException("Request list cannot be empty for provider validation");
         }
 
-        // Get the providerId of the first item in the first row
-        Long referenceProviderId = itemRepository.findById(requests.get(0).getItemId().get(0))
+        Long referenceProviderId = itemRepository.findById(requests.get(0).getItemId())
                 .map(item -> item.getProvider().getId())
-                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + requests.get(0).getItemId().get(0)));
+                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + requests.get(0).getItemId()));
 
         for (ImportOrderDetailExcelRow request : requests) {
-            for (Long itemId : request.getItemId()) {
-                Long currentProviderId = itemRepository.findById(itemId)
-                        .map(item -> item.getProvider().getId())
-                        .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemId));
+            Long currentProviderId = itemRepository.findById(request.getItemId())
+                    .map(item -> item.getProvider().getId())
+                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + request.getItemId()));
 
-                if (!referenceProviderId.equals(currentProviderId)) {
-                    throw new IllegalArgumentException("All items must belong to the same provider.");
-                }
+            if (!referenceProviderId.equals(currentProviderId)) {
+                throw new IllegalArgumentException("All items must belong to the same provider.");
             }
         }
     }
-
     private void validateForTimeDate(LocalDate date, LocalTime time) {
         LOGGER.info("Validating time and date for import order");
         Configuration configuration = configurationRepository.findAll().stream()
@@ -138,37 +139,59 @@ public class ImportOrderDetailService {
     }
 
     private void createImportOrderDetails(ImportOrder importOrder, List<ImportOrderDetailExcelRow> requests) {
+        // Use the first row's date/time/note for the entire import order
+        ImportOrderDetailExcelRow first = requests.get(0);
+
+        validateForTimeDate(first.getDateReceived(), first.getTimeReceived());
+
+        importOrder.setDateReceived(first.getDateReceived());
+        importOrder.setTimeReceived(first.getTimeReceived());
+        importOrder.setNote(first.getNote());
+        importOrder = importOrderRepository.save(importOrder);
+
+        // Auto assign staff
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(importOrder.getDateReceived());
+        activeAccountRequest.setImportOrderId(importOrder.getId());
+
         for (ImportOrderDetailExcelRow request : requests) {
-            List<Long> itemIds = request.getItemId();
-            List<Integer> quantities = request.getQuantity();
+            ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setImportOrder(importOrder);
+            detail.setExpectQuantity(request.getQuantity());
+            detail.setActualQuantity(0);
+            detail.setStatus(DetailStatus.LACK);
+            detail.setItem(itemRepository.findById(request.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + request.getItemId())));
 
-            if (itemIds.size() != quantities.size()) {
-                throw new IllegalArgumentException("Mismatched itemId and quantity list sizes in Excel row");
-            }
-
-            // Set shared fields once per request
-            validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
-            importOrder.setDateReceived(request.getDateReceived());
-            importOrder.setTimeReceived(request.getTimeReceived());
-            importOrder.setNote(request.getNote());
-            importOrderRepository.save(importOrder);
-
-            for (int i = 0; i < itemIds.size(); i++) {
-                Long itemId = itemIds.get(i);
-                Integer quantity = quantities.get(i);
-
-                ImportOrderDetail detail = new ImportOrderDetail();
-                detail.setImportOrder(importOrder);
-                detail.setExpectQuantity(quantity);
-                detail.setActualQuantity(0);
-                detail.setStatus(DetailStatus.LACK);
-                detail.setItem(itemRepository.findById(itemId)
-                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemId)));
-
-                importOrderDetailRepository.save(detail);
-            }
+            importOrderDetailRepository.save(detail);
         }
+        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        Account account = accountRepository.findById(accountResponse.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
+
+        importOrder.setAssignedStaff(account);
+        setTimeForStaffPerformance(account, importOrder);
+        importOrderRepository.save(importOrder);
     }
+
+
+    private void setTimeForStaffPerformance(Account account, ImportOrder importOrder) {
+        LOGGER.info("Setting expected working time for staff performance");
+        int totalMinutes = 0;
+        for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+            LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+            totalMinutes += detail.getExpectQuantity() * detail.getItem().getCountingMinutes();
+        }
+        LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+        LOGGER.info("Expected working time for staff: " + expectedWorkingTime);
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
+        staffPerformance.setDate(importOrder.getDateReceived());
+        staffPerformance.setImportOrderId(importOrder.getId());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformanceRepository.save(staffPerformance);
+    }
+
 
     public void updateActualQuantities(List<ImportOrderDetailUpdateRequest> requests, Long importOrderId) {
         LOGGER.info("Updating actual quantities for ImportOrder ID: {}", importOrderId);
