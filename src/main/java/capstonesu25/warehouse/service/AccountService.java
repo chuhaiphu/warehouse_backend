@@ -217,7 +217,8 @@ public class AccountService implements LogoutHandler {
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Import order not found"));
             LOGGER.info("Import order date: {} and Request date: {}", importOrder.getDateReceived(), request.getDate());
-            if(importOrder.getDateReceived() != request.getDate()) {
+            if(!importOrder.getDateReceived().equals(request.getDate())) {
+                LOGGER.info("Import order date {} does not match request date {}", importOrder.getDateReceived(), request.getDate());
                 return accountResponses;
             }
 
@@ -227,6 +228,7 @@ public class AccountService implements LogoutHandler {
                        importOrder.getDateReceived()
                );
                if(checkImportOrder.isEmpty()) {
+                   LOGGER.info("Account {} has no import order on date {}", accountResponse.getEmail(), date);
                    responses.add(accountResponse);
                }
                else {
@@ -250,7 +252,7 @@ public class AccountService implements LogoutHandler {
             ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Export request not found"));
 
-            if(exportRequest.getExportDate() != request.getDate()) {
+            if(!exportRequest.getExportDate().equals(request.getDate())) {
                 return accountResponses;
             }
 
