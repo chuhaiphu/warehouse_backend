@@ -60,6 +60,15 @@ public class ExportRequest {
     @Column(name = "department_id")
     private Long departmentId;
 
+    @Column(name = "counting_staff_id")
+    private Long countingStaffId;
+
+    @Column(name = "counting_date")
+    private LocalDate countingDate;
+
+    @Column(name = "counting_time")
+    private LocalTime countingTime;
+
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;

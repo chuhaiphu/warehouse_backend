@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -23,6 +24,10 @@ public class ExportRequestRequest {
     private Long departmentId;
 
     private String receiverAddress;
+
+    private LocalDate countingDate;
+
+    private LocalTime countingTime;
 
     @NotNull(message = "cannot be null")
     @NotBlank(message = "cannot be blank")

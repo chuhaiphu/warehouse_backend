@@ -1,17 +1,11 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.ImportOrder;
-import capstonesu25.warehouse.entity.ImportOrderDetail;
-import capstonesu25.warehouse.entity.ImportRequest;
-import capstonesu25.warehouse.entity.ImportRequestDetail;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailExcelRow;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
-import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
-import capstonesu25.warehouse.repository.ImportOrderRepository;
-import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
-import capstonesu25.warehouse.repository.ItemRepository;
+import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -32,6 +28,7 @@ public class ImportOrderDetailService {
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final ItemRepository itemRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
+    private final ConfigurationRepository configurationRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
@@ -51,6 +48,7 @@ public class ImportOrderDetailService {
 
     public void createFromExcel(MultipartFile file, Long importOrderId) {
         LOGGER.info("Creating import order details from Excel file");
+
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
@@ -62,54 +60,113 @@ public class ImportOrderDetailService {
 
         validateItemsExistInImportRequest(requests, importOrder.getImportRequest());
         validateSameProvider(requests);
+
         createImportOrderDetails(importOrder, requests);
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
-        
+
         LOGGER.info("Successfully created import order details for importOrderId: {}", importOrderId);
     }
+
 
     private void validateItemsExistInImportRequest(List<ImportOrderDetailExcelRow> requests, ImportRequest importRequest) {
         List<Long> validItemIds = importRequest.getDetails().stream()
                 .map(detail -> detail.getItem().getId())
                 .toList();
 
-        List<Long> invalidItemIds = requests.stream()
-                .map(ImportOrderDetailExcelRow::getItemId)
+        List<Long> allItemIdsFromExcel = requests.stream()
+                .flatMap(request -> request.getItemId().stream())
+                .toList();
+
+        List<Long> invalidItemIds = allItemIdsFromExcel.stream()
                 .filter(itemId -> !validItemIds.contains(itemId))
+                .distinct()
                 .toList();
 
         if (!invalidItemIds.isEmpty()) {
             throw new IllegalArgumentException(
-                "The following items are not in the original Import Request: " + invalidItemIds
+                    "The following items are not in the original Import Request: " + invalidItemIds
             );
         }
     }
 
+
     private void validateSameProvider(List<ImportOrderDetailExcelRow> requests) {
-        Long providerId = itemRepository.findById(requests.get(0).getItemId())
+        if (requests.isEmpty() || requests.get(0).getItemId().isEmpty()) {
+            throw new IllegalArgumentException("Item list cannot be empty for provider validation");
+        }
+
+        // Get the providerId of the first item in the first row
+        Long referenceProviderId = itemRepository.findById(requests.get(0).getItemId().get(0))
                 .map(item -> item.getProvider().getId())
-                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + requests.get(0).getItemId()));
+                .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + requests.get(0).getItemId().get(0)));
 
         for (ImportOrderDetailExcelRow request : requests) {
-            Long currentProviderId = itemRepository.findById(request.getItemId())
-                    .map(item -> item.getProvider().getId())
-                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + request.getItemId()));
+            for (Long itemId : request.getItemId()) {
+                Long currentProviderId = itemRepository.findById(itemId)
+                        .map(item -> item.getProvider().getId())
+                        .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemId));
 
-            if (!providerId.equals(currentProviderId)) {
-                throw new IllegalArgumentException("All items must belong to the same provider.");
+                if (!referenceProviderId.equals(currentProviderId)) {
+                    throw new IllegalArgumentException("All items must belong to the same provider.");
+                }
             }
         }
     }
 
+    private void validateForTimeDate(LocalDate date, LocalTime time) {
+        LOGGER.info("Validating time and date for import order");
+        Configuration configuration = configurationRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found with name: importOrder"));
+
+        long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
+                + configuration.getCreateRequestTimeAtLeast().getMinute();
+
+        LOGGER.info("Check if date is in the past");
+        if(date.isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Cannot set time for import order: Date is in the past");
+        }
+
+        LOGGER.info("Check if time set is too early");
+        if (date.isEqual(LocalDate.now()) &&
+                LocalTime.now()
+                        .plusMinutes(minutesToAdd)
+                        .isAfter(time)) {
+            throw new IllegalStateException("Cannot set time for import order: Time is too early");
+        }
+
+    }
+
     private void createImportOrderDetails(ImportOrder importOrder, List<ImportOrderDetailExcelRow> requests) {
         for (ImportOrderDetailExcelRow request : requests) {
-            ImportOrderDetail detail = new ImportOrderDetail();
-            detail.setImportOrder(importOrder);
-            detail.setExpectQuantity(request.getQuantity());
-            detail.setActualQuantity(0);
-            detail.setStatus(DetailStatus.LACK);
-            detail.setItem(itemRepository.findById(request.getItemId()).orElseThrow());
-            importOrderDetailRepository.save(detail);
+            List<Long> itemIds = request.getItemId();
+            List<Integer> quantities = request.getQuantity();
+
+            if (itemIds.size() != quantities.size()) {
+                throw new IllegalArgumentException("Mismatched itemId and quantity list sizes in Excel row");
+            }
+
+            // Set shared fields once per request
+            validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
+            importOrder.setDateReceived(request.getDateReceived());
+            importOrder.setTimeReceived(request.getTimeReceived());
+            importOrder.setNote(request.getNote());
+            importOrderRepository.save(importOrder);
+
+            for (int i = 0; i < itemIds.size(); i++) {
+                Long itemId = itemIds.get(i);
+                Integer quantity = quantities.get(i);
+
+                ImportOrderDetail detail = new ImportOrderDetail();
+                detail.setImportOrder(importOrder);
+                detail.setExpectQuantity(quantity);
+                detail.setActualQuantity(0);
+                detail.setStatus(DetailStatus.LACK);
+                detail.setItem(itemRepository.findById(itemId)
+                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemId)));
+
+                importOrderDetailRepository.save(detail);
+            }
         }
     }
 

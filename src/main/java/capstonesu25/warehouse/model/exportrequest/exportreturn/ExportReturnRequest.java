@@ -16,6 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ExportReturnRequest {
+    private LocalDate countingDate;
+
+    private LocalTime countingTime;
+
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
 

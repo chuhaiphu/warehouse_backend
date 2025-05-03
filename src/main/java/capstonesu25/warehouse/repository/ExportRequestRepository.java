@@ -6,7 +6,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
 @Repository
 public interface ExportRequestRepository extends JpaRepository<ExportRequest, Long> {
     Page<ExportRequest> findAllByAssignedStaff_Id(Long staffId, Pageable pageable);
+
+    List<ExportRequest> findAllByAssignedStaff_IdAndExportDate(
+            Long staffId, LocalDate exportDate);
 }

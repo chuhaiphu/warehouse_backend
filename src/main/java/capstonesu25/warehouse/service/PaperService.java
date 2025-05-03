@@ -68,37 +68,35 @@ public class PaperService {
         Paper paper = convertToEntity(request);
         paper.setSignProviderUrl(signProviderUrl);
         paper.setSignWarehouseUrl(signWarehouseUrl);
-        try {
-            paperRepository.save(paper);
-        }catch (Exception e) {
-            LOGGER.error("Error creating paper: {}", e.getMessage());
-            throw e;
-        }
+
         if(request.getImportOrderId() != null) {
-            ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElse(null);
-            if (importOrder != null && importOrder.getAssignedStaff() != null) {
-                LOGGER.info("Setting import order staff status back to ACTIVE");
-                Account staff = importOrder.getAssignedStaff();
-                staff.setStatus(AccountStatus.ACTIVE);
-                accountRepository.save(staff);
-            }
-            updateImportRequest(request.getImportOrderId());
-            updateImportOrder(request.getImportOrderId());
-            autoFillLocationForImport(request);
+            //update status
+            LOGGER.info("Updating import order status at creating paper");
+            ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
+            importOrder.setStatus(ImportStatus.CONFIRMED);
+            importOrderRepository.save(importOrder);
+            paper.setImportOrder(importOrder);
+//            if (importOrder != null && importOrder.getAssignedStaff() != null) {
+//                LOGGER.info("Setting import order staff status back to ACTIVE");
+//                Account staff = importOrder.getAssignedStaff();
+//                staff.setStatus(AccountStatus.ACTIVE);
+//                accountRepository.save(staff);
+//            }
+//            updateImportRequest(request.getImportOrderId());
+//            updateImportOrder(request.getImportOrderId());
+//            autoFillLocationForImport(request);
         }
         if(request.getExportRequestId() != null) {
-            ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElse(null);
-            if (exportRequest != null && exportRequest.getAssignedStaff() != null) {
-                LOGGER.info("Setting export request staff status back to ACTIVE");
-                Account staff = exportRequest.getAssignedStaff();
-                staff.setStatus(AccountStatus.ACTIVE);
-                accountRepository.save(staff);
-            }
-            updateExportRequest(request.getExportRequestId());
-            updateInventoryItemAndLocationAfterExport(request.getExportRequestId());
+            //update status
+            LOGGER.info("Updating export request status at creating paper");
+            ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
+            exportRequest.setStatus(ImportStatus.CONFIRMED);
+            exportRequestRepository.save(exportRequest);
+            paper.setExportRequest(exportRequest);
         }
+        paperRepository.save(paper);
 
-        afterCreatedPaperUpdateItems(request);
+//        afterCreatedPaperUpdateItems(request);
     }
 
     //update inventory item and location

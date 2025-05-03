@@ -28,6 +28,9 @@ public class ExportRequestResponse {
     private LocalTime exportTime;
     private LocalDate expectedReturnDate;
     private Long assignedWareHouseKeeperId;
+    private LocalDate countingDate;
+    private LocalTime countingTime;
+    private Long countingStaffId;
     private Long paperId;
     private List<Long> importRequestIds;
     private List<Long> exportRequestDetailIds;

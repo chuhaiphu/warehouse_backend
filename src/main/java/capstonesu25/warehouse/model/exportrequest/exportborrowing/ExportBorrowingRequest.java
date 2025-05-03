@@ -13,6 +13,10 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExportBorrowingRequest {
+    private LocalDate countingDate;
+
+    private LocalTime countingTime;
+
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
 

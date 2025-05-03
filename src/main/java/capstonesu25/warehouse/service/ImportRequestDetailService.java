@@ -20,8 +20,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,7 @@ public class ImportRequestDetailService {
     private final ItemRepository itemRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
+    private static final   String TODAY_PREFIX = LocalDate.now().toString() + "_";
 
 
     public void createImportRequestDetail(MultipartFile file, Long importRequestId) {
@@ -40,7 +43,8 @@ public class ImportRequestDetailService {
         // Get the original import request to copy its properties
         ImportRequest originalRequest = importRequestRepository.findById(importRequestId)
                 .orElseThrow(() -> new RuntimeException("Import order not found"));
-
+        OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
+        Integer batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
         // Process Excel file using the DTO
         List<ImportRequestDetailExcelRow> excelRows = ExcelUtil.processExcelFile(file, ImportRequestDetailExcelRow.class);
 
@@ -64,6 +68,7 @@ public class ImportRequestDetailService {
             newImportRequest.setStatus(originalRequest.getStatus());
             newImportRequest.setType(originalRequest.getType());
             newImportRequest.setExportRequest(originalRequest.getExportRequest());
+            newImportRequest.setBatchCode(TODAY_PREFIX + batchSuffix);
 
             // Set provider for the new import request
             Provider provider = providerRepository.findById(providerId)
@@ -110,6 +115,17 @@ public class ImportRequestDetailService {
         LOGGER.info("Getting import request detail for ImportRequestDetail ID: {}", importRequestDetailId);
         ImportRequestDetail importRequestDetail = importRequestDetailRepository.findById(importRequestDetailId).orElseThrow();
         return mapToResponse(importRequestDetail);
+    }
+
+    private OptionalInt findLatestBatchSuffixForToday() {
+        LOGGER.info("Finding latest batch suffix for today");
+        List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(TODAY_PREFIX);
+
+        return requests.stream()
+                .map(ImportRequest::getBatchCode)
+                .map(code -> code.substring(TODAY_PREFIX.length()))
+                .mapToInt(Integer::parseInt)
+                .max(); // returns OptionalInt
     }
 
     private ImportRequestDetailResponse mapToResponse(ImportRequestDetail importRequestDetail) {

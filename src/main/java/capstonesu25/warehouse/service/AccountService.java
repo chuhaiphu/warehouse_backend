@@ -1,14 +1,13 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Account;
-import capstonesu25.warehouse.entity.ExportRequest;
-import capstonesu25.warehouse.entity.ImportOrder;
-import capstonesu25.warehouse.entity.StaffPerformance;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.TokenType;
 import capstonesu25.warehouse.model.account.*;
 import capstonesu25.warehouse.repository.AccountRepository;
+import capstonesu25.warehouse.repository.ExportRequestRepository;
+import capstonesu25.warehouse.repository.ImportOrderRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +39,8 @@ public class AccountService implements LogoutHandler {
     private final AccountRepository accountRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final ImportOrderRepository importOrderRepository;
+    private final ExportRequestRepository exportRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -147,14 +148,22 @@ public class AccountService implements LogoutHandler {
                 .toList();
     }
 
-    public List<AccountResponse> getAllActiveStaffsInDate(LocalDate date) {
+    public List<AccountResponse> getAllActiveStaffsInDate(ActiveAccountRequest request) {
         LOGGER.info("Get all active staffs ");
+        LocalDate date = request.getDate();
         List<Account> accounts = accountRepository.findByRoleAndStatus(
                 AccountRole.STAFF,
                 AccountStatus.ACTIVE
         );
 
+        if((request.getExportRequestId() == null && request.getImportOrderId() == null)
+                || (request.getExportRequestId() != null && request.getImportOrderId() != null)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request");
+
+        }
+
         List <AccountResponse> accountResponses = new ArrayList<>();
+        List<AccountResponse> responses = new ArrayList<>();
         for(Account account : accounts) {
             List<StaffPerformance> staffPerformances = account.getStaffPerformances()
                     .stream()
@@ -202,7 +211,63 @@ public class AccountService implements LogoutHandler {
         });
         accountResponses.sort(Comparator.comparing(AccountResponse::getTotalExpectedWorkingTimeOfRequestInDay));
 
-        return accountResponses;
+        if(request.getImportOrderId() != null) {
+            LOGGER.info("Get all active staffs in date {} for import order", date);
+            ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Import order not found"));
+
+            if(importOrder.getDateReceived() != request.getDate()) {
+                return accountResponses;
+            }
+
+            for(AccountResponse accountResponse : accountResponses) {
+               List<ImportOrder> checkImportOrder = importOrderRepository.findByAssignedStaff_IdAndDateReceived(
+                       accountResponse.getId(),
+                       importOrder.getDateReceived()
+               );
+               for(ImportOrder orderCheck : checkImportOrder) {
+                   int totalMinutes = 0;
+                   for (ImportOrderDetail detail : orderCheck.getImportOrderDetails()) {
+                       LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+                       totalMinutes += detail.getExpectQuantity() * detail.getItem().getCountingMinutes();
+                   }
+                   LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+                   if(importOrder.getTimeReceived().isAfter(orderCheck.getTimeReceived().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
+                       responses.add(accountResponse);
+                   }
+               }
+            }
+        }
+
+        if(request.getExportRequestId() != null) {
+            LOGGER.info("Get all active staffs in date {} for export request", date);
+            ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Export request not found"));
+
+            if(exportRequest.getExportDate() != request.getDate()) {
+                return accountResponses;
+            }
+
+            for(AccountResponse accountResponse : accountResponses) {
+                List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(
+                        accountResponse.getId(),
+                        exportRequest.getExportDate()
+                );
+                for(ExportRequest exportCheck : checkExportRequest) {
+                    int totalMinutes = 0;
+                    for (ExportRequestDetail detail : exportCheck.getExportRequestDetails()) {
+                        LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+                        totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
+                    }
+                    LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+                    if(exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
+                        responses.add(accountResponse);
+                    }
+                }
+            }
+        }
+
+        return responses;
     }
 
 

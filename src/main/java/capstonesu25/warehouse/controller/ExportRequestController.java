@@ -6,6 +6,7 @@ import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialReq
 import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
+import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ExportRequestService;
@@ -153,9 +154,9 @@ public class ExportRequestController {
     }
 
 
-    @Operation(summary = "Assign warehouse keeper for export request")
+    @Operation(summary = "Assign warehouse keeper for confirmation of export request")
     @PostMapping("/assign-warehouse-keeper")
-    public ResponseEntity<?> updateExportRequest(
+    public ResponseEntity<?> assignKeeperForConfirm(
         @RequestBody AssignStaffExportRequest request
     ) {
         LOGGER.info("Assigning warehouse keeper to export request");
@@ -164,6 +165,41 @@ public class ExportRequestController {
             HttpStatus.OK,
             "Successfully updated export request"
         );
+    }
+
+    @Operation(summary = "Assign warehouse keeper for counting of export request")
+    @PostMapping("/counting/assign-warehouse-keeper")
+    public ResponseEntity<?> assignKeeperForCounting(
+            @RequestBody AssignStaffExportRequest request
+    ) {
+        LOGGER.info("Assigning warehouse keeper to export request");
+        return ResponseUtil.getObject(
+                exportRequestService.assignCountingStaff(request),
+                HttpStatus.OK,
+                "Successfully updated export request"
+        );
+    }
+
+    @Operation(summary = "Confirm counted export request")
+    @PostMapping("/confirm-counted/{exportRequestId}")
+    public ResponseEntity<?> confirmExportRequest(@PathVariable Long exportRequestId) {
+        LOGGER.info(" Confirming export request");
+        ExportRequestResponse result = exportRequestService.confirmCountedExportRequest(exportRequestId);
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully confirmed counted export request");
+    }
+
+    @Operation(summary = "complete export request")
+    @PostMapping("/complete/{exportRequestId}")
+    public ResponseEntity<?> completeExportRequest(@PathVariable Long exportRequestId) {
+        LOGGER.info("Completing export request");
+        ExportRequestResponse result = exportRequestService.completeExportRequest(exportRequestId);
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully completed export request");
     }
 
 } 

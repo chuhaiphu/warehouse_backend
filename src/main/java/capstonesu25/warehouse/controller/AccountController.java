@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -95,7 +94,7 @@ public class AccountController {
         return ResponseUtil.getObject(account, HttpStatus.OK, "Account found successfully");
     }
 
-    // @Operation(summary = "Test authentication endpoint")
+        // @Operation(summary = "Test authentication endpoint")
     // @GetMapping("/test-authentication")
     // public ResponseEntity<?> testAuthentication() {
     //     LOGGER.info("Testing authentication");
@@ -130,10 +129,10 @@ public class AccountController {
         );
     }
     @Operation(summary = "Get all active staff accounts with date")
-    @GetMapping("/active-staff/{date}")
-    public ResponseEntity<?> getActiveStaffsInDay(@PathVariable LocalDate date) {
-        LOGGER.info("Getting all active staff accounts with date: {}", date);
-        List<AccountResponse> accounts = accountService.getAllActiveStaffsInDate(date);
+    @GetMapping("/active-staff-in-day")
+    public ResponseEntity<?> getActiveStaffsInDay(@RequestBody @Valid ActiveAccountRequest request) {
+        LOGGER.info("Getting all active staff accounts with date: {}", request.getDate());
+        List<AccountResponse> accounts = accountService.getAllActiveStaffsInDate(request);
         return ResponseUtil.getCollection(
                 accounts,
                 HttpStatus.OK,

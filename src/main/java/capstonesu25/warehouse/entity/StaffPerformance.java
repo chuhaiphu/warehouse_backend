@@ -24,6 +24,9 @@ public class StaffPerformance {
     @Column(name = "export_request_id")
     private Long exportRequestId;
 
+    @Column(name = "is_export_counting")
+    private boolean exportCounting;
+
     @Column(name = "date")
     private LocalDate date;
 

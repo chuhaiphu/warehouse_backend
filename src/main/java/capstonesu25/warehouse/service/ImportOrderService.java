@@ -1,9 +1,9 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
-import capstonesu25.warehouse.enums.AccountRole;
-import capstonesu25.warehouse.enums.AccountStatus;
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.*;
+import capstonesu25.warehouse.model.account.AccountResponse;
+import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
@@ -17,7 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -28,6 +30,11 @@ public class ImportOrderService {
     private final AccountRepository accountRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final ConfigurationRepository configurationRepository;
+    private final AccountService accountService;
+    private final ImportRequestDetailRepository  importRequestDetailRepository;
+    private final ImportOrderDetailRepository importOrderDetailRepository;
+    private final InventoryItemRepository inventoryItemRepository;
+    private final StoredLocationRepository storedLocationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(Long id) {
@@ -64,15 +71,28 @@ public class ImportOrderService {
         if (request.getNote() != null) {
             importOrder.setNote(request.getNote());
         }
-        validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
-        importOrder.setDateReceived(request.getDateReceived());
-        importOrder.setTimeReceived(request.getTimeReceived());
-        
-        // Update import request status to IN_PROGRESS
+        if(request.getDateReceived() != null && request.getTimeReceived() != null) {
+            validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
+            importOrder.setDateReceived(request.getDateReceived());
+            importOrder.setTimeReceived(request.getTimeReceived());
+        }
+
         importRequest.setStatus(ImportStatus.IN_PROGRESS);
+
         importRequestRepository.save(importRequest);
 
-        return mapToResponse(importOrderRepository.save(importOrder));
+        ImportOrder order = importOrderRepository.save(importOrder);
+
+        //auto assign staff
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(order.getDateReceived());
+        activeAccountRequest.setImportOrderId(order.getId());
+
+        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        order.setAssignedStaff(accountRepository.findById(accountResponse.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId())));
+
+        return mapToResponse(importOrderRepository.save(order));
     }
 
     public ImportOrderResponse update(ImportOrderUpdateRequest request) {
@@ -222,6 +242,125 @@ public class ImportOrderService {
         
         importOrder.setStatus(ImportStatus.CANCELLED);
         return mapToResponse(importOrderRepository.save(importOrder));
+    }
+
+    public ImportOrderResponse completeImportOrder(Long importOrderId) {
+        LOGGER.info("Completing import order with ID: " + importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+        importOrder.setStatus(ImportStatus.COMPLETED);
+        updateImportRequest(importOrder);
+        updateImportOrder(importOrder);
+        autoFillLocationForImport(importOrder);
+        return mapToResponse(importOrderRepository.save(importOrder));
+    }
+
+    private void updateImportRequest( ImportOrder importOrder) {
+        LOGGER.info("Updating import request after paper creation");
+
+        ImportRequest importRequest = importOrder.getImportRequest();
+        List<ImportRequestDetail> importRequestDetails = importRequest.getDetails();
+        for (ImportRequestDetail detail : importRequestDetails) {
+            for(ImportOrderDetail importOrderDetail : importOrder.getImportOrderDetails()) {
+                if (detail.getItem().getId().equals(importOrderDetail.getItem().getId())) {
+                    detail.setActualQuantity(detail.getActualQuantity() + importOrderDetail.getActualQuantity());
+                    if(detail.getActualQuantity() == detail.getExpectQuantity()) {
+                        detail.setStatus(DetailStatus.MATCH);
+                    } else if(detail.getActualQuantity() > detail.getExpectQuantity()) {
+                        detail.setStatus(DetailStatus.EXCESS);
+                    } else {
+                        detail.setStatus(DetailStatus.LACK);
+                    }
+                    importRequestDetailRepository.save(detail);
+                }
+            }
+        }
+
+        boolean allCompleted = true;
+        for (ImportRequestDetail detail : importRequestDetails) {
+            if (detail.getActualQuantity() < detail.getExpectQuantity()) {
+                allCompleted = false;
+                break;
+            }
+        }
+
+        if (allCompleted) {
+            importRequest.setStatus(ImportStatus.COMPLETED);
+            importRequestRepository.save(importRequest);
+        }
+    }
+
+    //Update import Order
+    private void updateImportOrder (ImportOrder importOrder) {
+        LOGGER.info("Updating import order after completed");
+        List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
+        for(ImportOrderDetail importOrderDetail : importOrderDetails) {
+            LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
+            createInventoryItem(importOrderDetail);
+            LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
+            if(importOrderDetail.getActualQuantity() == importOrderDetail.getExpectQuantity()) {
+                importOrderDetail.setStatus(DetailStatus.MATCH);
+            } else if(importOrderDetail.getActualQuantity() > importOrderDetail.getExpectQuantity()) {
+                importOrderDetail.setStatus(DetailStatus.EXCESS);
+            } else {
+                importOrderDetail.setStatus(DetailStatus.LACK);
+            }
+            importOrderDetailRepository.save(importOrderDetail);
+        }
+
+        importOrder.setUpdatedDate(LocalDateTime.now());
+        importOrderRepository.save(importOrder);
+    }
+
+    private void autoFillLocationForImport(ImportOrder importOrder) {
+        LOGGER.info("Auto fill location");
+
+        List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
+        for(ImportOrderDetail importOrderDetail : importOrderDetails) {
+            List<InventoryItem> inventoryItemList = importOrderDetail.getItem().getInventoryItems();
+            //get the stored location
+            List<StoredLocation> storedLocationList = storedLocationRepository
+                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(importOrderDetail.getItem().getId());
+            for (InventoryItem inventoryItem : inventoryItemList) {
+                for (StoredLocation storedLocation : storedLocationList) {
+                    if (storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue() <= storedLocation.getMaximumCapacityForItem()) {
+                        inventoryItem.setStoredLocation(storedLocation);
+                        double newCapacity = storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue();
+                        storedLocation.setCurrentCapacity(newCapacity);
+
+                        storedLocation.setUsed(true);
+
+                        boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < inventoryItem.getMeasurementValue();
+                        storedLocation.setFulled(isNowFull);
+
+                        storedLocationRepository.save(storedLocation);
+                        break;
+                    }
+                }
+
+                inventoryItem.setStatus(ItemStatus.AVAILABLE);
+                inventoryItemRepository.save(inventoryItem);
+            }
+
+        }
+
+    }
+
+    private void createInventoryItem(ImportOrderDetail importOrderDetail) {
+        for(int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
+            InventoryItem inventoryItem = new InventoryItem();
+            inventoryItem.setImportOrderDetail(importOrderDetail);
+            inventoryItem.setItem(importOrderDetail.getItem());
+            inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
+                    importOrderDetail.getImportOrder().getTimeReceived()));
+            inventoryItem.setMeasurementValue(importOrderDetail.getItem().getMeasurementValue());
+            inventoryItem.setStatus(ItemStatus.AVAILABLE);
+            inventoryItem.setUpdatedDate(LocalDateTime.now());
+            if(importOrderDetail.getItem().getDaysUntilDue() != null) {
+                inventoryItem.setExpiredDate(inventoryItem.getImportedDate().plusDays(importOrderDetail.getItem().getDaysUntilDue()));
+            }
+            inventoryItemRepository.save(inventoryItem);
+        }
     }
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {

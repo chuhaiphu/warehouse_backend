@@ -33,6 +33,9 @@ public class ImportRequest {
     @Column(name = "type")
     private ImportType type;
 
+    @Column(name = "batch_code")
+    private String batchCode;
+
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;

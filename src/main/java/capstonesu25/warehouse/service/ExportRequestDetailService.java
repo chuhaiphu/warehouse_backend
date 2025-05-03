@@ -111,7 +111,7 @@ public class ExportRequestDetailService {
     private void chooseInventoryItemsForThoseCases(ExportRequestDetail exportRequestDetail) {
         switch (exportRequestDetail.getExportRequest().getType()) {
             case RETURN -> {
-
+            //TODO
             }
             case BORROWING, PARTIAL -> autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
             case LIQUIDATION -> autoChooseInventoryItemsForLiquidation(exportRequestDetail);

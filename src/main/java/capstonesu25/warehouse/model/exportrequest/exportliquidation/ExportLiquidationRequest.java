@@ -12,6 +12,10 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExportLiquidationRequest {
+    private LocalDate countingDate;
+
+    private LocalTime countingTime;
+
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
     @NotNull(message = "cannot be null")
