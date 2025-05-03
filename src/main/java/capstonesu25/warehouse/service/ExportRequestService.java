@@ -95,7 +95,7 @@ public class ExportRequestService {
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignStaff(exportRequest);
+        export = autoAssignCountingStaff(exportRequest);
         return mapToResponse(export);
     }
 
@@ -124,7 +124,7 @@ public class ExportRequestService {
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignStaff(exportRequest);
+        export = autoAssignCountingStaff(exportRequest);
         return mapToResponse(export);
     }
 
@@ -163,7 +163,7 @@ public class ExportRequestService {
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignStaff(exportRequest);
+        export = autoAssignCountingStaff(exportRequest);
         return mapToResponse(export);
     }
 
@@ -203,7 +203,7 @@ public class ExportRequestService {
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignStaff(exportRequest);
+        export = autoAssignCountingStaff(exportRequest);
         return mapToResponse(export);
     }
 
@@ -250,7 +250,7 @@ public class ExportRequestService {
         }
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignStaff(exportRequest);
+        export = autoAssignCountingStaff(exportRequest);
         return mapToResponse(export);
     }
 
@@ -307,7 +307,7 @@ public class ExportRequestService {
                     () -> new IllegalArgumentException("Staff not found with ID: " + request.getAccountId())
             );
             validateAccountForAssignment(staff);
-            setTimeForStaffPerformance(staff, exportRequest);
+            setTimeForCountingStaffPerformance(staff, exportRequest);
             exportRequest.setCountingStaffId(staff.getId());
         }
         exportRequestRepository.save(exportRequest);
@@ -373,7 +373,7 @@ public class ExportRequestService {
         LOGGER.info("Updated {} exported items", updatedItems.size());
     }
 
-    private void setTimeForStaffPerformance(Account account, ExportRequest exportRequest) {
+    private void setTimeForCountingStaffPerformance(Account account, ExportRequest exportRequest) {
         int totalMinutes = 0;
         for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
             LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
@@ -382,9 +382,10 @@ public class ExportRequestService {
         LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
-        staffPerformance.setDate(exportRequest.getExportDate());
+        staffPerformance.setDate(exportRequest.getCountingDate());
         staffPerformance.setImportOrderId(exportRequest.getId());
         staffPerformance.setAssignedStaff(account);
+        staffPerformance.setExportCounting(true);
         staffPerformanceRepository.save(staffPerformance);
     }
 
@@ -469,16 +470,53 @@ public class ExportRequestService {
         }
     }
 
-    private ExportRequest autoAssignStaff(ExportRequest exportRequest) {
+    private ExportRequest autoAssignCountingStaff(ExportRequest exportRequest) {
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
-        activeAccountRequest.setDate(exportRequest.getExportDate());
-        activeAccountRequest.setImportOrderId(exportRequest.getId());
+        activeAccountRequest.setDate(exportRequest.getCountingDate());
+        activeAccountRequest.setExportRequestId(exportRequest.getId());
 
         List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
-        exportRequest.setAssignedStaff(accountRepository.findById(accountResponse.get(0).getId())
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId())));
 
+        Account account = accountRepository.findById(accountResponse.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
+        exportRequest.setCountingStaffId(account.getId());
+        setTimeForCountingStaffPerformance(account, exportRequest);
+        autoAssignConfirmStaff(exportRequest);
         return exportRequestRepository.save(exportRequest);
 
+    }
+
+    private void autoAssignConfirmStaff(ExportRequest exportRequest) {
+        LOGGER.info("Auto assigning confirm staff for export request with ID: " + exportRequest.getId());
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(exportRequest.getExportDate());
+        Configuration configuration = configurationRepository.findAll().getFirst();
+        List<AccountResponse> accountResponses = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        List<AccountResponse> responses = new ArrayList<>();
+
+        for(AccountResponse accountResponse : accountResponses) {
+            List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(
+                    accountResponse.getId(),
+                    exportRequest.getCountingDate()
+            );
+            for(ExportRequest exportCheck : checkExportRequest) {
+                if(exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(configuration.getTimeToAllowConfirm().toSecondOfDay() / 60))) {
+                    responses.add(accountResponse);
+                }
+            }
+        }
+
+        Account account = accountRepository.findById(responses.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + responses.get(0).getId()));
+
+        exportRequest.setAssignedStaff(account);
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(configuration.getTimeToAllowConfirm());
+        staffPerformance.setDate(exportRequest.getExportDate());
+        staffPerformance.setImportOrderId(exportRequest.getId());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformance.setExportCounting(false);
+        staffPerformanceRepository.save(staffPerformance);
+        exportRequestRepository.save(exportRequest);
     }
 } 

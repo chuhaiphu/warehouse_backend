@@ -156,8 +156,7 @@ public class AccountService implements LogoutHandler {
                 AccountStatus.ACTIVE
         );
 
-        if((request.getExportRequestId() == null && request.getImportOrderId() == null)
-                || (request.getExportRequestId() != null && request.getImportOrderId() != null)) {
+        if((request.getExportRequestId() != null && request.getImportOrderId() != null)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request");
 
         }
@@ -210,7 +209,9 @@ public class AccountService implements LogoutHandler {
             }
         });
         accountResponses.sort(Comparator.comparing(AccountResponse::getTotalExpectedWorkingTimeOfRequestInDay));
-
+        if(request.getImportOrderId() == null && request.getExportRequestId() == null) {
+            return accountResponses;
+        }
         if(request.getImportOrderId() != null) {
             LOGGER.info("Get all active staffs in date {} for import order", date);
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
@@ -249,9 +250,9 @@ public class AccountService implements LogoutHandler {
             }
 
             for(AccountResponse accountResponse : accountResponses) {
-                List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(
+                List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByCountingStaffIdAndCountingDate(
                         accountResponse.getId(),
-                        exportRequest.getExportDate()
+                        exportRequest.getCountingDate()
                 );
                 for(ExportRequest exportCheck : checkExportRequest) {
                     int totalMinutes = 0;
@@ -260,7 +261,7 @@ public class AccountService implements LogoutHandler {
                         totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
                     }
                     LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
-                    if(exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
+                    if(exportCheck.getCountingTime().isAfter(exportCheck.getCountingTime().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
                         responses.add(accountResponse);
                     }
                 }

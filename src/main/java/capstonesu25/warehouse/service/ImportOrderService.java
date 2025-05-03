@@ -89,9 +89,10 @@ public class ImportOrderService {
         activeAccountRequest.setImportOrderId(order.getId());
 
         List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
-        order.setAssignedStaff(accountRepository.findById(accountResponse.get(0).getId())
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId())));
-
+        Account account = accountRepository.findById(accountResponse.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
+        order.setAssignedStaff(account);
+        setTimeForStaffPerformance(account, order);
         return mapToResponse(importOrderRepository.save(order));
     }
 
