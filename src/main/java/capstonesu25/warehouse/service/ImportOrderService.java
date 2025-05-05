@@ -59,6 +59,11 @@ public class ImportOrderService {
 
         ImportOrder importOrder = new ImportOrder();
         importOrder.setImportRequest(importRequest);
+        if(request.getDateReceived() != null && request.getTimeReceived() != null) {
+            validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
+            importOrder.setDateReceived(request.getDateReceived());
+            importOrder.setTimeReceived(request.getTimeReceived());
+        }
         importOrder.setStatus(ImportStatus.NOT_STARTED);
         
         if (request.getAccountId() != null) {

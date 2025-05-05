@@ -141,11 +141,15 @@ public class ImportOrderDetailService {
     private void createImportOrderDetails(ImportOrder importOrder, List<ImportOrderDetailExcelRow> requests) {
         // Use the first row's date/time/note for the entire import order
         ImportOrderDetailExcelRow first = requests.get(0);
-
-        validateForTimeDate(first.getDateReceived(), first.getTimeReceived());
-
-        importOrder.setDateReceived(first.getDateReceived());
-        importOrder.setTimeReceived(first.getTimeReceived());
+        if(first.getDateReceived() != null && first.getTimeReceived() != null) {
+            validateForTimeDate(first.getDateReceived(), first.getTimeReceived());
+        }
+        if(importOrder.getDateReceived() == null) {
+            importOrder.setDateReceived(first.getDateReceived());
+        }
+        if(importOrder.getTimeReceived() == null) {
+            importOrder.setTimeReceived(first.getTimeReceived());
+        }
         importOrder.setNote(first.getNote());
         importOrder = importOrderRepository.save(importOrder);
 
