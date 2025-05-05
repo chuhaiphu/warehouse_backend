@@ -208,8 +208,10 @@ public class AccountService implements LogoutHandler {
                 accountResponse.setTotalActualWorkingTimeOfRequestInDay(LocalTime.of(0, 0));
             }
         });
+        LOGGER.info("Total expected working time of request in day: {}", accountResponses.size());
         accountResponses.sort(Comparator.comparing(AccountResponse::getTotalExpectedWorkingTimeOfRequestInDay));
         if(request.getImportOrderId() == null && request.getExportRequestId() == null) {
+            LOGGER.info("Get all active staffs in date {} with no import order Id and export request Id", date);
             return accountResponses;
         }
         if(request.getImportOrderId() != null) {

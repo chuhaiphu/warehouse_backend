@@ -239,18 +239,8 @@ public class ExportRequestService {
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(ImportStatus.NOT_STARTED);
-        
-        if (request.getAssignedWareHouseKeeperId() != null) {
-            Account account = accountRepository.findById(request.getAssignedWareHouseKeeperId())
-                .orElseThrow(() -> new IllegalArgumentException("Account not found with ID: " + request.getAssignedWareHouseKeeperId()));
-            validateAccountForAssignment(account);
-            updateAccountStatusForExportRequest(account, exportRequest);
-            exportRequest.setAssignedStaff(account);
-
-        }
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignCountingStaff(exportRequest);
         return mapToResponse(export);
     }
 

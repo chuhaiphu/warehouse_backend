@@ -1,17 +1,13 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.ExportRequest;
-import capstonesu25.warehouse.entity.ExportRequestDetail;
-import capstonesu25.warehouse.entity.InventoryItem;
-import capstonesu25.warehouse.entity.Item;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.model.account.AccountResponse;
+import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailExcelRow;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailResponse;
-import capstonesu25.warehouse.repository.ExportRequestDetailRepository;
-import capstonesu25.warehouse.repository.ExportRequestRepository;
-import capstonesu25.warehouse.repository.InventoryItemRepository;
-import capstonesu25.warehouse.repository.ItemRepository;
+import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,10 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +30,10 @@ public class ExportRequestDetailService {
     private final ExportRequestDetailRepository exportRequestDetailRepository;
     private final ItemRepository itemRepository;
     private final InventoryItemRepository inventoryItemRepository;
+    private final AccountService accountService;
+    private final AccountRepository accountRepository;
+    private final ConfigurationRepository configurationRepository;
+    private final StaffPerformanceRepository staffPerformanceRepository;
     private static final Integer LIQUIDATION = 30;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestDetailService.class);
 
@@ -93,6 +91,8 @@ public class ExportRequestDetailService {
             LOGGER.info("choose inventory items for export request detail ID: {}", detail.getId());
             chooseInventoryItemsForThoseCases(detail);
         }
+        LOGGER.info("Auto assigning counting staff for export request with ID: {}", exportRequestId);
+        autoAssignCountingStaff(exportRequest);
     }
 
     public ExportRequestDetailResponse updateActualQuantity(Long exportRequestDetailId, Integer actual) {
@@ -121,13 +121,15 @@ public class ExportRequestDetailService {
     }
 
     private void autoChooseInventoryItemsForProduction(ExportRequestDetail exportRequestDetail) {
-        Integer actualQuantity = exportRequestDetail.getActualQuantity();
-        if((actualQuantity*exportRequestDetail.getItem().getMeasurementValue()) >
+        LOGGER.info("Auto choosing inventory items for production");
+        Integer quantity = exportRequestDetail.getQuantity();
+        if((quantity*exportRequestDetail.getItem().getMeasurementValue()) >
                 exportRequestDetail.getItem().getTotalMeasurementValue()) {
             throw new RuntimeException("quantity of export request detail id: " + exportRequestDetail.getItem().getId()
                     + " is greater than total measurement value of item id: " + exportRequestDetail.getItem().getId());
         }
         // Fetch inventory items by item ID
+        LOGGER.info("Finding inventory items by item ID: {}", exportRequestDetail.getItem().getId());
         List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_IdAndParentNull(exportRequestDetail.getItem().getId());
 
         if (inventoryItemList.isEmpty()) {
@@ -135,12 +137,18 @@ public class ExportRequestDetailService {
         }
 
         // Sort the inventory items by importedDate (furthest from now first)
-        List<InventoryItem> sortedInventoryItems = inventoryItemList.stream()
-                .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
-                .limit(actualQuantity)
-                .toList();
+        LOGGER.info("Sorting inventory items by imported date");
+        List<InventoryItem> sortedInventoryItems = new ArrayList<>(
+                inventoryItemList.stream()
+                        .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
+                        .limit(quantity)
+                        .toList()
+        );
 
+        LOGGER.info("Setting inventory items for export request detail ID: {}", exportRequestDetail.getId());
         exportRequestDetail.setInventoryItems(sortedInventoryItems);
+
+        LOGGER.info("Saving export request detail with ID: {}", exportRequestDetail.getId());
         exportRequestDetailRepository.save(exportRequestDetail);
     }
 
@@ -224,7 +232,77 @@ public class ExportRequestDetailService {
         exportRequestDetail.setInventoryItems(sortedInventoryItems);
         exportRequestDetailRepository.save(exportRequestDetail);
     }
+    private void autoAssignCountingStaff(ExportRequest exportRequest) {
+        ActiveAccountRequest activeAccountRequest = ActiveAccountRequest.builder()
+                .date(exportRequest.getCountingDate())
+                .exportRequestId(exportRequest.getId())
+                .build();
 
+        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+
+        Account account = accountRepository.findById(accountResponse.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
+        exportRequest.setCountingStaffId(account.getId());
+        setTimeForCountingStaffPerformance(account, exportRequest);
+        exportRequestRepository.save(exportRequest);
+        autoAssignConfirmStaff(exportRequest);
+
+    }
+    private void setTimeForCountingStaffPerformance(Account account, ExportRequest exportRequest) {
+        int totalMinutes = 0;
+        for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
+            LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+            totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
+        }
+        LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
+        staffPerformance.setDate(exportRequest.getCountingDate());
+        staffPerformance.setExportRequestId(exportRequest.getId());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformance.setExportCounting(true);
+        staffPerformanceRepository.save(staffPerformance);
+    }
+    private void autoAssignConfirmStaff(ExportRequest exportRequest) {
+        LOGGER.info("Auto assigning confirm staff for export request with ID: " + exportRequest.getId());
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(exportRequest.getExportDate());
+        Configuration configuration = configurationRepository.findAll().getFirst();
+        List<AccountResponse> accountResponses = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        List<AccountResponse> responses = new ArrayList<>();
+
+        for(AccountResponse accountResponse : accountResponses) {
+            List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(
+                    accountResponse.getId(),
+                    exportRequest.getExportDate()
+            );
+            LOGGER.info("Checking export requests size {} ", checkExportRequest.size());
+
+            if (checkExportRequest.isEmpty()) {
+                responses.add(accountResponse);
+            } else {
+                for (ExportRequest exportCheck : checkExportRequest) {
+                    if (exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(configuration.getTimeToAllowConfirm().toSecondOfDay() / 60))) {
+                        responses.add(accountResponse);
+                    }
+                }
+            }
+        }
+
+        Account account = accountRepository.findById(responses.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + responses.get(0).getId()));
+
+        exportRequest.setAssignedStaff(account);
+        LOGGER.info("Confirm Account is: {}", account.getEmail());
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(configuration.getTimeToAllowConfirm());
+        staffPerformance.setDate(exportRequest.getExportDate());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformance.setExportCounting(false);
+        staffPerformance.setExportRequestId(exportRequest.getId());
+        staffPerformanceRepository.save(staffPerformance);
+        exportRequestRepository.save(exportRequest);
+    }
     private ExportRequestDetailResponse mapToResponse(ExportRequestDetail exportRequestDetail) {
         ExportRequestDetailResponse response = new ExportRequestDetailResponse();
         response.setId(exportRequestDetail.getId());
