@@ -6,6 +6,7 @@ import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class ImportOrderService {
     private final InventoryItemRepository inventoryItemRepository;
     private final StoredLocationRepository storedLocationRepository;
     private final ItemRepository itemRepository;
+    private final NotificationUtil notificationUtil;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(Long id) {
@@ -85,6 +87,15 @@ public class ImportOrderService {
         importRequest.setStatus(ImportStatus.IN_PROGRESS);
         importRequestRepository.save(importRequest);
         ImportOrder order = importOrderRepository.save(importOrder);
+
+        // * For test Pusher Notification
+        Map<String, Object> notificationPayload = new HashMap<>();
+        notificationPayload.put("id", order.getId());
+        notificationPayload.put("message", "A new import order has been created.");
+        // Add more fields as needed, always as string/primitive
+        notificationUtil.notifyWarehouseManagers(notificationPayload);
+        // *
+
         return mapToResponse(importOrderRepository.save(order));
     }
 
