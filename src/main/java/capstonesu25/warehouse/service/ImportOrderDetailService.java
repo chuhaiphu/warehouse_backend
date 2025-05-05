@@ -63,9 +63,7 @@ public class ImportOrderDetailService {
             throw new IllegalArgumentException("Import order detail list cannot be empty");
         }
 
-        validateItemsExistInImportRequest(requests, importOrder.getImportRequest());
         validateSameProvider(requests);
-
         createImportOrderDetails(importOrder, requests);
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
 
@@ -73,27 +71,26 @@ public class ImportOrderDetailService {
     }
 
 
-
-    private void validateItemsExistInImportRequest(List<ImportOrderDetailExcelRow> requests, ImportRequest importRequest) {
-        List<Long> validItemIds = importRequest.getDetails().stream()
-                .map(detail -> detail.getItem().getId())
-                .toList();
-
-        List<Long> itemIdsFromExcel = requests.stream()
-                .map(ImportOrderDetailExcelRow::getItemId)
-                .toList();
-
-        List<Long> invalidItemIds = itemIdsFromExcel.stream()
-                .filter(itemId -> !validItemIds.contains(itemId))
-                .distinct()
-                .toList();
-
-        if (!invalidItemIds.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "The following items are not in the original Import Request: " + invalidItemIds
-            );
-        }
-    }
+//    private void validateItemsExistInImportRequest(List<ImportOrderDetailExcelRow> requests, ImportRequest importRequest) {
+//        List<Long> validItemIds = importRequest.getDetails().stream()
+//                .map(detail -> detail.getItem().getId())
+//                .toList();
+//
+//        List<Long> itemIdsFromExcel = requests.stream()
+//                .map(ImportOrderDetailExcelRow::getItemId)
+//                .toList();
+//
+//        List<Long> invalidItemIds = itemIdsFromExcel.stream()
+//                .filter(itemId -> !validItemIds.contains(itemId))
+//                .distinct()
+//                .toList();
+//
+//        if (!invalidItemIds.isEmpty()) {
+//            throw new IllegalArgumentException(
+//                    "The following items are not in the original Import Request: " + invalidItemIds
+//            );
+//        }
+//    }
 
     private void validateSameProvider(List<ImportOrderDetailExcelRow> requests) {
         if (requests.isEmpty()) {
