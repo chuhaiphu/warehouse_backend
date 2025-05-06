@@ -129,7 +129,7 @@ public class AccountController {
         );
     }
     @Operation(summary = "Get all active staff accounts with date")
-    @GetMapping("/active-staff-in-day")
+    @PostMapping("/active-staff-in-day")
     public ResponseEntity<?> getActiveStaffsInDay(@RequestBody @Valid ActiveAccountRequest request) {
         LOGGER.info("Getting all active staff accounts with date: {}", request.getDate());
         List<AccountResponse> accounts = accountService.getAllActiveStaffsInDate(request);
