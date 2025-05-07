@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,24 @@ public class ExcelUtil {
                     field.set(instance, cellValue);
                 }
 
+                // Only add if at least itemId or quantity is not null
+                Object itemIdValue = null;
+                Object quantityValue = null;
+                try {
+                    Field itemIdField = clazz.getDeclaredField("itemId");
+                    itemIdField.setAccessible(true);
+                    itemIdValue = itemIdField.get(instance);
+                    Field quantityField = clazz.getDeclaredField("quantity");
+                    quantityField.setAccessible(true);
+                    quantityValue = quantityField.get(instance);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    log.warn("Could not check itemId/quantity for row: {}", instance, e);
+                }
+                if (itemIdValue == null && quantityValue == null) {
+                    log.info("Skipped empty Excel row: {}", instance);
+                    continue;
+                }
+                log.info("Parsed Excel row: {}", instance);
                 dataList.add(instance);
             }
         } catch (Exception e) {
@@ -68,15 +87,17 @@ public class ExcelUtil {
         }
 
         if (fieldType == LocalDate.class && DateUtil.isCellDateFormatted(cell)) {
-            return cell.getDateCellValue()
-                    .toInstant()
+            Date date = cell.getDateCellValue();
+            if (date == null) return null;
+            return date.toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
         }
 
         if (fieldType == LocalTime.class && DateUtil.isCellDateFormatted(cell)) {
-            return cell.getDateCellValue()
-                    .toInstant()
+            Date date = cell.getDateCellValue();
+            if (date == null) return null;
+            return date.toInstant()
                     .atZone(ZoneId.systemDefault())
                     .toLocalTime();
         }

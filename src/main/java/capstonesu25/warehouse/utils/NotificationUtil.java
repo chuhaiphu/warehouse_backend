@@ -9,7 +9,12 @@ public class NotificationUtil {
 
     private final Pusher pusher;
 
-    public static final String WAREHOUSE_MANAGER_CHANNEL = "notifications-WAREHOUSE_MANAGER";
+    public static final String WAREHOUSE_MANAGER_CHANNEL = "private-notifications-WAREHOUSE_MANAGER";
+    public static final String DEPARTMENT_CHANNEL = "private-notifications-DEPARTMENT";
+    public static final String STAFF_CHANNEL = "private-notifications-STAFF";
+    public static final String ACCOUNTING_CHANNEL = "private-notifications-ACCOUNTING";
+    public static final String ADMIN_CHANNEL = "private-notifications-ADMIN";
+
     public static final String IMPORT_ORDER_EVENT = "import-order-created";
 
     public NotificationUtil(Pusher pusher) {
@@ -17,10 +22,10 @@ public class NotificationUtil {
     }
 
     @Async
-    public void notifyWarehouseManagers(Object notificationData) {
+    public void notify(String channel, String event, Object notificationData) {
         pusher.trigger(
-            WAREHOUSE_MANAGER_CHANNEL,
-            IMPORT_ORDER_EVENT,
+            channel,
+            event,
             notificationData
         );
     }

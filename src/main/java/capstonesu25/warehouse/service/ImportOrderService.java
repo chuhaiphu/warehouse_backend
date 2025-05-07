@@ -31,7 +31,6 @@ public class ImportOrderService {
     private final AccountRepository accountRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final ConfigurationRepository configurationRepository;
-    private final AccountService accountService;
     private final ImportRequestDetailRepository  importRequestDetailRepository;
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final InventoryItemRepository inventoryItemRepository;
@@ -88,14 +87,12 @@ public class ImportOrderService {
         importRequestRepository.save(importRequest);
         ImportOrder order = importOrderRepository.save(importOrder);
 
-        // * For test Pusher Notification
+        // * Notification
         Map<String, Object> notificationPayload = new HashMap<>();
         notificationPayload.put("id", order.getId());
         notificationPayload.put("message", "A new import order has been created.");
-        // Add more fields as needed, always as string/primitive
-        notificationUtil.notifyWarehouseManagers(notificationPayload);
+        notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_EVENT, notificationPayload);
         // *
-
         return mapToResponse(importOrderRepository.save(order));
     }
 

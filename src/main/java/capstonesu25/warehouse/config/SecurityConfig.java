@@ -34,7 +34,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/account/register",
                                 "/account/login",
-                                "/account/refresh-token")
+                                "/account/refresh-token",
+                                "/pusher/auth")
                         .permitAll()
                         .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)

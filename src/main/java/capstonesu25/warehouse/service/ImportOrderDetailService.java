@@ -147,7 +147,9 @@ public class ImportOrderDetailService {
         if(importOrder.getTimeReceived() == null) {
             importOrder.setTimeReceived(first.getTimeReceived());
         }
-        importOrder.setNote(first.getNote());
+        if(importOrder.getNote() == null) {
+            importOrder.setNote(first.getNote());
+        }
         importOrder = importOrderRepository.save(importOrder);
 
         // Auto assign staff
@@ -156,6 +158,9 @@ public class ImportOrderDetailService {
         activeAccountRequest.setImportOrderId(importOrder.getId());
 
         for (ImportOrderDetailExcelRow request : requests) {
+            if (request.getItemId() == null) {
+                throw new IllegalArgumentException("Excel row has null itemId: " + request);
+            }
             ImportOrderDetail detail = new ImportOrderDetail();
             detail.setImportOrder(importOrder);
             detail.setExpectQuantity(request.getQuantity());
