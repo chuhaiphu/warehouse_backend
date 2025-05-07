@@ -15,15 +15,14 @@ import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -51,11 +50,34 @@ public class ExportRequestService {
         return exportRequests.map(this::mapToResponse);
     }
 
-    public Page<ExportRequestResponse> getAllExportRequestByAssignStaff( Long staffId, int page, int limit) {
+    public Page<ExportRequestResponse> getAllExportRequestByAssignStaff(Long staffId, int page, int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "createdDate"));
-        Page<ExportRequest> exportRequests = exportRequestRepository.findAllByAssignedStaff_Id(staffId, pageable);
-        return exportRequests.map(this::mapToResponse);
+
+        // Fetch both sets
+        Page<ExportRequest> exportRequestsConfirmStaff = exportRequestRepository.findAllByAssignedStaff_Id(staffId, Pageable.unpaged());
+        Page<ExportRequest> exportRequestsCountingStaff = exportRequestRepository.findAllByCountingStaffId(staffId, Pageable.unpaged());
+
+        // Merge, remove duplicates by ID
+        Map<Long, ExportRequest> uniqueRequests = new HashMap<>();
+        Stream.concat(exportRequestsConfirmStaff.getContent().stream(), exportRequestsCountingStaff.getContent().stream())
+                .forEach(req -> uniqueRequests.putIfAbsent(req.getId(), req));
+
+        // Sort by createdDate DESC
+        List<ExportRequest> sortedMergedList = uniqueRequests.values().stream()
+                .sorted(Comparator.comparing(ExportRequest::getCreatedDate).reversed())
+                .collect(Collectors.toList());
+
+        // Manual pagination
+        int start = Math.min((page - 1) * limit, sortedMergedList.size());
+        int end = Math.min(start + limit, sortedMergedList.size());
+        List<ExportRequestResponse> pagedResponses = sortedMergedList.subList(start, end).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(pagedResponses, pageable, sortedMergedList.size());
     }
+
+
 
     public ExportRequestResponse getExportRequestById(Long id) {
         ExportRequest exportRequest = exportRequestRepository.findById(id).orElseThrow();
@@ -274,6 +296,9 @@ public class ExportRequestService {
             exportRequest.setAssignedStaff(staff);
             exportRequestRepository.save(exportRequest);
         }
+
+        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
+        exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
     }
 
@@ -300,6 +325,7 @@ public class ExportRequestService {
             setTimeForCountingStaffPerformance(staff, exportRequest);
             exportRequest.setCountingStaffId(staff.getId());
         }
+        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
         exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
     }

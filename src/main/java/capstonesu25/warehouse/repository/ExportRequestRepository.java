@@ -14,6 +14,8 @@ import java.util.List;
 public interface ExportRequestRepository extends JpaRepository<ExportRequest, Long> {
     Page<ExportRequest> findAllByAssignedStaff_Id(Long staffId, Pageable pageable);
 
+    Page<ExportRequest> findAllByCountingStaffId(Long staffId, Pageable pageable);
+
     List<ExportRequest> findAllByCountingStaffIdAndCountingDate(
             Long staffId, LocalDate date);
 
