@@ -20,6 +20,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  pusher:
+    app-id: ${PUSHER_APP_ID}
+    key: ${PUSHER_APP_KEY}
+    secret: ${PUSHER_APP_SECRET}
+    cluster: ${PUSHER_APP_CLUSTER}
   main:
     allow-bean-definition-overriding: true
 springdoc:
