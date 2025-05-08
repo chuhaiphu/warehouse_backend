@@ -9,6 +9,7 @@ import capstonesu25.warehouse.model.paper.PaperRequest;
 import capstonesu25.warehouse.model.paper.PaperResponse;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.CloudinaryUtil;
+import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class PaperService {
     private final ImportRequestDetailRepository importRequestDetailRepository;
     private final ImportRequestRepository importRequestRepository;
     private final AccountRepository accountRepository;
+    private final NotificationUtil notificationUtil;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PaperService.class);
     private final InventoryItemRepository inventoryItemRepository;
@@ -95,7 +97,12 @@ public class PaperService {
             paper.setExportRequest(exportRequest);
         }
         paperRepository.save(paper);
-
+        // * Notification
+        Map<String, Object> notificationPayload = new HashMap<>();
+        notificationPayload.put("id", request.getImportOrderId());
+        notificationPayload.put("message", "An import order has been counted.");
+        notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_COUNTED_EVENT, notificationPayload);
+        // *
 //        afterCreatedPaperUpdateItems(request);
     }
 

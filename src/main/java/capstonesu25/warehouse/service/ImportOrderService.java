@@ -90,8 +90,8 @@ public class ImportOrderService {
         // * Notification
         Map<String, Object> notificationPayload = new HashMap<>();
         notificationPayload.put("id", order.getId());
-        notificationPayload.put("message", "A new import order has been created.");
-        notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_EVENT, notificationPayload);
+        notificationPayload.put("message", "An import order has been created.");
+        notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_CREATED_EVENT, notificationPayload);
         // *
         return mapToResponse(importOrderRepository.save(order));
     }
@@ -254,6 +254,12 @@ public class ImportOrderService {
         updateImportOrder(importOrder);
         autoFillLocationForImport(importOrder);
         handleImportItems(importOrder);
+        // * Notification
+        Map<String, Object> notificationPayload = new HashMap<>();
+        notificationPayload.put("id", importOrderId);
+        notificationPayload.put("message", "An import order has been confirmed.");
+        notificationUtil.notify(NotificationUtil.DEPARTMENT_CHANNEL, NotificationUtil.IMPORT_ORDER_CONFIRMED_EVENT, notificationPayload);
+        // *
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
