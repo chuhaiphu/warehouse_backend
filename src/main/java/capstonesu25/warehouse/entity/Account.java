@@ -69,6 +69,9 @@ public class Account implements UserDetails {
     @OneToMany(mappedBy = "assignedStaff", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<StaffPerformance> staffPerformances;
 
+    @OneToMany(mappedBy = "receiver", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<Notification> notifications;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
