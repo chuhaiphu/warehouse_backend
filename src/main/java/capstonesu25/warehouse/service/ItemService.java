@@ -83,7 +83,7 @@ public class ItemService {
     public Page<ItemResponse> getItemsByProviderId(Long providerId, int page, int limit) {
         LOGGER.info("Getting items by provider id: {}, page: {}, limit: {}", providerId, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<Item> items = itemRepository.findByProviderId(providerId, pageable);
+        Page<Item> items = itemRepository.findByProviders_Id(providerId, pageable);
         return items.map(this::mapToResponse);
     }
 

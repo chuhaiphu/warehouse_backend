@@ -58,7 +58,6 @@ public class Item {
     @ManyToMany(mappedBy = "items")
     private List<Provider> providers;
 
-
     @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<ImportOrderDetail> importOrderDetails;
 

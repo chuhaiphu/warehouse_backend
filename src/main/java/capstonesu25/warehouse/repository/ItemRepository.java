@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
     Page<Item> findByCategoryId(Long categoryId, Pageable pageable);
-    Page<Item> findByProviderId(Long providerId, Pageable pageable);
+    Page<Item> findByProviders_Id(Long providerId, Pageable pageable);
     long countByCategoryId(Long categoryId);
-    long countByProviderId(Long providerId);
+
 }
