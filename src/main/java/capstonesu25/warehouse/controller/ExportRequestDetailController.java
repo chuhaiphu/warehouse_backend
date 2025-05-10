@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestActualQuantity;
+import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailRequest;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ExportRequestDetailService;
@@ -16,6 +17,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/export-request-detail")
@@ -58,9 +61,10 @@ public class ExportRequestDetailController {
 
     @Operation(summary = "Create export request details from file upload")
     @PostMapping("/{exportRequestId}")
-    public ResponseEntity<?> createExportRequestDetail(@RequestPart MultipartFile file, @PathVariable Long exportRequestId) {
+    public ResponseEntity<?> createExportRequestDetail(@RequestBody List<ExportRequestDetailRequest> request,
+                                                       @PathVariable Long exportRequestId) {
         LOGGER.info("Creating export request detail");
-        service.createExportRequestDetail(file, exportRequestId);
+        service.createExportRequestDetail(request, exportRequestId);
         return ResponseUtil.getObject(
             null,
             HttpStatus.CREATED,

@@ -6,6 +6,7 @@ import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailExcelRow;
+import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailRequest;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailResponse;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.ExcelUtil;
@@ -52,28 +53,32 @@ public class ExportRequestDetailService {
         return mapToResponse(exportRequestDetail);
     }
 
-    public void createExportRequestDetail(MultipartFile file, Long exportRequestId) {
+    public void createExportRequestDetail(List<ExportRequestDetailRequest> exportRequestDetailRequests, Long exportRequestId) {
         LOGGER.info("Creating export request detail");
         LOGGER.info("Finding export request by id: {}", exportRequestId);
 
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
                 .orElseThrow(() -> new RuntimeException("Export request not found"));
 
-        // Process Excel file
-        List<ExportRequestDetailExcelRow> excelRows = ExcelUtil.processExcelFile(file, ExportRequestDetailExcelRow.class);
         List<ExportRequestDetail> exportRequestDetails = new ArrayList<>();
-        // Create export request details
-        for (ExportRequestDetailExcelRow row : excelRows) {
+
+        // Create export request details from the request data
+        for (ExportRequestDetailRequest request : exportRequestDetailRequests) {
             ExportRequestDetail exportRequestDetail = new ExportRequestDetail();
             exportRequestDetail.setExportRequest(exportRequest);
-            if(row.getMeasurementValue() != null) {
-                exportRequestDetail.setMeasurementValue(row.getMeasurementValue());
+
+            if (request.getMeasurementValue() != null) {
+                exportRequestDetail.setMeasurementValue(request.getMeasurementValue());
             }
-            exportRequestDetail.setQuantity(row.getQuantity());
+            exportRequestDetail.setQuantity(request.getQuantity());
             exportRequestDetail.setActualQuantity(0);
-            Item item = itemRepository.findById(row.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId()));
-            if(exportRequest.getType().equals(ExportType.RETURN)) {
+
+            // Get Item by ID
+            Item item = itemRepository.findById(request.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + request.getItemId()));
+
+            // Check provider matching for RETURN type export requests
+            if (exportRequest.getType().equals(ExportType.RETURN)) {
                 boolean providerMatch = item.getProviders().stream()
                         .anyMatch(provider -> Objects.equals(provider.getId(), exportRequest.getProviderId()));
 
@@ -81,22 +86,32 @@ public class ExportRequestDetailService {
                     throw new RuntimeException("Item does not belong to the selected provider");
                 }
             }
-            if(exportRequest.getType().equals(ExportType.PARTIAL)
+
+            // Handling for PARTIAL and BORROWING types
+            if (exportRequest.getType().equals(ExportType.PARTIAL)
                     || exportRequest.getType().equals(ExportType.BORROWING)) {
-              exportRequestDetail.setMeasurementValue(row.getMeasurementValue());
+                exportRequestDetail.setMeasurementValue(request.getMeasurementValue());
             }
+
             exportRequestDetail.setItem(item);
             exportRequestDetails.add(exportRequestDetail);
         }
-        List<ExportRequestDetail> list = exportRequestDetailRepository.saveAll(exportRequestDetails);
+
+        // Save export request details to the repository
+        List<ExportRequestDetail> savedDetails = exportRequestDetailRepository.saveAll(exportRequestDetails);
         LOGGER.info("Export request details created successfully");
-        for(ExportRequestDetail detail : list) {
-            LOGGER.info("choose inventory items for export request detail ID: {}", detail.getId());
+
+        // Choose inventory items for export request detail
+        for (ExportRequestDetail detail : savedDetails) {
+            LOGGER.info("Choosing inventory items for export request detail ID: {}", detail.getId());
             chooseInventoryItemsForThoseCases(detail);
         }
+
+        // Auto assign counting staff for the export request
         LOGGER.info("Auto assigning counting staff for export request with ID: {}", exportRequestId);
         autoAssignCountingStaff(exportRequest);
     }
+
 
     public ExportRequestDetailResponse updateActualQuantity(Long exportRequestDetailId, Integer actual) {
         LOGGER.info("Updating actual quantity for export request detail with ID: {}", exportRequestDetailId);
@@ -105,8 +120,12 @@ public class ExportRequestDetailService {
         exportRequestDetail.setActualQuantity(actual);
         if(Objects.equals(actual, exportRequestDetail.getQuantity())) {
             exportRequestDetail.setStatus(DetailStatus.MATCH);
-        } else {
-            throw new RuntimeException("Actual quantity does not match requested quantity");
+        }
+        if(actual < exportRequestDetail.getQuantity()) {
+            exportRequestDetail.setStatus(DetailStatus.LACK);
+        }
+        else {
+            throw new RuntimeException("Just allow to update actual quantity to match or less than quantity");
         }
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }

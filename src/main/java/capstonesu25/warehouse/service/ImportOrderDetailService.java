@@ -121,14 +121,7 @@ public class ImportOrderDetailService {
         for (ImportOrderDetailRequest.ItemOrder itemOrder : request.getItemOrders()) {
             Item item = itemRepository.findById(itemOrder.getItemId())
                     .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemOrder.getItemId()));
-
-            ImportOrderDetail detail = new ImportOrderDetail();
-            detail.setImportOrder(importOrder);
-            detail.setExpectQuantity(itemOrder.getQuantity());
-            detail.setActualQuantity(0);
-            detail.setStatus(DetailStatus.LACK);
-            detail.setItem(item);
-
+            ImportOrderDetail detail = getDetail(importOrder, itemOrder, item);
             importOrderDetailRepository.save(detail);
         }
 
@@ -140,6 +133,26 @@ public class ImportOrderDetailService {
         importOrder.setAssignedStaff(account);
         setTimeForStaffPerformance(account, importOrder);
         importOrderRepository.save(importOrder);
+    }
+
+    private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ItemOrder itemOrder, Item item) {
+        ImportOrderDetail detail = new ImportOrderDetail();
+        detail.setImportOrder(importOrder);
+        for(ImportRequestDetail importRequestDetail : item.getImportRequestDetails()) {
+            if (importRequestDetail.getItem().getId().equals(itemOrder.getItemId())) {
+               if(itemOrder.getQuantity()>=
+                       (importRequestDetail.getExpectQuantity()) - importRequestDetail.getOrderedQuantity()){
+                   detail.setExpectQuantity(importRequestDetail.getExpectQuantity());
+               }else {
+                      detail.setExpectQuantity(itemOrder.getQuantity());
+               }
+               break;
+            }
+        }
+        detail.setActualQuantity(0);
+        detail.setStatus(DetailStatus.LACK);
+        detail.setItem(item);
+        return detail;
     }
 
 
