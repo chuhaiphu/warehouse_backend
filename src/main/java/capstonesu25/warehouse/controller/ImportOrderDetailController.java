@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -15,8 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -62,10 +61,10 @@ public class ImportOrderDetailController {
     @Operation(summary = "Create import order details from Excel file")
     @PostMapping("/{importOrderId}")
     
-    public ResponseEntity<?> createImportOrderDetails(@RequestPart MultipartFile file,
-            @PathVariable Long importOrderId) {
+    public ResponseEntity<?> createImportOrderDetails(@RequestBody ImportOrderDetailRequest request,
+                                                      @PathVariable Long importOrderId) {
         LOGGER.info("Creating import order details from Excel file");
-        service.createFromExcel(file, importOrderId);
+        service.create(request, importOrderId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.CREATED,
@@ -74,7 +73,6 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Update actual quantities of import order details")
     @PutMapping("/{importOrderId}")
-    
     public ResponseEntity<?> updateActualQuantities(@RequestBody List<ImportOrderDetailUpdateRequest> requests,
             @PathVariable Long importOrderId) {
         LOGGER.info("Updating actual quantities of import order details");

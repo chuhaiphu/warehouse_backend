@@ -24,7 +24,12 @@ public class Provider {
     @Column(name = "address")
     private String address;
 
-    @OneToMany(mappedBy = "provider", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @ManyToMany
+    @JoinTable(
+            name = "provider_item", // join table name
+            joinColumns = @JoinColumn(name = "provider_id"), // FK to Provider
+            inverseJoinColumns = @JoinColumn(name = "item_id") // FK to Item
+    )
     private List<Item> items;
 
     @OneToMany(mappedBy = "provider", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})

@@ -28,7 +28,6 @@ public class ImportOrderController {
 
     @Operation(summary = "Get all import orders for a specific import request")
     @GetMapping("/page/{importRequestId}")
-    
     public ResponseEntity<?> getAllImportOrdersByImportRequestId(@PathVariable Long importRequestId, @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all import orders");
@@ -48,7 +47,6 @@ public class ImportOrderController {
 
     @Operation(summary = "Get import order by ID")
     @GetMapping("/{importOrderId}")
-    
     public ResponseEntity<?> getById(@PathVariable Long importOrderId) {
         LOGGER.info("Getting import order by id");
         ImportOrderResponse result = importOrderService.getImportOrderById(importOrderId);
@@ -70,7 +68,6 @@ public class ImportOrderController {
 
     @Operation(summary = "Update an existing import order")
     @PutMapping()
-    
     public ResponseEntity<?> updateImportOrder(@RequestBody ImportOrderUpdateRequest request) {
         LOGGER.info("Updating import order");
         return ResponseUtil.getObject(

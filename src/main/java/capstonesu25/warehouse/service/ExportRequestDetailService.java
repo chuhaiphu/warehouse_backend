@@ -74,8 +74,11 @@ public class ExportRequestDetailService {
             Item item = itemRepository.findById(row.getItemId())
                     .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId()));
             if(exportRequest.getType().equals(ExportType.RETURN)) {
-                if(!Objects.equals(item.getProvider().getId(), exportRequest.getProviderId())) {
-                    throw new RuntimeException("Item provider does not match export request provider");
+                boolean providerMatch = item.getProviders().stream()
+                        .anyMatch(provider -> Objects.equals(provider.getId(), exportRequest.getProviderId()));
+
+                if (!providerMatch) {
+                    throw new RuntimeException("Item does not belong to the selected provider");
                 }
             }
             if(exportRequest.getType().equals(ExportType.PARTIAL)

@@ -103,8 +103,10 @@ public class ItemService {
             response.setCategoryId(item.getCategory().getId());
         }
 
-        if (item.getProvider() != null) {
-            response.setProviderId(item.getProvider().getId());
+        if (!item.getProviders().isEmpty()) {
+            response.setProviderIds(item.getProviders().stream()
+                    .map(Provider::getId)
+                    .collect(Collectors.toList()));
         }
 
         // Convert OneToMany relationships to lists of IDs
@@ -160,7 +162,7 @@ public class ItemService {
         if (request.getProviderId() != null) {
             Provider provider = providerRepository.findById(request.getProviderId())
                     .orElseThrow(() -> new RuntimeException("Provider not found with id: " + request.getProviderId()));
-            existingItem.setProvider(provider);
+            existingItem.setProviders(List.of(provider));
         }
 
         return existingItem;

@@ -55,9 +55,8 @@ public class Item {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "provider_id")
-    private Provider provider;
+    @ManyToMany(mappedBy = "items")
+    private List<Provider> providers;
 
 
     @OneToMany(mappedBy = "item", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})

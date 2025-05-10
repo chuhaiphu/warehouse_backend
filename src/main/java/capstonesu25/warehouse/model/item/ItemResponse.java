@@ -20,7 +20,7 @@ public class ItemResponse {
     private Integer minimumStockQuantity;
     private Integer maximumStockQuantity;
     private Long categoryId;
-    private Long providerId;
+    private List<Long> providerIds;
     // Replace OneToMany relationships with list of IDs
     private List<Long> importOrderDetailIds;
     private List<Long> importRequestDetailIds;

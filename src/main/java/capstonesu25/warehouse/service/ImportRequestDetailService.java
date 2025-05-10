@@ -21,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,12 +47,18 @@ public class ImportRequestDetailService {
         List<ImportRequestDetailExcelRow> excelRows = ExcelUtil.processExcelFile(file, ImportRequestDetailExcelRow.class);
 
         // Group by providerId using the item's provider
-        Map<Long, List<ImportRequestDetailExcelRow>> rowsByProvider = excelRows.stream()
-                .collect(Collectors.groupingBy(row -> {
-                    Item item = itemRepository.findById(row.getItemId())
-                            .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId()));
-                    return item.getProvider().getId();
-                }));
+        Map<Long, List<ImportRequestDetailExcelRow>> rowsByProvider = new HashMap<>();
+
+        for (ImportRequestDetailExcelRow row : excelRows) {
+            Item item = itemRepository.findById(row.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId()));
+
+            for (Provider provider : item.getProviders()) {
+                rowsByProvider
+                        .computeIfAbsent(provider.getId(), k -> new ArrayList<>())
+                        .add(row);
+            }
+        }
 
         // Process each provider group
         for (Map.Entry<Long, List<ImportRequestDetailExcelRow>> entry : rowsByProvider.entrySet()) {
