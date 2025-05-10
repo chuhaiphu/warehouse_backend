@@ -4,13 +4,12 @@ import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.Provider;
-import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailExcelRow;
+import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ProviderRepository;
-import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,72 +29,71 @@ public class ImportRequestDetailService {
     private final ItemRepository itemRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
-    private static final   String TODAY_PREFIX = LocalDate.now().toString() + "_";
+    private static final   String TODAY_PREFIX = LocalDate.now() + "_";
 
-
-    public void createImportRequestDetail(MultipartFile file, Long importRequestId) {
+    public void createImportRequestDetail(List<ImportRequestDetailRequest> detailRequests, Long importRequestId) {
         LOGGER.info("Creating import order detail");
-        
+        // Validate that all items belong to the same provider
+        checkSameProvider(detailRequests);
         // Get the original import request to copy its properties
         ImportRequest originalRequest = importRequestRepository.findById(importRequestId)
                 .orElseThrow(() -> new RuntimeException("Import order not found"));
+
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
-        Integer batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
-        // Process Excel file using the DTO
-        List<ImportRequestDetailExcelRow> excelRows = ExcelUtil.processExcelFile(file, ImportRequestDetailExcelRow.class);
+        int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
 
-        // Group by providerId using the item's provider
-        Map<Long, List<ImportRequestDetailExcelRow>> rowsByProvider = new HashMap<>();
+        // Group by providerId using the item's providers
+        Map<Long, List<ImportRequestDetailRequest>> requestsByProvider = new HashMap<>();
 
-        for (ImportRequestDetailExcelRow row : excelRows) {
-            Item item = itemRepository.findById(row.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId()));
+        for (ImportRequestDetailRequest req : detailRequests) {
+            Item item = itemRepository.findById(req.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + req.getItemId()));
 
             for (Provider provider : item.getProviders()) {
-                rowsByProvider
+                requestsByProvider
                         .computeIfAbsent(provider.getId(), k -> new ArrayList<>())
-                        .add(row);
+                        .add(req);
             }
         }
 
         // Process each provider group
-        for (Map.Entry<Long, List<ImportRequestDetailExcelRow>> entry : rowsByProvider.entrySet()) {
+        for (Map.Entry<Long, List<ImportRequestDetailRequest>> entry : requestsByProvider.entrySet()) {
             Long providerId = entry.getKey();
-            List<ImportRequestDetailExcelRow> rows = entry.getValue();
+            List<ImportRequestDetailRequest> requests = entry.getValue();
 
             // Create new ImportRequest for each provider
             ImportRequest newImportRequest = new ImportRequest();
-            // Copy properties from original request
             newImportRequest.setImportReason(originalRequest.getImportReason());
             newImportRequest.setStatus(originalRequest.getStatus());
             newImportRequest.setType(originalRequest.getType());
             newImportRequest.setExportRequest(originalRequest.getExportRequest());
             newImportRequest.setBatchCode(TODAY_PREFIX + batchSuffix);
 
-            // Set provider for the new import request
+            // Set provider
             Provider provider = providerRepository.findById(providerId)
                     .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + providerId));
             newImportRequest.setProvider(provider);
-            
+
             // Save the new import request
             ImportRequest savedImportRequest = importRequestRepository.save(newImportRequest);
 
-            // Create import request details for this provider
-            for (ImportRequestDetailExcelRow row : rows) {
-                ImportRequestDetail importRequestDetail = new ImportRequestDetail();
-                importRequestDetail.setImportRequest(savedImportRequest);
-                importRequestDetail.setExpectQuantity(row.getQuantity());
-                importRequestDetail.setItem(itemRepository.findById(row.getItemId())
-                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + row.getItemId())));
-                importRequestDetail.setActualQuantity(0);
-                importRequestDetail.setOrderedQuantity(0);
-                importRequestDetailRepository.save(importRequestDetail);
+            // Create import request details
+            for (ImportRequestDetailRequest req : requests) {
+                ImportRequestDetail detail = new ImportRequestDetail();
+                detail.setImportRequest(savedImportRequest);
+                detail.setExpectQuantity(req.getQuantity());
+                detail.setItem(itemRepository.findById(req.getItemId())
+                        .orElseThrow(() -> new RuntimeException("Item not found with ID: " + req.getItemId())));
+                detail.setActualQuantity(0);
+                detail.setOrderedQuantity(0);
+                importRequestDetailRepository.save(detail);
             }
         }
-        
+
         // Delete the original empty import request
         importRequestRepository.deleteById(importRequestId);
     }
+
 
 
     public void deleteImportRequestDetail(Long importRequestDetailId) {
@@ -130,6 +126,20 @@ public class ImportRequestDetailService {
                 .map(code -> code.substring(TODAY_PREFIX.length()))
                 .mapToInt(Integer::parseInt)
                 .max(); // returns OptionalInt
+    }
+
+    private void checkSameProvider(List<ImportRequestDetailRequest> request) {
+        for(ImportRequestDetailRequest itemOrder : request) {
+            Item item = itemRepository.findById(itemOrder.getItemId())
+                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemOrder.getItemId()));
+            boolean providerMatch = item.getProviders().stream()
+                    .anyMatch(provider -> Objects.equals(provider.getId(), itemOrder.getProviderId()));
+
+            if (!providerMatch) {
+                throw new IllegalArgumentException("Item with ID: " + itemOrder.getItemId() +
+                        " does not belong to the provider with ID: " +  itemOrder.getProviderId());
+            }
+        }
     }
 
     private ImportRequestDetailResponse mapToResponse(ImportRequestDetail importRequestDetail) {

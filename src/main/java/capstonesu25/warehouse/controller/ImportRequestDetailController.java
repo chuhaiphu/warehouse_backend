@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestDetailService;
@@ -14,7 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/import-request-detail")
@@ -56,10 +58,10 @@ public class ImportRequestDetailController {
 
     @Operation(summary = "Create import request details from file upload")
     @PostMapping("/{importRequestId}")
-    public ResponseEntity<?> createImportRequestDetail(@RequestPart MultipartFile file,
+    public ResponseEntity<?> createImportRequestDetail(@RequestBody List<ImportRequestDetailRequest> request,
             @PathVariable Long importRequestId) {
         LOGGER.info("Creating import request detail");
-        service.createImportRequestDetail(file, importRequestId);
+        service.createImportRequestDetail(request, importRequestId);
         return ResponseUtil.getObject(
                 null,
                 HttpStatus.CREATED,
