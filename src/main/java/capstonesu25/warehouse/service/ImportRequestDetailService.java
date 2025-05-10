@@ -37,7 +37,7 @@ public class ImportRequestDetailService {
         checkSameProvider(detailRequests);
         // Get the original import request to copy its properties
         ImportRequest originalRequest = importRequestRepository.findById(importRequestId)
-                .orElseThrow(() -> new RuntimeException("Import order not found"));
+                .orElseThrow(() -> new RuntimeException("Import request not found"));
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;

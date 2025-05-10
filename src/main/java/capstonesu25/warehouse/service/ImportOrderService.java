@@ -57,6 +57,15 @@ public class ImportOrderService {
         
         ImportRequest importRequest = importRequestRepository.findById(request.getImportRequestId())
                 .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + request.getImportRequestId()));
+        boolean canBeContinued = false;
+        for(ImportRequestDetail detail : importRequest.getDetails()) {
+           if(detail.getOrderedQuantity() < detail.getExpectQuantity()) {
+               canBeContinued = true;
+           }
+        }
+        if(!canBeContinued) {
+            throw new IllegalStateException("Cannot create import order: All items have been planned for importing");
+        }
 
         ImportOrder importOrder = new ImportOrder();
         importOrder.setImportRequest(importRequest);

@@ -62,6 +62,7 @@ public class ImportOrderDetailService {
     }
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
+        LOGGER.info("Checking if all items belong to the same provider");
         for(ImportOrderDetailRequest.ItemOrder itemOrder : request.getItemOrders()) {
             Item item = itemRepository.findById(itemOrder.getItemId())
                     .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemOrder.getItemId()));
@@ -90,6 +91,9 @@ public class ImportOrderDetailService {
             throw new IllegalStateException("Cannot set time for import order: Date is in the past");
         }
 
+        if(date.isEqual(LocalDate.now()) && time.isBefore(LocalTime.now())) {
+            throw new IllegalStateException("Cannot set time for import order: Time is in the past");
+        }
         LOGGER.info("Check if time set is too early");
         if (date.isEqual(LocalDate.now()) &&
                 LocalTime.now()
@@ -102,6 +106,7 @@ public class ImportOrderDetailService {
 
     private void createImportOrderDetails(ImportOrder importOrder, ImportOrderDetailRequest request) {
         // Set date/time/note from the request
+        LOGGER.info("Setting date, time and note for import order");
         if (request.getDateReceived() != null && request.getTimeReceived() != null) {
             validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
         }
@@ -122,7 +127,9 @@ public class ImportOrderDetailService {
             Item item = itemRepository.findById(itemOrder.getItemId())
                     .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemOrder.getItemId()));
             ImportOrderDetail detail = getDetail(importOrder, itemOrder, item);
-            importOrderDetailRepository.save(detail);
+            if(detail != null) {
+                importOrderDetailRepository.save(detail);
+            }
         }
 
         // Assign staff
@@ -136,14 +143,24 @@ public class ImportOrderDetailService {
     }
 
     private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ItemOrder itemOrder, Item item) {
+        LOGGER.info("Creating import order detail for item: " + item.getName());
         ImportOrderDetail detail = new ImportOrderDetail();
         detail.setImportOrder(importOrder);
         for(ImportRequestDetail importRequestDetail : item.getImportRequestDetails()) {
+            LOGGER.info("Checking import request detail for item: " + item.getName());
             if (importRequestDetail.getItem().getId().equals(itemOrder.getItemId())) {
+                if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getOrderedQuantity()
+                || (itemOrder.getQuantity() + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()){
+                    LOGGER.info("Item quantity exceeds expected quantity");
+                    return null;
+                }
                if(itemOrder.getQuantity()>=
                        (importRequestDetail.getExpectQuantity()) - importRequestDetail.getOrderedQuantity()){
-                   detail.setExpectQuantity(importRequestDetail.getExpectQuantity());
+                     LOGGER.info("Item quantity is more than expected quantity");
+                   int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getOrderedQuantity();
+                   detail.setExpectQuantity(remainingQuantity);
                }else {
+                     LOGGER.info("Item quantity is less than expected quantity");
                       detail.setExpectQuantity(itemOrder.getQuantity());
                }
                break;

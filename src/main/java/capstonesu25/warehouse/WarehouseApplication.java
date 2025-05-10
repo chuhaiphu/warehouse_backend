@@ -136,6 +136,44 @@ public class WarehouseApplication {
 					nut3, nut4, kim3, kim4
 			));
 
+			// Set provider.items for all providers
+			prov1.setItems(List.of(vai1, vai3));
+			prov2.setItems(List.of(vai2, vai4));
+			prov3.setItems(List.of(nut1, nut2, chi3, chi4, kim1, kim2));
+			prov4.setItems(List.of(chi1, chi2));
+			prov5.setItems(List.of(khoa1, khoa2, khoa3, khoa4));
+			prov6.setItems(List.of(nut3, nut4, kim3, kim4));
+
+			// Set item.providers for all items
+			vai1.setProviders(List.of(prov1));
+			vai3.setProviders(List.of(prov1));
+			vai2.setProviders(List.of(prov2));
+			vai4.setProviders(List.of(prov2));
+
+			nut1.setProviders(List.of(prov3));
+			nut2.setProviders(List.of(prov3));
+			chi3.setProviders(List.of(prov3));
+			chi4.setProviders(List.of(prov3));
+			kim1.setProviders(List.of(prov3));
+			kim2.setProviders(List.of(prov3));
+
+			chi1.setProviders(List.of(prov4));
+			chi2.setProviders(List.of(prov4));
+
+			khoa1.setProviders(List.of(prov5));
+			khoa2.setProviders(List.of(prov5));
+			khoa3.setProviders(List.of(prov5));
+			khoa4.setProviders(List.of(prov5));
+
+			nut3.setProviders(List.of(prov6));
+			nut4.setProviders(List.of(prov6));
+			kim3.setProviders(List.of(prov6));
+			kim4.setProviders(List.of(prov6));
+
+			// Save all providers with relationships (owning side)
+			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
+
+
 			// Stored Locations - Section A (Electronics)
 			StoredLocation locA1 = new StoredLocation(null, "A", "1", "1", "A101", false, false, 500, 0 ,vai1 , null);
 			StoredLocation locA2 = new StoredLocation(null, "A", "1", "2", "A102", false, false, 500, 0 ,vai2  , null);
