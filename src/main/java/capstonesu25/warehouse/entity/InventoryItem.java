@@ -2,6 +2,7 @@ package capstonesu25.warehouse.entity;
 
 import capstonesu25.warehouse.enums.ItemStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -53,8 +54,10 @@ public class InventoryItem {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    @ManyToMany(mappedBy = "inventoryItems")
-    private List<ExportRequestDetail> exportRequestDetails = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "export_request_detail_id")
+    @JsonIgnore
+    private ExportRequestDetail exportRequestDetail;
 
 
     @ManyToOne

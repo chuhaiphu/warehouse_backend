@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -54,7 +55,6 @@ public class ExportRequestDetailService {
     }
 
     public void createExportRequestDetail(List<ExportRequestDetailRequest> exportRequestDetailRequests, Long exportRequestId) {
-        LOGGER.info("Creating export request detail");
         LOGGER.info("Finding export request by id: {}", exportRequestId);
 
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
@@ -94,12 +94,12 @@ public class ExportRequestDetailService {
             }
 
             exportRequestDetail.setItem(item);
-            exportRequestDetails.add(exportRequestDetail);
+            exportRequestDetailRepository.save(exportRequestDetail);
         }
 
         // Save export request details to the repository
-        List<ExportRequestDetail> savedDetails = exportRequestDetailRepository.saveAll(exportRequestDetails);
-        LOGGER.info("Export request details created successfully");
+        List<ExportRequestDetail> savedDetails = exportRequest.getExportRequestDetails();
+        LOGGER.info("Export request details created successfully with size: {}", savedDetails.size());
 
         // Choose inventory items for export request detail
         for (ExportRequestDetail detail : savedDetails) {
@@ -141,38 +141,30 @@ public class ExportRequestDetailService {
                     autoChooseInventoryItemsForProduction(exportRequestDetail);
         }
     }
-
     private void autoChooseInventoryItemsForProduction(ExportRequestDetail exportRequestDetail) {
         LOGGER.info("Auto choosing inventory items for production");
-        Integer quantity = exportRequestDetail.getQuantity();
-        if((quantity*exportRequestDetail.getItem().getMeasurementValue()) >
-                exportRequestDetail.getItem().getTotalMeasurementValue()) {
-            throw new RuntimeException("quantity of export request detail id: " + exportRequestDetail.getItem().getId()
-                    + " is greater than total measurement value of item id: " + exportRequestDetail.getItem().getId());
-        }
-        // Fetch inventory items by item ID
-        LOGGER.info("Finding inventory items by item ID: {}", exportRequestDetail.getItem().getId());
-        List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_IdAndParentNull(exportRequestDetail.getItem().getId());
 
-        if (inventoryItemList.isEmpty()) {
-            throw new RuntimeException("Inventory items not found for item ID: " + exportRequestDetail.getItem().getId());
+        int quantity = exportRequestDetail.getQuantity();
+        double requiredMeasurement = quantity * exportRequestDetail.getItem().getMeasurementValue();
+
+        if (requiredMeasurement > exportRequestDetail.getItem().getTotalMeasurementValue()) {
+            throw new RuntimeException("Insufficient stock for export.");
         }
 
-        // Sort the inventory items by importedDate (furthest from now first)
-        LOGGER.info("Sorting inventory items by imported date");
-        List<InventoryItem> sortedInventoryItems = new ArrayList<>(
-                inventoryItemList.stream()
-                        .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
-                        .limit(quantity)
-                        .toList()
-        );
+        // Fetch and sort inventory items
+        List<InventoryItem> sortedInventoryItems = inventoryItemRepository
+                .findByItem_IdAndParentNull(exportRequestDetail.getItem().getId())
+                .stream()
+                .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
+                .limit(quantity)
+                .toList();
 
-        LOGGER.info("Setting inventory items for export request detail ID: {}", exportRequestDetail.getId());
-        exportRequestDetail.setInventoryItems(sortedInventoryItems);
-
-        LOGGER.info("Saving export request detail with ID: {}", exportRequestDetail.getId());
-        exportRequestDetailRepository.save(exportRequestDetail);
+        for(InventoryItem inventoryItem : sortedInventoryItems) {
+           inventoryItem.setExportRequestDetail(exportRequestDetail);
+           inventoryItemRepository.save(inventoryItem);
+        }
     }
+
 
     private void autoChooseInventoryItemsForPartialAndBorrowing(ExportRequestDetail exportRequestDetail) {
         List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_Id(exportRequestDetail.getItem().getId());
@@ -273,7 +265,7 @@ public class ExportRequestDetailService {
     private void setTimeForCountingStaffPerformance(Account account, ExportRequest exportRequest) {
         int totalMinutes = 0;
         for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
-            LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+            LOGGER.info("Calculating expected working time for item " );
             totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
         }
         LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
@@ -284,6 +276,7 @@ public class ExportRequestDetailService {
         staffPerformance.setAssignedStaff(account);
         staffPerformance.setExportCounting(true);
         staffPerformanceRepository.save(staffPerformance);
+        LOGGER.info("Expected working time for counting staff: " + expectedWorkingTime);
     }
     private void autoAssignConfirmStaff(ExportRequest exportRequest) {
         LOGGER.info("Auto assigning confirm staff for export request with ID: " + exportRequest.getId());

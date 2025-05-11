@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,9 +108,9 @@ public class InventoryItemService {
             .map(inventoryItem -> new QrCodeResponse(
                 inventoryItem.getId(),
                 inventoryItem.getItem().getId(),
-                inventoryItem.getImportOrderDetail() != null ? inventoryItem.getImportOrderDetail().getId() : null, inventoryItem.getExportRequestDetails() != null && !inventoryItem.getExportRequestDetails().isEmpty()
-                    ? inventoryItem.getExportRequestDetails().get(0).getId() : null,
-                inventoryItem.getMeasurementValue()
+                inventoryItem.getImportOrderDetail() != null ? inventoryItem.getImportOrderDetail().getId() : null,
+                    inventoryItem.getExportRequestDetail() != null ? inventoryItem.getExportRequestDetail().getId() : null,
+                    inventoryItem.getMeasurementValue()
             ))
             .collect(Collectors.toList());
     }
@@ -147,14 +146,10 @@ public class InventoryItemService {
             // Item doesn't have code field based on the provided entity
         }
 
-        List<Long> exportRequestDetailIds = inventoryItem.getExportRequestDetails() != null
-                ? inventoryItem.getExportRequestDetails().stream()
-                .map(ExportRequestDetail::getId)
-                .collect(Collectors.toList())
-                : Collections.emptyList();
-
-        response.setExportRequestDetailIds(exportRequestDetailIds);
-
+        // Export request detail reference
+        if (inventoryItem.getExportRequestDetail() != null) {
+            response.setExportRequestDetailId(inventoryItem.getExportRequestDetail().getId());
+        }
 
         // Import order detail reference
         if (inventoryItem.getImportOrderDetail() != null) {
@@ -210,13 +205,11 @@ public class InventoryItemService {
         if (request.getExportRequestDetailId() != null) {
             ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(request.getExportRequestDetailId())
                     .orElseThrow(() -> new EntityNotFoundException("Export request detail not found with id: " + request.getExportRequestDetailId()));
-            if (inventoryItem.getExportRequestDetails() == null) {
-                inventoryItem.setExportRequestDetails(new ArrayList<>());
-            }
-            inventoryItem.getExportRequestDetails().add(exportRequestDetail);
-            exportRequestDetail.getInventoryItems().add(inventoryItem);
-            exportRequestDetailRepository.save(exportRequestDetail);
+
+            inventoryItem.setExportRequestDetail(exportRequestDetail);
+            inventoryItemRepository.save(inventoryItem);
         }
+
 
         // Set import order detail reference
         if (request.getImportOrderDetailId() != null) {

@@ -14,8 +14,7 @@ import java.util.List;
 @Repository
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
     Page<InventoryItem> findByImportOrderDetailId(Long importOrderDetailId, Pageable pageable);
-    @Query("SELECT i FROM InventoryItem i JOIN i.exportRequestDetails d WHERE d.id = :exportRequestDetailId")
-    Page<InventoryItem> findByExportRequestDetailId(@Param("exportRequestDetailId") Long exportRequestDetailId, Pageable pageable);
+    Page<InventoryItem> findByExportRequestDetailId(Long exportRequestDetailId, Pageable pageable);
     Page<InventoryItem> findByStoredLocationId(Long storedLocationId, Pageable pageable);
     List<InventoryItem> findByItem_IdAndParentNull(Long itemId);
     List<InventoryItem> findByItem_Id(Long itemId);

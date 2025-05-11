@@ -40,13 +40,8 @@ public class ExportRequestDetail {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    @ManyToMany
-    @JoinTable(
-            name = "export_request_detail_inventory_item",
-            joinColumns = @JoinColumn(name = "export_request_detail_id"),
-            inverseJoinColumns = @JoinColumn(name = "inventory_item_id")
-    )
-    private List<InventoryItem> inventoryItems = new ArrayList<>();
+    @OneToMany(mappedBy = "exportRequestDetail", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<InventoryItem> inventoryItems;
 
 
 }
