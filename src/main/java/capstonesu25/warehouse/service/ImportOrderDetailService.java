@@ -63,14 +63,14 @@ public class ImportOrderDetailService {
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
         LOGGER.info("Checking if all items belong to the same provider");
-        for(ImportOrderDetailRequest.ItemOrder itemOrder : request.getItemOrders()) {
-            Item item = itemRepository.findById(itemOrder.getItemId())
-                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemOrder.getItemId()));
+        for(ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
+            Item item = itemRepository.findById(importOrderItem.getItemId())
+                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + importOrderItem.getItemId()));
             boolean providerMatch = item.getProviders().stream()
                     .anyMatch(provider -> Objects.equals(provider.getId(), request.getProviderId()));
 
             if (!providerMatch) {
-                throw new IllegalArgumentException("Item with ID: " + itemOrder.getItemId() +
+                throw new IllegalArgumentException("Item with ID: " + importOrderItem.getItemId() +
                         " does not belong to the provider with ID: " + request.getProviderId());
             }
         }
@@ -111,10 +111,10 @@ public class ImportOrderDetailService {
         activeAccountRequest.setDate(importOrder.getDateReceived());
         activeAccountRequest.setImportOrderId(importOrder.getId());
 
-        for (ImportOrderDetailRequest.ItemOrder itemOrder : request.getItemOrders()) {
-            Item item = itemRepository.findById(itemOrder.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + itemOrder.getItemId()));
-            ImportOrderDetail detail = getDetail(importOrder, itemOrder, item);
+        for (ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
+            Item item = itemRepository.findById(importOrderItem.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + importOrderItem.getItemId()));
+            ImportOrderDetail detail = getDetail(importOrder, importOrderItem, item);
             if(detail != null) {
                 importOrderDetailRepository.save(detail);
             }
@@ -130,26 +130,26 @@ public class ImportOrderDetailService {
         importOrderRepository.save(importOrder);
     }
 
-    private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ItemOrder itemOrder, Item item) {
+    private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ImportOrderItem importOrderItem, Item item) {
         LOGGER.info("Creating import order detail for item: " + item.getName());
         ImportOrderDetail detail = new ImportOrderDetail();
         detail.setImportOrder(importOrder);
         for(ImportRequestDetail importRequestDetail : item.getImportRequestDetails()) {
             LOGGER.info("Checking import request detail for item: " + item.getName());
-            if (importRequestDetail.getItem().getId().equals(itemOrder.getItemId())) {
+            if (importRequestDetail.getItem().getId().equals(importOrderItem.getItemId())) {
                 if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getOrderedQuantity()
-                || (itemOrder.getQuantity() + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()){
+                || (importOrderItem.getQuantity() + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()){
                     LOGGER.info("Item quantity exceeds expected quantity");
                     return null;
                 }
-               if(itemOrder.getQuantity()>=
+               if(importOrderItem.getQuantity()>=
                        (importRequestDetail.getExpectQuantity()) - importRequestDetail.getOrderedQuantity()){
                      LOGGER.info("Item quantity is more than expected quantity");
                    int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getOrderedQuantity();
                    detail.setExpectQuantity(remainingQuantity);
                }else {
                      LOGGER.info("Item quantity is less than expected quantity");
-                      detail.setExpectQuantity(itemOrder.getQuantity());
+                      detail.setExpectQuantity(importOrderItem.getQuantity());
                }
                break;
             }

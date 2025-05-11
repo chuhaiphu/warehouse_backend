@@ -13,11 +13,11 @@ import java.util.List;
 @NoArgsConstructor
 public class ImportOrderDetailRequest {
     private Long providerId;
-    private List<ItemOrder> itemOrders;
+    private List<ImportOrderItem> importOrderItems;
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class ItemOrder {
+    public static class ImportOrderItem {
         private Long itemId;
         private Integer quantity;
     }
