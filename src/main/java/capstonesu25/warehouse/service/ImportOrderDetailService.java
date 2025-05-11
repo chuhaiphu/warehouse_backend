@@ -107,18 +107,6 @@ public class ImportOrderDetailService {
     private void createImportOrderDetails(ImportOrder importOrder, ImportOrderDetailRequest request) {
         // Set date/time/note from the request
         LOGGER.info("Setting date, time and note for import order");
-        if (request.getDateReceived() != null && request.getTimeReceived() != null) {
-            validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
-        }
-        if (importOrder.getDateReceived() == null) {
-            importOrder.setDateReceived(request.getDateReceived());
-        }
-        if (importOrder.getTimeReceived() == null) {
-            importOrder.setTimeReceived(request.getTimeReceived());
-        }
-        importOrder.setNote(request.getNote());
-        importOrder = importOrderRepository.save(importOrder);
-
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
         activeAccountRequest.setDate(importOrder.getDateReceived());
         activeAccountRequest.setImportOrderId(importOrder.getId());

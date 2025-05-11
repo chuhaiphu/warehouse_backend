@@ -12,9 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportOrderDetailRequest {
-    private LocalDate dateReceived;
-    private LocalTime timeReceived;
-    private String note;
     private Long providerId;
     private List<ItemOrder> itemOrders;
     @Data
