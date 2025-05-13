@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.model.exportrequest.UpdateExportDateTimeRequest;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
 import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialRequest;
@@ -200,6 +201,18 @@ public class ExportRequestController {
                 result,
                 HttpStatus.OK,
                 "Successfully completed export request");
+    }
+
+    @Operation(summary = "update export date and time for export request")
+    @PostMapping("/update-export-date-time/{exportRequestId}")
+    public ResponseEntity<?> updateExportDateTime(@PathVariable Long exportRequestId,
+                                                  @RequestBody UpdateExportDateTimeRequest request) {
+        LOGGER.info("Updating export date and time");
+        return ResponseUtil.getObject(
+                exportRequestService.updateExportDateTime(exportRequestId, request.getExportDate(),request.getExportTime()),
+                HttpStatus.OK,
+                "Successfully updated export date and time"
+        );
     }
 
 } 

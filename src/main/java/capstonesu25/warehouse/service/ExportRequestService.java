@@ -349,6 +349,30 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
+    public ExportRequestResponse updateExportDateTime(Long exportRequestId, LocalDate date, LocalTime time) {
+        LOGGER.info("Updating export date and time for export request with ID: " + exportRequestId);
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
+                () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
+
+        validateForTimeDate(date, time);
+        exportRequest.setExportDate(date);
+        exportRequest.setExportTime(time);
+
+        // reassign confirm staff
+        if(exportRequest.getAssignedStaff() != null) {
+            LOGGER.info("Return working for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository.
+                    findByExportRequestIdAndAssignedStaff_IdAndExportCounting(exportRequest.getId(),exportRequest.getAssignedStaff().getId(), false);
+            if(staffPerformance != null) {
+                LOGGER.info("Delete working time for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
+                staffPerformanceRepository.delete(staffPerformance);
+            }
+        }
+        // assign new confirm staff
+        autoAssignConfirmStaff(exportRequest);
+        return mapToResponse(exportRequest);
+    }
+
     private void updateInventoryItemAndLocationAfterExport(ExportRequest exportRequest) {
         LOGGER.info("Updating inventory item after export request");
 
@@ -513,11 +537,17 @@ public class ExportRequestService {
         for(AccountResponse accountResponse : accountResponses) {
             List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(
                     accountResponse.getId(),
-                    exportRequest.getCountingDate()
+                    exportRequest.getExportDate()
             );
-            for(ExportRequest exportCheck : checkExportRequest) {
-                if(exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(configuration.getTimeToAllowConfirm().toSecondOfDay() / 60))) {
-                    responses.add(accountResponse);
+            LOGGER.info("Checking export requests size {} ", checkExportRequest.size());
+
+            if (checkExportRequest.isEmpty()) {
+                responses.add(accountResponse);
+            } else {
+                for (ExportRequest exportCheck : checkExportRequest) {
+                    if (exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(configuration.getTimeToAllowConfirm().toSecondOfDay() / 60))) {
+                        responses.add(accountResponse);
+                    }
                 }
             }
         }
@@ -526,12 +556,13 @@ public class ExportRequestService {
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + responses.get(0).getId()));
 
         exportRequest.setAssignedStaff(account);
+        LOGGER.info("Confirm Account is: {}", account.getEmail());
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(configuration.getTimeToAllowConfirm());
         staffPerformance.setDate(exportRequest.getExportDate());
-        staffPerformance.setImportOrderId(exportRequest.getId());
         staffPerformance.setAssignedStaff(account);
         staffPerformance.setExportCounting(false);
+        staffPerformance.setExportRequestId(exportRequest.getId());
         staffPerformanceRepository.save(staffPerformance);
         exportRequestRepository.save(exportRequest);
     }
