@@ -36,6 +36,7 @@ public class ImportOrderService {
     private final InventoryItemRepository inventoryItemRepository;
     private final StoredLocationRepository storedLocationRepository;
     private final ItemRepository itemRepository;
+    private final NotificationRepository notificationRepository;
     private final NotificationUtil notificationUtil;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
@@ -96,12 +97,29 @@ public class ImportOrderService {
         importRequestRepository.save(importRequest);
         ImportOrder order = importOrderRepository.save(importOrder);
 
-        // * Notification
+        // *** Notification
         Map<String, Object> notificationPayload = new HashMap<>();
-        notificationPayload.put("id", order.getId());
-        notificationPayload.put("message", "An import order has been created.");
+        notificationPayload.put("objectId", order.getId());
+        notificationPayload.put("content", "An import order has been created.");
+        notificationPayload.put("isViewed", false);
+        notificationPayload.put("isClicked", false);
+        notificationPayload.put("createdDate", LocalDateTime.now());
         notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_CREATED_EVENT, notificationPayload);
-        // *
+        
+        // Create and save actual Notification entity objects for warehouse managers
+        List<Account> warehouseManagers = accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER);
+        for (Account manager : warehouseManagers) {
+            Notification notification = Notification.builder()
+                .receiver(manager)
+                .objectId(order.getId())
+                .content("An import order has been created.")
+                .isViewed(false)
+                .isClicked(false)
+                .createdDate(LocalDateTime.now())
+                .build();
+            notificationRepository.save(notification);
+        }
+        // ***
         return mapToResponse(importOrderRepository.save(order));
     }
 

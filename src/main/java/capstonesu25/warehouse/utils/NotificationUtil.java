@@ -17,7 +17,7 @@ public class NotificationUtil {
 
     public static final String IMPORT_ORDER_CREATED_EVENT = "import-order-created";
     public static final String IMPORT_ORDER_COUNTED_EVENT = "import-order-counted";
-    public static final String IMPORT_ORDER_CONFIRMED_EVENT = "import-order-counted";
+    public static final String IMPORT_ORDER_CONFIRMED_EVENT = "import-order-confirmed";
 
     public NotificationUtil(Pusher pusher) {
         this.pusher = pusher;

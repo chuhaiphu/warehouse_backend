@@ -75,7 +75,7 @@ public class PaperService {
             //update status
             LOGGER.info("Updating import order status at creating paper");
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
-            importOrder.setStatus(ImportStatus.CONFIRMED);
+            importOrder.setStatus(ImportStatus.COUNTED);
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
 //            if (importOrder != null && importOrder.getAssignedStaff() != null) {
@@ -92,7 +92,7 @@ public class PaperService {
             //update status
             LOGGER.info("Updating export request status at creating paper");
             ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
-            exportRequest.setStatus(ImportStatus.CONFIRMED);
+            exportRequest.setStatus(ImportStatus.COUNTED);
             exportRequestRepository.save(exportRequest);
             paper.setExportRequest(exportRequest);
         }
