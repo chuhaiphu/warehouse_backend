@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.enums.ImportStatus;
 import capstonesu25.warehouse.model.exportrequest.UpdateExportDateTimeRequest;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
@@ -212,6 +213,17 @@ public class ExportRequestController {
                 exportRequestService.updateExportDateTime(exportRequestId, request.getExportDate(),request.getExportTime()),
                 HttpStatus.OK,
                 "Successfully updated export date and time"
+        );
+    }
+
+    @PostMapping("/update-status/{exportRequestId}")
+    public ResponseEntity<?> updateStatus(@PathVariable Long exportRequestId,
+                                          @RequestParam ImportStatus status) {
+        LOGGER.info("Updating status of export request");
+        return ResponseUtil.getObject(
+                exportRequestService.updateExportStatus(exportRequestId, status),
+                HttpStatus.OK,
+                "Successfully updated status of export request"
         );
     }
 

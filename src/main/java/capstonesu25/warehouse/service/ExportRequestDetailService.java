@@ -3,6 +3,7 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailExcelRow;
@@ -153,7 +154,7 @@ public class ExportRequestDetailService {
 
         // Fetch and sort inventory items
         List<InventoryItem> sortedInventoryItems = inventoryItemRepository
-                .findByItem_IdAndParentNull(exportRequestDetail.getItem().getId())
+                .findByItem_IdAndParentNullAndStatus(exportRequestDetail.getItem().getId(), ItemStatus.AVAILABLE)
                 .stream()
                 .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
                 .limit(quantity)

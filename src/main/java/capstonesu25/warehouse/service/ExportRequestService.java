@@ -349,6 +349,42 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
+    public ExportRequestResponse updateExportStatus (Long exportRequestId, ImportStatus status) {
+        LOGGER.info("Updating export request status for export request with ID: " + exportRequestId);
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
+                () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
+
+        if(status == ImportStatus.CANCELLED) {
+            LOGGER.info("Updating export request status to CANCELLED");
+            if(exportRequest.getStatus() != ImportStatus.NOT_STARTED
+                    && exportRequest.getStatus() != ImportStatus.IN_PROGRESS
+                    && exportRequest.getStatus() != ImportStatus.COUNTED) {
+                throw new IllegalStateException("Cannot cancel export request: Status is not NOT_STARTED");
+            }
+            LOGGER.info("Return working for pre confirm staff: {}",exportRequest.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository.findByExportRequestIdAndAssignedStaff_IdAndExportCounting
+                    (exportRequest.getId(),exportRequest.getAssignedStaff().getId(), false);
+            if(staffPerformance != null) {
+                LOGGER.info("Delete working time for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
+                staffPerformanceRepository.delete(staffPerformance);
+            }
+
+            for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
+                LOGGER.info("remove item in export request detail: {}", exportRequestDetail.getId());
+                exportRequestDetail.getInventoryItems()
+                        .forEach(inventoryItem -> {
+                            LOGGER.info("Update item status to AVAILABLE: {}", inventoryItem.getId());
+                            inventoryItem.setStatus(ItemStatus.AVAILABLE);
+                            inventoryItem.setExportRequestDetail(null);
+                            inventoryItemRepository.save(inventoryItem);
+                        });
+            }
+        }
+
+        exportRequest.setStatus(status);
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
     public ExportRequestResponse updateExportDateTime(Long exportRequestId, LocalDate date, LocalTime time) {
         LOGGER.info("Updating export date and time for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
