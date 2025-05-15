@@ -8,7 +8,6 @@ import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialReq
 import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
-import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ExportRequestService;
@@ -215,7 +214,7 @@ public class ExportRequestController {
                 "Successfully updated export date and time"
         );
     }
-
+    @Operation(summary = "update status of export request")
     @PostMapping("/update-status/{exportRequestId}")
     public ResponseEntity<?> updateStatus(@PathVariable Long exportRequestId,
                                           @RequestParam ImportStatus status) {
