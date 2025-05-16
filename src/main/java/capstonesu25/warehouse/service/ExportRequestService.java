@@ -222,7 +222,7 @@ public class ExportRequestService {
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setImportRequests(list);
-        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
@@ -260,7 +260,7 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
-        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         return mapToResponse(export);

@@ -137,21 +137,40 @@ public class ImportOrderDetailService {
         for(ImportRequestDetail importRequestDetail : item.getImportRequestDetails()) {
             LOGGER.info("Checking import request detail for item: " + item.getName());
             if (importRequestDetail.getItem().getId().equals(importOrderItem.getItemId())) {
-                if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getOrderedQuantity()
-                || (importOrderItem.getQuantity() + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()){
-                    LOGGER.info("Item quantity exceeds expected quantity");
-                    return null;
+                if (importRequestDetail.getActualQuantity() == 0) {
+                    // If no actual imports yet, check against ordered quantity
+                    if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getOrderedQuantity()
+                        || (importOrderItem.getQuantity() + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()){
+                            LOGGER.info("Item quantity exceeds expected quantity (ordered quantity check)");
+                            return null;
+                    }
+                    if(importOrderItem.getQuantity()>=
+                            (importRequestDetail.getExpectQuantity()) - importRequestDetail.getOrderedQuantity()){
+                            LOGGER.info("Item quantity is more than expected quantity (ordered quantity check)");
+                            int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getOrderedQuantity();
+                            detail.setExpectQuantity(remainingQuantity);
+                    } else {
+                            LOGGER.info("Item quantity is less than expected quantity");
+                            detail.setExpectQuantity(importOrderItem.getQuantity());
+                    }
+                } else {
+                    // If there are actual imports, check against actual quantity
+                    if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getActualQuantity()
+                        || (importOrderItem.getQuantity() + importRequestDetail.getActualQuantity()) > importRequestDetail.getExpectQuantity()){
+                            LOGGER.info("Item quantity exceeds expected quantity (actual quantity check)");
+                            return null;
+                    }
+                    if(importOrderItem.getQuantity()>=
+                            (importRequestDetail.getExpectQuantity()) - importRequestDetail.getActualQuantity()){
+                            LOGGER.info("Item quantity is more than expected quantity (actual quantity check)");
+                            int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getActualQuantity();
+                            detail.setExpectQuantity(remainingQuantity);
+                    } else {
+                            LOGGER.info("Item quantity is less than expected quantity");
+                            detail.setExpectQuantity(importOrderItem.getQuantity());
+                    }
                 }
-               if(importOrderItem.getQuantity()>=
-                       (importRequestDetail.getExpectQuantity()) - importRequestDetail.getOrderedQuantity()){
-                     LOGGER.info("Item quantity is more than expected quantity");
-                   int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getOrderedQuantity();
-                   detail.setExpectQuantity(remainingQuantity);
-               }else {
-                     LOGGER.info("Item quantity is less than expected quantity");
-                      detail.setExpectQuantity(importOrderItem.getQuantity());
-               }
-               break;
+                break;
             }
         }
         detail.setActualQuantity(0);
