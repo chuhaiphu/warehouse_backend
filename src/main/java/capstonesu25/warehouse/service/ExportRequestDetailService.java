@@ -119,14 +119,14 @@ public class ExportRequestDetailService {
         ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
                 .orElseThrow(() -> new RuntimeException("Export request detail not found"));
         exportRequestDetail.setActualQuantity(actual);
-        if(Objects.equals(actual, exportRequestDetail.getQuantity())) {
+        if(actual > exportRequestDetail.getQuantity()) {
+            throw new RuntimeException("Just allow to update actual quantity to match or less than quantity");
+        }
+        if(actual.equals(exportRequestDetail.getQuantity())) {
             exportRequestDetail.setStatus(DetailStatus.MATCH);
         }
         if(actual < exportRequestDetail.getQuantity()) {
             exportRequestDetail.setStatus(DetailStatus.LACK);
-        }
-        else {
-            throw new RuntimeException("Just allow to update actual quantity to match or less than quantity");
         }
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }
