@@ -103,7 +103,7 @@ public class ImportOrderService {
         notificationPayload.put("content", "An import order has been created.");
         notificationPayload.put("isViewed", false);
         notificationPayload.put("isClicked", false);
-        notificationPayload.put("createdDate", LocalDateTime.now());
+        notificationPayload.put("createdDate", LocalDateTime.now().toString());
         notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_CREATED_EVENT, notificationPayload);
         
         // Create and save actual Notification entity objects for warehouse managers

@@ -25,10 +25,11 @@ public class NotificationUtil {
 
     @Async
     public void notify(String channel, String event, Object notificationData) {
-        pusher.trigger(
-            channel,
-            event,
-            notificationData
-        );
+        try {
+            pusher.trigger(channel, event, notificationData);
+        } catch (Exception e) {
+            System.err.println("Error sending Pusher notification: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
