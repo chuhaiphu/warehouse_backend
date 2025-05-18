@@ -18,5 +18,5 @@ public class ImportRequestCreateRequest {
     @NotNull(message = "Import type cannot be null")
     private ImportType importType;
 
-    private Long exportRequestId;
+    private String exportRequestId;
 } 

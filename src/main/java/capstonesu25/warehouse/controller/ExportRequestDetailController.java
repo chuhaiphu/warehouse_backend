@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -30,7 +29,7 @@ public class ExportRequestDetailController {
 
     @Operation(summary = "Get all export request details by export request ID")
     @GetMapping("/{exportRequestId}")
-    public ResponseEntity<?> getAllByExportRequestId(@PathVariable Long exportRequestId,
+    public ResponseEntity<?> getAllByExportRequestId(@PathVariable String  exportRequestId,
                                                      @RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all export request details by export request ID: {}", exportRequestId);
@@ -62,7 +61,7 @@ public class ExportRequestDetailController {
     @Operation(summary = "Create export request details from file upload")
     @PostMapping("/{exportRequestId}")
     public ResponseEntity<?> createExportRequestDetail(@RequestBody List<ExportRequestDetailRequest> request,
-                                                       @PathVariable Long exportRequestId) {
+                                                       @PathVariable String exportRequestId) {
         LOGGER.info("Creating export request detail");
         service.createExportRequestDetail(request, exportRequestId);
         return ResponseUtil.getObject(

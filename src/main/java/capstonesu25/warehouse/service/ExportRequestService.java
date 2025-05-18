@@ -19,7 +19,9 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,7 +60,7 @@ public class ExportRequestService {
         Page<ExportRequest> exportRequestsCountingStaff = exportRequestRepository.findAllByCountingStaffId(staffId, Pageable.unpaged());
 
         // Merge, remove duplicates by ID
-        Map<Long, ExportRequest> uniqueRequests = new HashMap<>();
+        Map<String, ExportRequest> uniqueRequests = new HashMap<>();
         Stream.concat(exportRequestsConfirmStaff.getContent().stream(), exportRequestsCountingStaff.getContent().stream())
                 .forEach(req -> uniqueRequests.putIfAbsent(req.getId(), req));
 
@@ -79,7 +81,7 @@ public class ExportRequestService {
 
 
 
-    public ExportRequestResponse getExportRequestById(Long id) {
+    public ExportRequestResponse getExportRequestById(String id) {
         ExportRequest exportRequest = exportRequestRepository.findById(id).orElseThrow();
         return mapToResponse(exportRequest);
     }
@@ -97,6 +99,7 @@ public class ExportRequestService {
         }
 
         ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setId(createExportRequestId());
         if(request.getDepartmentId() != null) {
             exportRequest.setDepartmentId(request.getDepartmentId());
         }
@@ -129,6 +132,7 @@ public class ExportRequestService {
         }
 
         ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setId(createExportRequestId());
         exportRequest.setReceiverName(request.getReceiverName());
         exportRequest.setReceiverPhone(request.getReceiverPhone());
         exportRequest.setReceiverAddress(request.getReceiverAddress());
@@ -164,6 +168,7 @@ public class ExportRequestService {
         }
 
         ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setId(createExportRequestId());
         if(request.getDepartmentId() != null) {
             exportRequest.setDepartmentId(request.getDepartmentId());
         }
@@ -209,6 +214,7 @@ public class ExportRequestService {
         }
 
         ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setProviderId(request.getProviderId());
         exportRequest.setType(request.getType());
@@ -242,6 +248,7 @@ public class ExportRequestService {
         }
 
         ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
         if(request.getDepartmentId() != null) {
             exportRequest.setDepartmentId(request.getDepartmentId());
@@ -290,7 +297,7 @@ public class ExportRequestService {
             StaffPerformance staffPerformance = new StaffPerformance();
             staffPerformance.setExpectedWorkingTime(configuration.getTimeToAllowConfirm());
             staffPerformance.setDate(exportRequest.getExportDate());
-            staffPerformance.setImportOrderId(exportRequest.getId());
+            staffPerformance.setExportRequestId(exportRequest.getId());
             staffPerformance.setAssignedStaff(staff);
             staffPerformanceRepository.save(staffPerformance);
             exportRequest.setAssignedStaff(staff);
@@ -330,7 +337,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
-    public ExportRequestResponse confirmCountedExportRequest(Long exportRequestId) {
+    public ExportRequestResponse confirmCountedExportRequest(String exportRequestId) {
         LOGGER.info("Confirming counted export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
@@ -338,7 +345,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse completeExportRequest(Long exportRequestId) {
+    public ExportRequestResponse completeExportRequest(String exportRequestId) {
         LOGGER.info("Completing export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
@@ -349,7 +356,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse updateExportStatus (Long exportRequestId, ImportStatus status) {
+    public ExportRequestResponse updateExportStatus (String exportRequestId, ImportStatus status) {
         LOGGER.info("Updating export request status for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
@@ -385,7 +392,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse updateExportDateTime(Long exportRequestId, LocalDate date, LocalTime time) {
+    public ExportRequestResponse updateExportDateTime(String exportRequestId, LocalDate date, LocalTime time) {
         LOGGER.info("Updating export date and time for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
@@ -459,7 +466,7 @@ public class ExportRequestService {
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
         staffPerformance.setDate(exportRequest.getCountingDate());
-        staffPerformance.setImportOrderId(exportRequest.getId());
+        staffPerformance.setExportRequestId(exportRequest.getId());
         staffPerformance.setAssignedStaff(account);
         staffPerformance.setExportCounting(true);
         staffPerformanceRepository.save(staffPerformance);
@@ -602,4 +609,20 @@ public class ExportRequestService {
         staffPerformanceRepository.save(staffPerformance);
         exportRequestRepository.save(exportRequest);
     }
+
+    private String createExportRequestId() {
+        String prefix = "ER";
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        int todayCount = exportRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
+        String sequence = String.format("%03d", todayCount + 1);          // 001, 002, ...
+
+        return String.format("%s-%s-%s", prefix, datePart, sequence);
+    }
+
 } 

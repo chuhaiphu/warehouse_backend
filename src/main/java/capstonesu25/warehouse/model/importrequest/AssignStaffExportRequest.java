@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AssignStaffExportRequest {
     @NotNull(message = "Export request id is required")
-    private Long exportRequestId;
+    private String exportRequestId;
 
     @NotNull(message = "Account id is required")
     private Long accountId;

@@ -29,7 +29,7 @@ public class ImportOrderController {
 
     @Operation(summary = "Get all import orders for a specific import request")
     @GetMapping("/page/{importRequestId}")
-    public ResponseEntity<?> getAllImportOrdersByImportRequestId(@PathVariable Long importRequestId, @RequestParam(defaultValue = "1") int page,
+    public ResponseEntity<?> getAllImportOrdersByImportRequestId(@PathVariable String importRequestId, @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all import orders");
         Page<ImportOrderResponse> result = importOrderService.getImportOrdersByImportRequestId(importRequestId, page,
@@ -48,7 +48,7 @@ public class ImportOrderController {
 
     @Operation(summary = "Get import order by ID")
     @GetMapping("/{importOrderId}")
-    public ResponseEntity<?> getById(@PathVariable Long importOrderId) {
+    public ResponseEntity<?> getById(@PathVariable String importOrderId) {
         LOGGER.info("Getting import order by id");
         ImportOrderResponse result = importOrderService.getImportOrderById(importOrderId);
         return ResponseUtil.getObject(
@@ -79,7 +79,7 @@ public class ImportOrderController {
 
     @Operation(summary = "Delete an import order by ID")
     @DeleteMapping("/{importOrderId}")
-    public ResponseEntity<?> deleteImportOrder(@PathVariable Long importOrderId) {
+    public ResponseEntity<?> deleteImportOrder(@PathVariable String importOrderId) {
         LOGGER.info("Deleting import order");
         importOrderService.delete(importOrderId);
         return ResponseUtil.getObject(
@@ -140,7 +140,7 @@ public class ImportOrderController {
 
     @Operation(summary = "Cancel an import order")
     @PostMapping("/cancel/{importOrderId}")
-    public ResponseEntity<?> cancelImportOrder(@PathVariable Long importOrderId) {
+    public ResponseEntity<?> cancelImportOrder(@PathVariable String importOrderId) {
         LOGGER.info("Cancelling import order");
         ImportOrderResponse result = importOrderService.cancelImportOrder(importOrderId);
         return ResponseUtil.getObject(
@@ -151,7 +151,7 @@ public class ImportOrderController {
 
     @Operation(summary = "complete an import order")
     @PostMapping("/complete/{importOrderId}")
-    public ResponseEntity<?> completeImportOrder(@PathVariable Long importOrderId) {
+    public ResponseEntity<?> completeImportOrder(@PathVariable String importOrderId) {
         LOGGER.info("Completing import order");
         ImportOrderResponse result = importOrderService.completeImportOrder(importOrderId);
         return ResponseUtil.getObject(

@@ -13,7 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 public class ImportOrderCreateRequest {
     @NotNull(message = "Import request ID cannot be null")
-    private Long importRequestId;
+    private String importRequestId;
 
     private Long accountId;
 

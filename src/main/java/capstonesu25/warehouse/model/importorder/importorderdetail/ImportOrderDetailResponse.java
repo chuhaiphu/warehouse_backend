@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ImportOrderDetailResponse {
     private Long importOrderDetailId;
-    private Long importOrderId;
+    private String importOrderId;
     private Long itemId;
     private String itemName;
     private int expectQuantity;

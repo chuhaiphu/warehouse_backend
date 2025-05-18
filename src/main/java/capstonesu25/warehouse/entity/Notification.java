@@ -25,7 +25,7 @@ public class Notification {
     private Account receiver;
 
     @Column(name = "object_id", nullable = false)
-    private Long objectId;
+    private String objectId;
 
     @Column(name = "content")
     private String content;

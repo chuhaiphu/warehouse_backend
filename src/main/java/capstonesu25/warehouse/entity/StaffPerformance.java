@@ -19,10 +19,10 @@ public class StaffPerformance {
     private Long id;
 
     @Column(name = "import_order_id")
-    private Long importOrderId;
+    private String importOrderId;
 
     @Column(name = "export_request_id")
-    private Long exportRequestId;
+    private String exportRequestId;
 
     @Column(name = "is_export_counting")
     private boolean exportCounting;

@@ -17,6 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -41,7 +45,7 @@ public class ImportRequestService {
         return importRequests.map(this::mapToResponse);
     }
 
-    public ImportRequestResponse getImportRequestById(Long id) {
+    public ImportRequestResponse getImportRequestById(String id) {
         LOGGER.info("Get import request by id: " + id);
         ImportRequest importRequest = importRequestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + id));
@@ -52,6 +56,7 @@ public class ImportRequestService {
         LOGGER.info("Create new import request");
         
         ImportRequest importRequest = new ImportRequest();
+        importRequest.setId(createImportRequestId());
         importRequest.setImportReason(request.getImportReason());
         importRequest.setType(request.getImportType());
         importRequest.setStatus(ImportStatus.NOT_STARTED);
@@ -96,4 +101,20 @@ public class ImportRequestService {
                 importRequest.getBatchCode()
         );
     }
+
+    private String createImportRequestId() {
+        String prefix = "PN";
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String sequence = String.format("%03d", todayCount + 1);
+
+        return String.format("%s-%s-%s", prefix, datePart, sequence);
+    }
+
 }

@@ -28,7 +28,7 @@ public class ImportRequestDetailController {
 
     @Operation(summary = "Get paginated import request details by import request ID")
     @GetMapping("/page/{importRequestId}")
-    public ResponseEntity<?> getImportRequestDetails(@PathVariable Long importRequestId,
+    public ResponseEntity<?> getImportRequestDetails(@PathVariable String importRequestId,
             @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting import request detail");
         Page<ImportRequestDetailResponse> result = service.getImportRequestDetailsByImportRequestId(importRequestId,
@@ -59,7 +59,7 @@ public class ImportRequestDetailController {
     @Operation(summary = "Create import request details from file upload")
     @PostMapping("/{importRequestId}")
     public ResponseEntity<?> createImportRequestDetail(@RequestBody List<ImportRequestDetailRequest> request,
-            @PathVariable Long importRequestId) {
+            @PathVariable String importRequestId) {
         LOGGER.info("Creating import request detail");
         service.createImportRequestDetail(request, importRequestId);
         return ResponseUtil.getObject(

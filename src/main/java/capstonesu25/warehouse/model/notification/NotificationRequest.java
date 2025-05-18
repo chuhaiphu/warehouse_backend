@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class NotificationRequest {
     private Long receiverId;
-    private Long objectId;
+    private String objectId;
     private String content;
 
     public Notification toEntity(Account receiver) {

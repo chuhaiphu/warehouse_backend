@@ -36,7 +36,7 @@ public class ImportOrderDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
-    public Page<ImportOrderDetailResponse> getAllByImportOrderId(Long importOrderId, int page, int limit) {
+    public Page<ImportOrderDetailResponse> getAllByImportOrderId(String importOrderId, int page, int limit) {
         LOGGER.info("Getting all import order detail by import order id: {}", importOrderId);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ImportOrderDetail> importOrderDetailPage = importOrderDetailRepository.
@@ -50,7 +50,7 @@ public class ImportOrderDetailService {
         return mapToResponse(importOrderDetail);
     }
 
-    public void create(ImportOrderDetailRequest request, Long importOrderId) {
+    public void create(ImportOrderDetailRequest request, String importOrderId) {
         LOGGER.info("Creating import order detail for import order id: {}", importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
@@ -198,7 +198,7 @@ public class ImportOrderDetailService {
     }
 
 
-    public void updateActualQuantities(List<ImportOrderDetailUpdateRequest> requests, Long importOrderId) {
+    public void updateActualQuantities(List<ImportOrderDetailUpdateRequest> requests, String importOrderId) {
         LOGGER.info("Updating actual quantities for ImportOrder ID: {}", importOrderId);
 
         importOrderRepository.findById(importOrderId)
@@ -228,7 +228,7 @@ public class ImportOrderDetailService {
         }
     }
 
-    private void updateOrderedQuantityOfImportRequestDetail(Long importOrderId) {
+    private void updateOrderedQuantityOfImportRequestDetail(String importOrderId) {
         LOGGER.info("Update remaining quantity of import request detail");
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));

@@ -10,6 +10,6 @@ public class PaperResponse {
     private String signProviderUrl;
     private String signWarehouseUrl;
     private String description;
-    private Long importOrderId;
-    private Long exportRequestId;
+    private String importOrderId;
+    private String exportRequestId;
 }

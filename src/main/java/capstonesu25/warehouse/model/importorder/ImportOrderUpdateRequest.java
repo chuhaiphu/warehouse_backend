@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportOrderUpdateRequest {
-    private Long importOrderId;
+    private String importOrderId;
     private LocalDate dateReceived;
     private LocalTime timeReceived;
     private String note;

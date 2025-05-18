@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExportRequestResponse {
-    private Long exportRequestId;
+    private String exportRequestId;
     private String exportReason;
     private String receiverName;
     private String receiverPhone;
@@ -32,7 +32,7 @@ public class ExportRequestResponse {
     private LocalTime countingTime;
     private Long countingStaffId;
     private Long paperId;
-    private List<Long> importRequestIds;
+    private List<String> importRequestIds;
     private List<Long> exportRequestDetailIds;
     private String createdBy;
     private String updatedBy;

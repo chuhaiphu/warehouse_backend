@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ImportOrderDetailRepository extends JpaRepository<ImportOrderDetail, Long> {
-    Page<ImportOrderDetail> findImportOrderDetailByImportOrder_Id(Long importOrderId, Pageable pageable);
-    List<ImportOrderDetail> findImportOrderDetailByImportOrder_Id(Long importOrderId);
+    Page<ImportOrderDetail> findImportOrderDetailByImportOrder_Id(String importOrderId, Pageable pageable);
+    List<ImportOrderDetail> findImportOrderDetailByImportOrder_Id(String importOrderId);
 }

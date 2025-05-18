@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AssignStaffRequest {
-    private Long importOrderId;
+    private String  importOrderId;
     private Long accountId;
 } 

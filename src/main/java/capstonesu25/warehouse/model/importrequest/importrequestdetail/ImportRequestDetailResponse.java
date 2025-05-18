@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ImportRequestDetailResponse {
     private Long importRequestDetailId;
-    private Long importRequestId;
+    private String importRequestId;
     private Long itemId;
     private String itemName;
     private int actualQuantity;

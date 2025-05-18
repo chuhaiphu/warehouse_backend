@@ -9,10 +9,11 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface ImportOrderRepository extends JpaRepository<ImportOrder, Long>{
-    Page<ImportOrder> findImportOrdersByImportRequest_Id(Long id, Pageable pageable);
+public interface ImportOrderRepository extends JpaRepository<ImportOrder, String>{
+    Page<ImportOrder> findImportOrdersByImportRequest_Id(String id, Pageable pageable);
     Page<ImportOrder> findImportOrdersByAssignedStaff_Id(Long staffId, Pageable pageable);
     List<ImportOrder> findByAssignedStaff_IdAndDateReceived(Long staffId, LocalDate dateReceived);
 }

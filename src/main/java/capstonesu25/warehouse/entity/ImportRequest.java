@@ -21,8 +21,7 @@ import java.util.List;
 public class ImportRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(name = "import_reason")
     private String importReason;

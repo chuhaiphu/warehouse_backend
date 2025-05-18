@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 @Repository
 public interface ExportRequestDetailRepository extends JpaRepository<ExportRequestDetail, Long> {
-    Page<ExportRequestDetail> findExportRequestDetailByExportRequest_Id(Long exportRequestId, Pageable pageable);
+    Page<ExportRequestDetail> findExportRequestDetailByExportRequest_Id(String exportRequestId, Pageable pageable);
 }

@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PaperRepository extends JpaRepository<Paper, Long>{
-    Page<Paper> findPapersByImportOrder_Id(Long importOrderId, Pageable pageable);
-    Page<Paper> findPapersByExportRequest_Id(Long exportRequestId, Pageable pageable);
+    Page<Paper> findPapersByImportOrder_Id(String importOrderId, Pageable pageable);
+    Page<Paper> findPapersByExportRequest_Id(String exportRequestId, Pageable pageable);
 }

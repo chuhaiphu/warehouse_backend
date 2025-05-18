@@ -31,7 +31,7 @@ public class ImportRequestDetailService {
     private final ProviderRepository providerRepository;
     private static final   String TODAY_PREFIX = LocalDate.now() + "_";
 
-    public void createImportRequestDetail(List<ImportRequestDetailRequest> detailRequests, Long importRequestId) {
+    public void createImportRequestDetail(List<ImportRequestDetailRequest> detailRequests, String importRequestId) {
         LOGGER.info("Creating import order detail");
         // Validate that all items belong to the same provider
         checkSameProvider(detailRequests);
@@ -101,7 +101,7 @@ public class ImportRequestDetailService {
         importRequestDetailRepository.deleteById(importRequestDetailId);
     }
 
-    public Page<ImportRequestDetailResponse> getImportRequestDetailsByImportRequestId(Long importRequestId, int page, int limit) {
+    public Page<ImportRequestDetailResponse> getImportRequestDetailsByImportRequestId(String importRequestId, int page, int limit) {
         LOGGER.info("Getting import request detail for ImportRequest ID: {}", importRequestId);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ImportRequestDetail> importRequestDetails = importRequestDetailRepository

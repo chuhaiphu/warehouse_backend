@@ -22,8 +22,7 @@ import java.util.List;
 
 public class ImportOrder {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(name = "status")
     private ImportStatus status;

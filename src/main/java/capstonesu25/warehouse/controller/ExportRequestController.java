@@ -67,7 +67,7 @@ public class ExportRequestController {
 
     @Operation(summary = "Get export request by export request Id")
     @GetMapping("/{exportRequestId}")
-    public ResponseEntity<?> getById(@PathVariable Long exportRequestId) {
+    public ResponseEntity<?> getById(@PathVariable String exportRequestId) {
         LOGGER.info("Getting export request by id");
         ExportRequestResponse result = exportRequestService.getExportRequestById(exportRequestId);
         return ResponseUtil.getObject(
@@ -183,7 +183,7 @@ public class ExportRequestController {
 
     @Operation(summary = "Confirm counted export request")
     @PostMapping("/confirm-counted/{exportRequestId}")
-    public ResponseEntity<?> confirmExportRequest(@PathVariable Long exportRequestId) {
+    public ResponseEntity<?> confirmExportRequest(@PathVariable String exportRequestId) {
         LOGGER.info(" Confirming export request");
         ExportRequestResponse result = exportRequestService.confirmCountedExportRequest(exportRequestId);
         return ResponseUtil.getObject(
@@ -194,7 +194,7 @@ public class ExportRequestController {
 
     @Operation(summary = "complete export request")
     @PostMapping("/complete/{exportRequestId}")
-    public ResponseEntity<?> completeExportRequest(@PathVariable Long exportRequestId) {
+    public ResponseEntity<?> completeExportRequest(@PathVariable String exportRequestId) {
         LOGGER.info("Completing export request");
         ExportRequestResponse result = exportRequestService.completeExportRequest(exportRequestId);
         return ResponseUtil.getObject(
@@ -205,7 +205,7 @@ public class ExportRequestController {
 
     @Operation(summary = "update export date and time for export request")
     @PostMapping("/update-export-date-time/{exportRequestId}")
-    public ResponseEntity<?> updateExportDateTime(@PathVariable Long exportRequestId,
+    public ResponseEntity<?> updateExportDateTime(@PathVariable String exportRequestId,
                                                   @RequestBody UpdateExportDateTimeRequest request) {
         LOGGER.info("Updating export date and time");
         return ResponseUtil.getObject(
@@ -216,7 +216,7 @@ public class ExportRequestController {
     }
     @Operation(summary = "update status of export request")
     @PostMapping("/update-status/{exportRequestId}")
-    public ResponseEntity<?> updateStatus(@PathVariable Long exportRequestId,
+    public ResponseEntity<?> updateStatus(@PathVariable String exportRequestId,
                                           @RequestParam ImportStatus status) {
         LOGGER.info("Updating status of export request");
         return ResponseUtil.getObject(

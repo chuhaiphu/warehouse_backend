@@ -81,10 +81,13 @@ public class ProviderService {
         }
 
         if (provider.getImportRequest() != null) {
-            response.setImportRequestId(provider.getImportRequest().stream()
-                    .map(ImportRequest::getId)
-                    .collect(Collectors.toList()));
+            response.setImportRequestId(
+                    provider.getImportRequest().stream()
+                            .map(ImportRequest::getId)
+                            .collect(Collectors.toList())
+            );
         }
+
 
         return response;
     }

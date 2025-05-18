@@ -30,7 +30,7 @@ public class ImportOrderDetailController {
     @Operation(summary = "Get paginated import order details by import order ID")
     @GetMapping("/page/{importOrderId}")
     
-    public ResponseEntity<?> getImportOrderDetails(@PathVariable Long importOrderId,
+    public ResponseEntity<?> getImportOrderDetails(@PathVariable String importOrderId,
             @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting import order details");
         Page<ImportOrderDetailResponse> result = service.getAllByImportOrderId(importOrderId, page, limit);
@@ -62,7 +62,7 @@ public class ImportOrderDetailController {
     @PostMapping("/{importOrderId}")
     
     public ResponseEntity<?> createImportOrderDetails(@RequestBody ImportOrderDetailRequest request,
-                                                      @PathVariable Long importOrderId) {
+                                                      @PathVariable String importOrderId) {
         LOGGER.info("Creating import order details from Excel file");
         service.create(request, importOrderId);
         return ResponseUtil.getObject(
@@ -74,7 +74,7 @@ public class ImportOrderDetailController {
     @Operation(summary = "Update actual quantities of import order details")
     @PutMapping("/{importOrderId}")
     public ResponseEntity<?> updateActualQuantities(@RequestBody List<ImportOrderDetailUpdateRequest> requests,
-            @PathVariable Long importOrderId) {
+            @PathVariable String importOrderId) {
         LOGGER.info("Updating actual quantities of import order details");
         service.updateActualQuantities(requests, importOrderId);
         return ResponseUtil.getObject(

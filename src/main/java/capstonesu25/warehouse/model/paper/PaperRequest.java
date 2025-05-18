@@ -13,6 +13,6 @@ public class PaperRequest {
     @NotNull(message = "can not be null")
     private MultipartFile signWarehouseUrl;
     private String description;
-    private Long importOrderId;
-    private Long exportRequestId;
+    private String importOrderId;
+    private String exportRequestId;
 }

@@ -64,7 +64,7 @@ public class PaperController {
     @Operation(summary = "Get papers by import order ID")
     @GetMapping("import-order/{importOrderId}")
     
-    public ResponseEntity<?> getByImportOrderId(@PathVariable Long importOrderId,
+    public ResponseEntity<?> getByImportOrderId(@PathVariable String importOrderId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting paper by import order id: {} ", importOrderId);
@@ -79,7 +79,7 @@ public class PaperController {
     @Operation(summary = "Get papers by export request ID")
     @GetMapping("export-order/{exportRequestId}")
     
-    public ResponseEntity<?> getByExportRequestId(@PathVariable Long exportRequestId,
+    public ResponseEntity<?> getByExportRequestId(@PathVariable String exportRequestId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting paper by export request id: {} ", exportRequestId);

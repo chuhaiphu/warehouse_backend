@@ -6,11 +6,9 @@ import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
-import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailExcelRow;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailRequest;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailResponse;
 import capstonesu25.warehouse.repository.*;
-import capstonesu25.warehouse.utils.ExcelUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -40,7 +36,7 @@ public class ExportRequestDetailService {
     private static final Integer LIQUIDATION = 30;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestDetailService.class);
 
-    public Page<ExportRequestDetailResponse> getAllByExportRequestId(Long exportRequestId, int page, int limit) {
+    public Page<ExportRequestDetailResponse> getAllByExportRequestId(String exportRequestId, int page, int limit) {
         LOGGER.info("Getting all export request detail by export request id: {}", exportRequestId);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ExportRequestDetail> exportRequestDetailPage = exportRequestDetailRepository
@@ -55,7 +51,7 @@ public class ExportRequestDetailService {
         return mapToResponse(exportRequestDetail);
     }
 
-    public void createExportRequestDetail(List<ExportRequestDetailRequest> exportRequestDetailRequests, Long exportRequestId) {
+    public void createExportRequestDetail(List<ExportRequestDetailRequest> exportRequestDetailRequests, String exportRequestId) {
         LOGGER.info("Finding export request by id: {}", exportRequestId);
 
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)

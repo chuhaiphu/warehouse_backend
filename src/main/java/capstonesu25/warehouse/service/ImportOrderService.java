@@ -40,13 +40,13 @@ public class ImportOrderService {
     private final NotificationUtil notificationUtil;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
-    public ImportOrderResponse getImportOrderById(Long id) {
+    public ImportOrderResponse getImportOrderById(String id) {
         LOGGER.info("Get import order by id: " + id);
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
         return mapToResponse(importOrder);
     }
 
-    public Page<ImportOrderResponse> getImportOrdersByImportRequestId(Long id, int page, int limit) {
+    public Page<ImportOrderResponse> getImportOrdersByImportRequestId(String id, int page, int limit) {
         LOGGER.info("Get import orders by import request id: " + id);
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id, pageable);
@@ -77,6 +77,7 @@ public class ImportOrderService {
         }
 
         ImportOrder importOrder = new ImportOrder();
+        importOrder.setId(createImportOrderId(importRequest));
         importOrder.setImportRequest(importRequest);
         if(request.getDateReceived() != null && request.getTimeReceived() != null) {
             validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
@@ -201,13 +202,13 @@ public class ImportOrderService {
 
     }
 
-    public void delete(Long id) {
+    public void delete(String id) {
         LOGGER.info("Delete import order");
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
         importOrderRepository.delete(importOrder);
     }
 
-    public ImportOrderResponse assignStaff(Long importOrderId, Long accountId) {
+    public ImportOrderResponse assignStaff(String importOrderId, Long accountId) {
         LOGGER.info("Assigning staff to import order: " + importOrderId);
 
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -245,7 +246,7 @@ public class ImportOrderService {
         return importOrders.map(this::mapToResponse);
     }
 
-    public ImportOrderResponse cancelImportOrder(Long importOrderId) {
+    public ImportOrderResponse cancelImportOrder(String importOrderId) {
         LOGGER.info("Cancelling import order with ID: " + importOrderId);
         
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -280,7 +281,7 @@ public class ImportOrderService {
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
-    public ImportOrderResponse completeImportOrder(Long importOrderId) {
+    public ImportOrderResponse completeImportOrder(String importOrderId) {
         LOGGER.info("Completing import order with ID: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
@@ -442,5 +443,10 @@ public class ImportOrderService {
                 importOrder.getUpdatedDate(),
                 importOrder.getPaper() != null ? importOrder.getPaper().getId() : null,
                 importOrder.getAssignedStaff() != null ? importOrder.getAssignedStaff().getId() : null);
+    }
+
+    private String createImportOrderId (ImportRequest importRequest) {
+        int size = importRequest.getImportOrders().size();
+        return  "IO" + importRequest.getId() + "-" + (size + 1);
     }
 }

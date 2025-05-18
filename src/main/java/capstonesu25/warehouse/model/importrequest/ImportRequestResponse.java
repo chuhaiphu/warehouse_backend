@@ -13,14 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportRequestResponse {
-    private Long importRequestId;
+    private String importRequestId;
     private String importReason;
     private ImportType importType;
     private ImportStatus status;
     private Long providerId;
-    private Long exportRequestId;
+    private String exportRequestId;
     private List<Long> importRequestDetailIds;
-    private List<Long> importOrdersId;
+    private List<String> importOrdersId;
     private String createdBy;
     private String updatedBy;
     private LocalDateTime createdDate;

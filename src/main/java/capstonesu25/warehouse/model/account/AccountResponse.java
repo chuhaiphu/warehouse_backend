@@ -23,6 +23,6 @@ public class AccountResponse {
     private AccountRole role;
     private LocalTime totalActualWorkingTimeOfRequestInDay;
     private LocalTime totalExpectedWorkingTimeOfRequestInDay;
-    private List<Long> importOrderIds;
-    private List<Long> exportRequestIds;
+    private List<String> importOrderIds;
+    private List<String> exportRequestIds;
 } 

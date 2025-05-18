@@ -26,7 +26,7 @@ public class ExportReturnRequest {
     @NotNull(message = "cannot be null")
     private LocalTime exportTime;
 
-    private List<Long> importRequestIds;
+    private List<String> importRequestIds;
 
     @NotNull(message = "cannot be null")
     private String exportReason;

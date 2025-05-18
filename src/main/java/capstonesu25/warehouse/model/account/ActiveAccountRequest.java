@@ -15,6 +15,6 @@ import java.time.LocalDate;
 public class ActiveAccountRequest {
     @NotNull(message = "Date cannot be null")
     private LocalDate date;
-    private Long importOrderId;
-    private Long exportRequestId;
+    private String importOrderId;
+    private String exportRequestId;
 }

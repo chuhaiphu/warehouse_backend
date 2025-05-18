@@ -10,6 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ImportRequestDetailRepository extends JpaRepository<ImportRequestDetail, Long>{
-    Page<ImportRequestDetail> findImportRequestDetailsByImportRequest_Id(Long importRequestId, Pageable pageable);
-    List<ImportRequestDetail> findImportRequestDetailsByImportRequest_Id(Long importRequestId);
+    Page<ImportRequestDetail> findImportRequestDetailsByImportRequest_Id(String importRequestId, Pageable pageable);
+    List<ImportRequestDetail> findImportRequestDetailsByImportRequest_Id(String importRequestId);
 }

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportRequestUpdateRequest {
-    private Long importRequestId;
+    private String importRequestId;
     
     @NotNull(message = "Import reason cannot be null")
     @NotBlank(message = "Import reason cannot be blank")

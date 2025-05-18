@@ -13,8 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportOrderResponse {
-    private Long importOrderId;
-    private Long importRequestId;
+    private String importOrderId;
+    private String importRequestId;
     private LocalDate dateReceived;
     private LocalTime timeReceived;
     private String note;
