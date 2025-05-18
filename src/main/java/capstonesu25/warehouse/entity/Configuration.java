@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -36,6 +37,13 @@ public class Configuration {
 
     @Column(name = "time_to_allow_confirm")
     private LocalTime timeToAllowConfirm;
+
+    @Column(name = "time_to_allow_cancel")
+    // time to allow auto cancel when the request is created
+    private LocalTime timeToAllowCancel;
+
+    @Column(name = "extended_to_cancel_date")
+    private Integer extendedToCancelDate;
 
 
 }

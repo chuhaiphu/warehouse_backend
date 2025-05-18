@@ -36,6 +36,12 @@ public class ImportOrder {
     @Column(name = "time_received")
     private LocalTime timeReceived;
 
+    @Column(name = "is_extended", nullable = false)
+    private boolean isExtended = false;
+
+    @Column(name = "extended_date")
+    private LocalDate extendedDate;
+
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;

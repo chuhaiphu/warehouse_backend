@@ -10,12 +10,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
 @SpringBootApplication
 @EnableAsync
+@EnableScheduling
 public class WarehouseApplication {
 
 	public static void main(String[] args) {
@@ -61,7 +64,9 @@ public class WarehouseApplication {
 					LocalTime.parse("17:00"),
 					LocalTime.parse("04:00"),
 					LocalTime.parse("02:00"),
-					LocalTime.parse("01:00")
+					LocalTime.parse("01:00"),
+					LocalTime.parse("23:00"),
+					7
 			);
 			configurationRepo.save(configuration);
 
