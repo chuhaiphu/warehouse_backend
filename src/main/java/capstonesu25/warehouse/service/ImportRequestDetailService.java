@@ -19,6 +19,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -32,7 +35,7 @@ public class ImportRequestDetailService {
     private static final   String TODAY_PREFIX = LocalDate.now() + "_";
 
     public void createImportRequestDetail(List<ImportRequestDetailRequest> detailRequests, String importRequestId) {
-        LOGGER.info("Creating import order detail");
+        LOGGER.info("Creating import request detail svc");
         // Validate that all items belong to the same provider
         checkSameProvider(detailRequests);
         // Get the original import request to copy its properties
@@ -63,6 +66,7 @@ public class ImportRequestDetailService {
 
             // Create new ImportRequest for each provider
             ImportRequest newImportRequest = new ImportRequest();
+            newImportRequest.setId(createImportRequestId());
             newImportRequest.setImportReason(originalRequest.getImportReason());
             newImportRequest.setStatus(originalRequest.getStatus());
             newImportRequest.setType(originalRequest.getType());
@@ -153,6 +157,21 @@ public class ImportRequestDetailService {
                 importRequestDetail.getOrderedQuantity(),
                 importRequestDetail.getStatus() != null ? importRequestDetail.getStatus() : null
         );
+    }
+
+    private String createImportRequestId() {
+        String prefix = "PN";
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String sequence = String.format("%03d", todayCount + 1);
+
+        return String.format("%s-%s-%s", prefix, datePart, sequence);
     }
 
 
