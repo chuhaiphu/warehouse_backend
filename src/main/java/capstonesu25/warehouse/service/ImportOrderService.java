@@ -447,6 +447,6 @@ public class ImportOrderService {
 
     private String createImportOrderId (ImportRequest importRequest) {
         int size = importRequest.getImportOrders().size();
-        return  "IO" + importRequest.getId() + "-" + (size + 1);
+        return  "DN-" + importRequest.getId() + "-" + (size + 1);
     }
 }
