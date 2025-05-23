@@ -66,7 +66,7 @@ public class ImportRequestDetailService {
 
             // Create new ImportRequest for each provider
             ImportRequest newImportRequest = new ImportRequest();
-            newImportRequest.setId(createImportRequestId());
+            newImportRequest.setId(createImportRequestDetailId());
             newImportRequest.setImportReason(originalRequest.getImportReason());
             newImportRequest.setStatus(originalRequest.getStatus());
             newImportRequest.setType(originalRequest.getType());
@@ -159,7 +159,7 @@ public class ImportRequestDetailService {
         );
     }
 
-    private String createImportRequestId() {
+    private String createImportRequestDetailId() {
         String prefix = "PN";
         LocalDate today = LocalDate.now();
 
