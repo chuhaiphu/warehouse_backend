@@ -2,6 +2,8 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
+import capstonesu25.warehouse.model.account.AccountResponse;
+import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
@@ -38,6 +40,7 @@ public class ImportOrderService {
     private final ItemRepository itemRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationUtil notificationUtil;
+    private final AccountService accountService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(String id) {
@@ -299,6 +302,44 @@ public class ImportOrderService {
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
+    public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime, String extendReason) {
+        LOGGER.info("Extending import order with ID: " + importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+
+        if (importOrder.getStatus() != ImportStatus.IN_PROGRESS
+                && importOrder.getStatus() != ImportStatus.EXTENDED) {
+            throw new IllegalStateException("Cannot extend import order with status: " + importOrder.getStatus());
+        }
+
+        Configuration configuration = configurationRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
+        importOrder.setStatus(ImportStatus.EXTENDED);
+        importOrder.setExtended(true);
+        if(extendedDate == null) {
+             extendedDate = importOrder.getDateReceived().plusDays(configuration.getMaxAllowedDateForExtended());
+        }
+        importOrder.setExtendedDate(extendedDate);
+        if(extendedTime == null) {
+            extendedTime = importOrder.getTimeReceived();
+        }
+        importOrder.setExtendedTime(extendedTime);
+        importOrder.setExtendedReason(extendReason);
+
+        LOGGER.info("Auto assign staff after extended");
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(extendedDate);
+        activeAccountRequest.setImportOrderId(importOrder.getId());
+        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        Account account = accountRepository.findById(accountResponse.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
+
+        importOrder.setAssignedStaff(account);
+        setTimeForStaffPerformance(importOrder.getAssignedStaff(), importOrder);
+        return mapToResponse(importOrderRepository.save(importOrder));
+    }
+
     private void updateImportRequest( ImportOrder importOrder) {
         LOGGER.info("Updating import request after paper creation");
 
@@ -408,6 +449,8 @@ public class ImportOrderService {
         }
     }
 
+
+
     private void handleImportItems(ImportOrder importOrder) {
         LOGGER.info("Handling import items for import order id: {}", importOrder.getId());
         Map<Long, Item> updatedItems = new HashMap<>();
@@ -433,6 +476,10 @@ public class ImportOrderService {
                 importOrder.getImportRequest() != null ? importOrder.getImportRequest().getId() : null,
                 importOrder.getDateReceived(),
                 importOrder.getTimeReceived(),
+                importOrder.isExtended(),
+                importOrder.getExtendedDate(),
+                importOrder.getExtendedTime(),
+                importOrder.getExtendedReason(),
                 importOrder.getNote(),
                 importOrder.getStatus() != null ? importOrder.getStatus() : null,
                 importOrder.getImportOrderDetails() != null ? importOrder.getImportOrderDetails().stream()

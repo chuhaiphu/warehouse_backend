@@ -66,6 +66,7 @@ public class WarehouseApplication {
 					LocalTime.parse("02:00"),
 					LocalTime.parse("01:00"),
 					LocalTime.parse("23:00"),
+					7,
 					7
 			);
 			configurationRepo.save(configuration);

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.cache.annotation.CacheConfig;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -44,6 +45,9 @@ public class Configuration {
 
     @Column(name = "extended_to_cancel_date")
     private Integer extendedToCancelDate;
+
+    @Column(name = "max_allowed_date_for_extended")
+    private Integer maxAllowedDateForExtended;
 
 
 }

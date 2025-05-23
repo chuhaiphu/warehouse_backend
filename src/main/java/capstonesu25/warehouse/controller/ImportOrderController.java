@@ -1,10 +1,7 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.importorder.AssignStaffRequest;
+import capstonesu25.warehouse.model.importorder.*;
 
-import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
-import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
-import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportOrderService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -158,5 +155,19 @@ public class ImportOrderController {
                 result,
                 HttpStatus.OK,
                 "Successfully completed import order");
+    }
+
+    @Operation(summary = "extend an import order")
+    @PostMapping("/extend")
+    public ResponseEntity<?> extendImportOrder(@RequestBody ExtendImportOrderRequest request) {
+        LOGGER.info("Extending import order");
+        ImportOrderResponse result = importOrderService.extendImportOrder(request.getImportOrderId(),
+                request.getExtendedDate(),
+                request.getExtendedTime(),
+                request.getExtendReason());
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully extended import order");
     }
 }

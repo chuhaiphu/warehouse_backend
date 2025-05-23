@@ -17,6 +17,10 @@ public class ImportOrderResponse {
     private String importRequestId;
     private LocalDate dateReceived;
     private LocalTime timeReceived;
+    private boolean isExtended;
+    private LocalDate extendedDate;
+    private LocalTime extendedTime;
+    private String extendedReason;
     private String note;
     private ImportStatus status;
     private List<Long> importOrderDetailIds;
