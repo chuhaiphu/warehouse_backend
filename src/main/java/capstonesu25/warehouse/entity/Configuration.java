@@ -43,11 +43,11 @@ public class Configuration {
     // time to allow auto cancel when the request is created
     private LocalTime timeToAllowCancel;
 
-    @Column(name = "extended_to_cancel_date")
-    private Integer extendedToCancelDate;
+    @Column(name = "days_to_alAlow_extend")
+    private Integer daysToAllowExtend;
 
-    @Column(name = "max_allowed_date_for_extended")
-    private Integer maxAllowedDateForExtended;
+    @Column(name = "max_allowed_days_for_extend")
+    private Integer maxAllowedDaysForExtend;
 
 
 }

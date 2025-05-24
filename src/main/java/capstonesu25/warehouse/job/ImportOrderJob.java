@@ -58,7 +58,7 @@ public class ImportOrderJob {
     @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Ho_Chi_Minh") // Run at 00:01 daily
     public void cancelExtendedOrdersPastDueDays() {
         Configuration config = configurationRepository.findAll().get(0);
-        int daysAllowed = config.getExtendedToCancelDate();
+        int daysAllowed = config.getDaysToAllowExtend();
 
         LocalDate today = LocalDate.now();
         LocalDate cancelThreshold = today.minusDays(daysAllowed);

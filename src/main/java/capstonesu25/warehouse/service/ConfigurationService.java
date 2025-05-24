@@ -35,6 +35,9 @@ public class ConfigurationService {
         configuration.setCreateRequestTimeAtLeast(configurationDto.getCreateRequestTimeAtLeast());
         configuration.setTimeToAllowAssign(configurationDto.getTimeToAllowAssign());
         configuration.setTimeToAllowConfirm(configurationDto.getTimeToAllowConfirm());
+        configuration.setTimeToAllowCancel(configurationDto.getTimeToAllowCancel());
+        configuration.setDaysToAllowExtend(configurationDto.getDaysToAllowExtend());
+        configuration.setMaxAllowedDaysForExtend(configurationDto.getMaxAllowedDaysForExtend());
 
         Configuration updatedConfiguration = configurationRepository.save(configuration);
         return mapToDto(updatedConfiguration);
@@ -51,7 +54,10 @@ public class ConfigurationService {
                 configuration.getWorkingTimeEnd(),
                 configuration.getCreateRequestTimeAtLeast(),
                 configuration.getTimeToAllowAssign(),
-                configuration.getTimeToAllowConfirm()
+                configuration.getTimeToAllowConfirm(),
+                configuration.getTimeToAllowCancel(),
+                configuration.getDaysToAllowExtend(),
+                configuration.getMaxAllowedDaysForExtend()
         );
     }
 

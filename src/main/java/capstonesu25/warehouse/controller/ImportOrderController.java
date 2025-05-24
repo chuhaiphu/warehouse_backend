@@ -164,7 +164,7 @@ public class ImportOrderController {
         ImportOrderResponse result = importOrderService.extendImportOrder(request.getImportOrderId(),
                 request.getExtendedDate(),
                 request.getExtendedTime(),
-                request.getExtendReason());
+                request.getExtendedReason());
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
