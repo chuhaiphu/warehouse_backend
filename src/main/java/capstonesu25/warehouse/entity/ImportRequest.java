@@ -51,7 +51,7 @@ public class ImportRequest {
     @Column(name = "updated_date", insertable = false)
     private LocalDateTime updatedDate;
 
-    @OneToMany(mappedBy = "importRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @OneToMany(mappedBy = "importRequest", cascade = {CascadeType.ALL})
     private List<ImportRequestDetail> details;
 
     @OneToMany(mappedBy = "importRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})

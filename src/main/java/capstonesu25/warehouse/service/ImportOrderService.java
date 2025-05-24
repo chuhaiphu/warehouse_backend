@@ -49,11 +49,10 @@ public class ImportOrderService {
         return mapToResponse(importOrder);
     }
 
-    public Page<ImportOrderResponse> getImportOrdersByImportRequestId(String id, int page, int limit) {
+    public List<ImportOrderResponse> getImportOrdersByImportRequestId(String id) {
         LOGGER.info("Get import orders by import request id: " + id);
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id, pageable);
-        return importOrders.map(this::mapToResponse);
+        List<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id);
+        return importOrders.stream().map(this::mapToResponse).toList();
     }
 
     public ImportOrderResponse create(ImportOrderCreateRequest request) {

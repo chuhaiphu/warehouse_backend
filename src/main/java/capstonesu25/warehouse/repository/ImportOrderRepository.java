@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface ImportOrderRepository extends JpaRepository<ImportOrder, String>{
-    Page<ImportOrder> findImportOrdersByImportRequest_Id(String id, Pageable pageable);
+    List<ImportOrder> findImportOrdersByImportRequest_Id(String id);
     Page<ImportOrder> findImportOrdersByAssignedStaff_Id(Long staffId, Pageable pageable);
     List<ImportOrder> findByAssignedStaff_IdAndDateReceived(Long staffId, LocalDate dateReceived);
     List<ImportOrder> findByDateReceivedAndStatus(LocalDate dateReceived, RequestStatus status);

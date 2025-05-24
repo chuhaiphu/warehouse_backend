@@ -90,36 +90,36 @@ public class WarehouseApplication {
 			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
 
 			// Items từ Provider 1 - Công ty Dệt may Phong Phú và Provider 2
-			Item vai1 = new Item("A1", "Vải Kate", "Vải kate 65/35", "mét", 1500.0, 1.0, 1500, "Vải", 730, 100, 2000,5,configuration, cat1, List.of(prov1, prov2), null, null, null, null, null);
-			Item vai3 = new Item("A2", "Vải Kaki", "Vải kaki thun", "mét", 1000.0, 1.0, 1000, "Vải", 730, 150, 2500,5,configuration, cat1, List.of(prov1), null, null, null, null, null);
+			Item vai1 = new Item("VAI-KT-001", "Vải Kate", "Vải kate 65/35", "mét", 1500.0, 1.0, 1500, "Vải", 730, 100, 2000,5,configuration, cat1, List.of(prov1, prov2), null, null, null, null, null);
+			Item vai3 = new Item("VAI-KK-001", "Vải Kaki", "Vải kaki thun", "mét", 1000.0, 1.0, 1000, "Vải", 730, 150, 2500,5,configuration, cat1, List.of(prov1), null, null, null, null, null);
 
 			// Items từ Provider 2 - Công ty CP Dệt may Nam Định và Provider 1
-			Item vai2 = new Item("B1", "Vải Jean", "Vải jean 100% cotton", "mét", 2000.0, 1.0, 2000, "Vải", 730, 200, 3000,5,configuration, cat1, List.of(prov2, prov1), null, null, null, null, null);
-			Item vai4 = new Item("B2", "Vải Thun", "Vải thun cotton 4 chiều", "mét", 800.0, 1.0, 800, "Vải", 730, 100, 1500,5,configuration, cat1, List.of(prov2), null, null, null, null, null);
+			Item vai2 = new Item("VAI-JE-001", "Vải Jean", "Vải jean 100% cotton", "mét", 2000.0, 1.0, 2000, "Vải", 730, 200, 3000,5,configuration, cat1, List.of(prov2, prov1), null, null, null, null, null);
+			Item vai4 = new Item("VAI-TH-001", "Vải Thun", "Vải thun cotton 4 chiều", "mét", 800.0, 1.0, 800, "Vải", 730, 100, 1500,5,configuration, cat1, List.of(prov2), null, null, null, null, null);
 
 			// Items từ Provider 3 - Công ty TNHH Phụ liệu may Việt Nam và Provider 6
-			Item nut1 = new Item("C1", "Nút nhựa 4 lỗ", "Nút nhựa màu trắng", "bịch", 100.0, 1.0, 100, "Nút", 365, 20, 200,5,configuration, cat2,  List.of(prov3, prov6), null, null, null, null, null);
-			Item nut2 = new Item("C2", "Nút kim loại", "Nút jean kim loại", "bịch", 50.0, 1.0, 50, "Nút", 365, 10, 100,5,configuration, cat2, List.of(prov3), null, null, null, null, null);
-			Item chi3 = new Item("C3", "Chỉ jean", "Chỉ may jean đặc biệt", "cuộn", 100.0, 1.0, 100, "Chỉ", 730, 20, 200,5,configuration, cat3, List.of(prov3, prov4), null, null, null, null, null);
-			Item chi4 = new Item("C4", "Chỉ thêu", "Chỉ thêu đa màu", "cuộn", 80.0, 1.0, 80, "Chỉ", 730, 15, 150,5,configuration, cat3, List.of(prov3), null, null, null, null, null);
-			Item kim1 = new Item("C5", "Kim may thường", "Kim may size 90/14", "hộp", 50.0, 1.0, 50, "Kim", 365, 10, 100,5,configuration, cat4, List.of(prov3), null, null, null, null, null);
-			Item kim2 = new Item("C6", "Kim may jean", "Kim may jean size 100/16", "hộp", 40.0, 1.0, 40, "Kim", 365, 8, 80,5,configuration, cat4, List.of(prov3, prov6), null, null, null, null, null);
+			Item nut1 = new Item("NUT-NH-001", "Nút nhựa 4 lỗ", "Nút nhựa màu trắng", "bịch", 100.0, 1.0, 100, "Nút", 365, 20, 200,5,configuration, cat2,  List.of(prov3, prov6), null, null, null, null, null);
+			Item nut2 = new Item("NUT-KL-001", "Nút kim loại", "Nút jean kim loại", "bịch", 50.0, 1.0, 50, "Nút", 365, 10, 100,5,configuration, cat2, List.of(prov3), null, null, null, null, null);
+			Item chi3 = new Item("CHI-JE-001", "Chỉ jean", "Chỉ may jean đặc biệt", "cuộn", 100.0, 1.0, 100, "Chỉ", 730, 20, 200,5,configuration, cat3, List.of(prov3, prov4), null, null, null, null, null);
+			Item chi4 = new Item("CHI-TH-001", "Chỉ thêu", "Chỉ thêu đa màu", "cuộn", 80.0, 1.0, 80, "Chỉ", 730, 15, 150,5,configuration, cat3, List.of(prov3), null, null, null, null, null);
+			Item kim1 = new Item("KIM-TH-001", "Kim may thường", "Kim may size 90/14", "hộp", 50.0, 1.0, 50, "Kim", 365, 10, 100,5,configuration, cat4, List.of(prov3), null, null, null, null, null);
+			Item kim2 = new Item("KIM-JE-001", "Kim may jean", "Kim may jean size 100/16", "hộp", 40.0, 1.0, 40, "Kim", 365, 8, 80,5,configuration, cat4, List.of(prov3, prov6), null, null, null, null, null);
 
 			// Items từ Provider 4 - Công ty TNHH Thành Công và Provider 3
-			Item chi1 = new Item("D1", "Chỉ polyester", "Chỉ may polyester 40/2", "cuộn", 200.0, 1.0, 200, "Chỉ", 730, 50, 500,5,configuration, cat3, List.of(prov4, prov3), null, null, null, null, null);
-			Item chi2 = new Item("D2", "Chỉ cotton", "Chỉ may cotton 100%", "cuộn", 150.0, 1.0, 150, "Chỉ", 730, 30, 300,5,configuration, cat3, List.of(prov4), null, null, null, null, null);
+			Item chi1 = new Item("CHI-PL-001", "Chỉ polyester", "Chỉ may polyester 40/2", "cuộn", 200.0, 1.0, 200, "Chỉ", 730, 50, 500,5,configuration, cat3, List.of(prov4, prov3), null, null, null, null, null);
+			Item chi2 = new Item("CHI-CT-001", "Chỉ cotton", "Chỉ may cotton 100%", "cuộn", 150.0, 1.0, 150, "Chỉ", 730, 30, 300,5,configuration, cat3, List.of(prov4), null, null, null, null, null);
 
 			// Items từ Provider 5 - Công ty TNHH YKK Việt Nam
-			Item khoa1 = new Item("E1", "Khóa kéo nhựa", "Khóa kéo nhựa 20cm", "bịch", 100.0, 1.0, 100, "Khóa", 365, 20, 200,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
-			Item khoa2 = new Item("E2", "Khóa kéo kim loại", "Khóa kéo kim loại 15cm", "bịch", 80.0, 1.0, 80, "Khóa", 365, 15, 150,5,configuration, cat5, List.of(prov5, prov6), null, null, null, null, null);
-			Item khoa3 = new Item("E3", "Khóa kéo jean", "Khóa kéo jean YKK", "bịch", 60.0, 1.0, 60, "Khóa", 365, 10, 100,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
-			Item khoa4 = new Item("E4", "Khóa kéo áo khoác", "Khóa kéo 2 chiều", "bịch", 40.0, 1.0, 40, "Khóa", 365, 8, 80,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
+			Item khoa1 = new Item("KHO-NH-001", "Khóa kéo nhựa", "Khóa kéo nhựa 20cm", "bịch", 100.0, 1.0, 100, "Khóa", 365, 20, 200,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
+			Item khoa2 = new Item("KHO-KL-001", "Khóa kéo kim loại", "Khóa kéo kim loại 15cm", "bịch", 80.0, 1.0, 80, "Khóa", 365, 15, 150,5,configuration, cat5, List.of(prov5, prov6), null, null, null, null, null);
+			Item khoa3 = new Item("KHO-JE-001", "Khóa kéo jean", "Khóa kéo jean YKK", "bịch", 60.0, 1.0, 60, "Khóa", 365, 10, 100,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
+			Item khoa4 = new Item("KHO-AK-001", "Khóa kéo áo khoác", "Khóa kéo 2 chiều", "bịch", 40.0, 1.0, 40, "Khóa", 365, 8, 80,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
 
 			// Items từ Provider 6 - Công ty TNHH Phụ liệu may Phương Nam và Provider 2
-			Item nut3 = new Item("F1", "Nút áo vest", "Nút áo vest cao cấp", "bịch", 30.0, 1.0, 30, "Nút", 365, 5, 50,5,configuration, cat2, List.of(prov6, prov2), null, null, null, null, null);
-			Item nut4 = new Item("F2", "Nút gỗ", "Nút gỗ tự nhiên", "bịch", 40.0, 1.0, 40, "Nút", 365, 8, 80,5,configuration, cat2, List.of(prov6), null, null, null, null, null);
-			Item kim3 = new Item("F3", "Kim may da", "Kim may da đặc biệt", "hộp", 30.0, 1.0, 30, "Kim", 365, 5, 50,5,configuration, cat4, List.of(prov6, prov3), null, null, null, null, null);
-			Item kim4 = new Item("F4", "Kim thêu", "Kim thêu các loại", "hộp", 25.0, 1.0, 25, "Kim", 365, 5, 40,5,configuration, cat4, List.of(prov6), null, null, null, null, null);
+			Item nut3 = new Item("NUT-VS-001", "Nút áo vest", "Nút áo vest cao cấp", "bịch", 30.0, 1.0, 30, "Nút", 365, 5, 50,5,configuration, cat2, List.of(prov6, prov2), null, null, null, null, null);
+			Item nut4 = new Item("NUT-GO-001", "Nút gỗ", "Nút gỗ tự nhiên", "bịch", 40.0, 1.0, 40, "Nút", 365, 8, 80,5,configuration, cat2, List.of(prov6), null, null, null, null, null);
+			Item kim3 = new Item("KIM-DA-001", "Kim may da", "Kim may da đặc biệt", "hộp", 30.0, 1.0, 30, "Kim", 365, 5, 50,5,configuration, cat4, List.of(prov6, prov3), null, null, null, null, null);
+			Item kim4 = new Item("KIM-TH-002", "Kim thêu", "Kim thêu các loại", "hộp", 25.0, 1.0, 25, "Kim", 365, 5, 40,5,configuration, cat4, List.of(prov6), null, null, null, null, null);
 
 			// Lưu tất cả các items
 			itemRepo.saveAll(List.of(
