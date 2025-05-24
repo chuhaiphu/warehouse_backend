@@ -431,7 +431,7 @@ public class ExportRequestService {
         exportRequest.setIsExtended(true);
 
         if(extendedDate == null) {
-            extendedDate = exportRequest.getExportDate().plusDays(configuration.getMaxAllowedDateForExtended());
+            extendedDate = exportRequest.getExportDate().plusDays(configuration.getMaxAllowedDaysForExtend());
         }
         exportRequest.setExtendedDate(extendedDate);
         if(extendedTime == null) {
