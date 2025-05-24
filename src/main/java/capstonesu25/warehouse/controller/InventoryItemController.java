@@ -50,7 +50,7 @@ public class InventoryItemController {
 	@Operation(summary = "Get inventory item by ID")
 	@GetMapping("/{inventoryItemId}")
 	
-	public ResponseEntity<?> getById(@PathVariable Long inventoryItemId) {
+	public ResponseEntity<?> getById(@PathVariable String inventoryItemId) {
 		LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
 		InventoryItemResponse result = inventoryItemService.getInventoryItemById(inventoryItemId);
 		return ResponseUtil.getObject(
@@ -120,7 +120,7 @@ public class InventoryItemController {
 
 	@Operation(summary = "Get QR codes by inventory item IDs")
 	@PostMapping("/qr-codes")
-	public ResponseEntity<?> getListQrCodes(@RequestBody List<Long> inventoryItemIds) {
+	public ResponseEntity<?> getListQrCodes(@RequestBody List<String> inventoryItemIds) {
 		LOGGER.info("Getting QR codes by inventory item IDs");
 		List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
 		return ResponseUtil.getCollection(
@@ -143,7 +143,7 @@ public class InventoryItemController {
 
 	@Operation(summary = "Delete an inventory item by ID")
 	@DeleteMapping("/{inventoryItemId}")
-	public ResponseEntity<?> deleteInventoryItem(@PathVariable Long inventoryItemId) {
+	public ResponseEntity<?> deleteInventoryItem(@PathVariable String inventoryItemId) {
 		LOGGER.info("Deleting inventory item");
 		inventoryItemService.delete(inventoryItemId);
 		return ResponseUtil.getObject(

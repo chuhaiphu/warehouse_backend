@@ -20,8 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 public class InventoryItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(name = "reason_for_disposal")
     private String reasonForDisposal;

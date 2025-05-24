@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QrCodeResponse {
-    private Long id;
-    private Long itemId;
+    private String id;
+    private String itemId;
     private Long importOrderDetailId;
     private Long exportRequestDetailId;
     private Double measurementValue;

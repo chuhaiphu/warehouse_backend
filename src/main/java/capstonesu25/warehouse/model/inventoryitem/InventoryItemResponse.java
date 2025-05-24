@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InventoryItemResponse {
-    private Long id;
+    private String id;
     private String reasonForDisposal;
     private Double measurementValue;
     private ItemStatus status;
@@ -21,11 +21,11 @@ public class InventoryItemResponse {
     private LocalDateTime updatedDate;
 
     // Using IDs instead of full objects to avoid infinite recursion
-    private Long parentId;
-    private List<Long> childrenIds;
+    private String parentId;
+    private List<String> childrenIds;
 
     // Basic item information
-    private Long itemId;
+    private String itemId;
     private String itemName;
     private String itemCode;
 

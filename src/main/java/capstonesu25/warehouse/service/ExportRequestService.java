@@ -441,7 +441,7 @@ public class ExportRequestService {
     }
 
     private void handleExportItems(ExportRequest exportRequest) {
-        Map<Long, Item> updatedItems = new HashMap<>();
+        Map<String, Item> updatedItems = new HashMap<>();
         for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
             for (InventoryItem inventoryItem : detail.getInventoryItems()) {
                 Item item = inventoryItem.getItem();

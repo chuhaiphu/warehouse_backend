@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ConfigurationDto {
     private Long id;
-    private List<Long> itemIds;
+    private List<String> itemIds;
     private LocalTime workingTimeStart;
     private LocalTime workingTimeEnd;
     private LocalTime createRequestTimeAtLeast;

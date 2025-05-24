@@ -435,6 +435,7 @@ public class ImportOrderService {
         LOGGER.info("Creating inventory item for import order detail id: {}", importOrderDetail.getId());
         for(int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
             InventoryItem inventoryItem = new InventoryItem();
+            inventoryItem.setId(createInventoryItemId(importOrderDetail, i));
             inventoryItem.setImportOrderDetail(importOrderDetail);
             inventoryItem.setItem(importOrderDetail.getItem());
             inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
@@ -453,7 +454,7 @@ public class ImportOrderService {
 
     private void handleImportItems(ImportOrder importOrder) {
         LOGGER.info("Handling import items for import order id: {}", importOrder.getId());
-        Map<Long, Item> updatedItems = new HashMap<>();
+        Map<String, Item> updatedItems = new HashMap<>();
 
         for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
             for (InventoryItem inventoryItem : detail.getInventoryItems()) {
@@ -495,5 +496,10 @@ public class ImportOrderService {
     private String createImportOrderId (ImportRequest importRequest) {
         int size = importRequest.getImportOrders().size();
         return  "DN-" + importRequest.getId() + "-" + (size + 1);
+    }
+
+    private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
+        return "ITM-" +importOrderDetail.getItem().getId()+"-"+ importOrderDetail.getImportOrder().getId() + "-" +
+                + (index + 1);
     }
 }

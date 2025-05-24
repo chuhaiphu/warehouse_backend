@@ -34,7 +34,7 @@ public class ItemService {
         return items.map(this::mapToResponse);
     }
 
-    public ItemResponse getItemById(Long itemId) {
+    public ItemResponse getItemById(String itemId) {
         LOGGER.info("Getting item by id: {}", itemId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
@@ -65,7 +65,7 @@ public class ItemService {
     }
 
     @Transactional
-    public void delete(Long itemId) {
+    public void delete(String itemId) {
         LOGGER.info("Deleting item with id: {}", itemId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
@@ -129,9 +129,9 @@ public class ItemService {
         }
 
         if (item.getInventoryItems() != null) {
-            List<Long> list = new ArrayList<>();
+            List<String> list = new ArrayList<>();
             for (InventoryItem inventoryItem : item.getInventoryItems()) {
-                Long id = inventoryItem.getId();
+                String id = inventoryItem.getId();
                 list.add(id);
             }
             response.setInventoryItemIds(list);

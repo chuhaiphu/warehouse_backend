@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExportRequestDetailRequest {
-    private Long itemId;
+    private String itemId;
     private Integer quantity;
     private Double measurementValue;
     private Long inventoryItemId;

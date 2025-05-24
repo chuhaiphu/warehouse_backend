@@ -12,16 +12,16 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class InventoryItemRequest {
-    private Long id;
+    private String id;
     private String reasonForDisposal;
     private Integer measurementValue;
     private ItemStatus status;
     private LocalDateTime expiredDate;
     private LocalDateTime importedDate;
     private LocalDateTime updatedDate;
-    private Long parentId; // Reference to parent inventory item
-    private List<Long> childrenIds; // References to child inventory items
-    private Long itemId;
+    private String parentId; // Reference to parent inventory item
+    private List<String> childrenIds; // References to child inventory items
+    private String itemId;
     private Long exportRequestDetailId;
     private Long importOrderDetailId;
     private Long storedLocationId;
