@@ -1,7 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.paper.PaperRequest;
 import capstonesu25.warehouse.model.paper.PaperResponse;
 import capstonesu25.warehouse.repository.*;
@@ -66,7 +66,7 @@ public class PaperService {
             //update status
             LOGGER.info("Updating import order status at creating paper");
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
-            importOrder.setStatus(ImportStatus.COUNTED);
+            importOrder.setStatus(RequestStatus.COUNTED);
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
         }
@@ -74,7 +74,7 @@ public class PaperService {
             //update status
             LOGGER.info("Updating export request status at creating paper");
             ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
-            exportRequest.setStatus(ImportStatus.COUNTED);
+            exportRequest.setStatus(RequestStatus.COUNTED);
             exportRequestRepository.save(exportRequest);
             paper.setExportRequest(exportRequest);
         }

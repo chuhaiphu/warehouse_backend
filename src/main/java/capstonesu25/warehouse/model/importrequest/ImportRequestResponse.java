@@ -1,6 +1,6 @@
 package capstonesu25.warehouse.model.importrequest;
 
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.enums.ImportType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,7 +16,7 @@ public class ImportRequestResponse {
     private String importRequestId;
     private String importReason;
     private ImportType importType;
-    private ImportStatus status;
+    private RequestStatus status;
     private Long providerId;
     private String exportRequestId;
     private List<Long> importRequestDetailIds;

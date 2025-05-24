@@ -1,12 +1,13 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
+import capstonesu25.warehouse.model.exportrequest.ExtendExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.UpdateExportDateTimeRequest;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
 import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialRequest;
 import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
-import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -203,6 +204,20 @@ public class ExportRequestController {
                 "Successfully completed export request");
     }
 
+    @Operation(summary = "extend an export request")
+    @PostMapping("/extend")
+    public ResponseEntity<?> extendImportOrder(@RequestBody ExtendExportRequestRequest request) {
+        LOGGER.info("Extending import order");
+        ExportRequestResponse result = exportRequestService.extendExportRequest(request.getExportRequestId(),
+                request.getExtendedDate(),
+                request.getExtendedTime(),
+                request.getExtendReason());
+        return ResponseUtil.getObject(
+                result,
+                HttpStatus.OK,
+                "Successfully extended import order");
+    }
+
     @Operation(summary = "update export date and time for export request")
     @PostMapping("/update-export-date-time/{exportRequestId}")
     public ResponseEntity<?> updateExportDateTime(@PathVariable String exportRequestId,
@@ -217,7 +232,7 @@ public class ExportRequestController {
     @Operation(summary = "update status of export request")
     @PostMapping("/update-status/{exportRequestId}")
     public ResponseEntity<?> updateStatus(@PathVariable String exportRequestId,
-                                          @RequestParam ImportStatus status) {
+                                          @RequestParam RequestStatus status) {
         LOGGER.info("Updating status of export request");
         return ResponseUtil.getObject(
                 exportRequestService.updateExportStatus(exportRequestId, status),

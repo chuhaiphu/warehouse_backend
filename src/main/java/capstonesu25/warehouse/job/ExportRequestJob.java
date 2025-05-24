@@ -1,12 +1,11 @@
 package capstonesu25.warehouse.job;
 
 import capstonesu25.warehouse.entity.Configuration;
-import capstonesu25.warehouse.entity.ImportOrder;
+import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
-import capstonesu25.warehouse.repository.ImportOrderRepository;
+import capstonesu25.warehouse.repository.ExportRequestRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,19 +13,19 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Component
 @RequiredArgsConstructor
 @EnableScheduling
-public class ImportOrderJob {
+public class ExportRequestJob {
     private final ConfigurationRepository configurationRepository;
-    private final ImportOrderRepository importOrderRepository;
-    private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ImportOrderJob.class);
+    private final ExportRequestRepository exportRequestRepository;
 
+    private static final Logger LOGGER = Logger.getLogger(ExportRequestJob.class.getName());
     private LocalDate lastRunDate = null;
-
     @Scheduled(fixedRate = 60_000, zone = "Asia/Ho_Chi_Minh")
-    public void cancelImportOrderJob() {
+    public void cancelExportRequestJob() {
         Configuration config = configurationRepository.findAll().get(0);
         LocalTime cancelTime = config.getTimeToAllowCancel();
         LocalTime now = LocalTime.now();
@@ -36,25 +35,26 @@ public class ImportOrderJob {
             return;
         }
 
-        List<ImportOrder> importOrders = importOrderRepository
-                .findByDateReceivedAndStatus(today, RequestStatus.IN_PROGRESS);
+        List<RequestStatus> statuses = List.of(RequestStatus.IN_PROGRESS, RequestStatus.COUNTED
+                , RequestStatus.COUNT_CONFIRMED, RequestStatus.WAITING_EXPORT, RequestStatus.NOT_STARTED);
+        List<ExportRequest> exportRequests = exportRequestRepository
+                .findByExportDateAndStatusIn(today, statuses);
 
-        if (importOrders.isEmpty()) {
+        if (exportRequests.isEmpty()) {
             lastRunDate = today;
             return;
         }
 
-        importOrders.forEach(order -> {
+        exportRequests.forEach(order -> {
             order.setStatus(RequestStatus.CANCELLED);
             order.setNote("Tự động hủy do quá hạn xác nhận lúc " + now);
         });
 
-        importOrderRepository.saveAll(importOrders);
+        exportRequestRepository.saveAll(exportRequests);
         lastRunDate = today;
-        logger.info("Đã tự động hủy " + importOrders.size() + " đơn lúc " + now);
+        LOGGER.info("Đã tự động hủy " + exportRequests.size() + " đơn lúc " + now);
     }
 
-    // Run at 00:01 every day
     @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Ho_Chi_Minh") // Run at 00:01 daily
     public void cancelExtendedOrdersPastDueDays() {
         Configuration config = configurationRepository.findAll().get(0);
@@ -64,23 +64,19 @@ public class ImportOrderJob {
         LocalDate cancelThreshold = today.minusDays(daysAllowed);
 
         // Find orders in EXTENDED status where extendedAt ≤ cancelThreshold
-        List<ImportOrder> expiredOrders = importOrderRepository
+        List<ExportRequest> expiredRequest = exportRequestRepository
                 .findByStatusAndExtendedDateLessThanEqual(RequestStatus.EXTENDED, cancelThreshold);
 
-        if (expiredOrders.isEmpty()) {
+        if (expiredRequest.isEmpty()) {
             return;
         }
 
-        expiredOrders.forEach(order -> {
+        expiredRequest.forEach(order -> {
             order.setStatus(RequestStatus.CANCELLED);
             order.setNote("Tự động hủy do đã gia hạn quá " + daysAllowed + " ngày (từ " + order.getExtendedDate() + ")");
         });
 
-        importOrderRepository.saveAll(expiredOrders);
-        logger.info("auto cancel " + expiredOrders.size() + " cause has extended after " + daysAllowed + " days.");
+        exportRequestRepository.saveAll(expiredRequest);
+        LOGGER.info("auto cancel " + expiredRequest.size() + " cause has extended after " + daysAllowed + " days.");
     }
-
-
-
-
 }

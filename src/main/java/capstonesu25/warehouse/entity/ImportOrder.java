@@ -1,5 +1,5 @@
 package capstonesu25.warehouse.entity;
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -25,7 +25,7 @@ public class ImportOrder {
     private String id;
 
     @Column(name = "status")
-    private ImportStatus status;
+    private RequestStatus status;
 
     @Column(name = "note")
     private String note;

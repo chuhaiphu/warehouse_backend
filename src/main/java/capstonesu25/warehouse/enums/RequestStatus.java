@@ -1,5 +1,5 @@
 package capstonesu25.warehouse.enums;
 
-public enum ImportStatus {
+public enum RequestStatus {
     NOT_STARTED, IN_PROGRESS, EXTENDED ,COUNTED, COUNT_CONFIRMED, WAITING_EXPORT, CONFIRMED, COMPLETED, CANCELLED
 }

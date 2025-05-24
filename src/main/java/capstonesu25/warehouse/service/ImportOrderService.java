@@ -87,14 +87,14 @@ public class ImportOrderService {
             importOrder.setDateReceived(request.getDateReceived());
             importOrder.setTimeReceived(request.getTimeReceived());
         }
-        importOrder.setStatus(ImportStatus.IN_PROGRESS);
+        importOrder.setStatus(RequestStatus.IN_PROGRESS);
         
         if (request.getAccountId() != null) {
             Account account = accountRepository.findById(request.getAccountId())
                     .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
             validateAccountForAssignment(account);
             importOrder.setAssignedStaff(account);
-            importOrder.setStatus(ImportStatus.IN_PROGRESS);
+            importOrder.setStatus(RequestStatus.IN_PROGRESS);
         }
         
         if (request.getNote() != null) {
@@ -105,7 +105,7 @@ public class ImportOrderService {
             importOrder.setDateReceived(request.getDateReceived());
             importOrder.setTimeReceived(request.getTimeReceived());
         }
-        importRequest.setStatus(ImportStatus.IN_PROGRESS);
+        importRequest.setStatus(RequestStatus.IN_PROGRESS);
         importRequestRepository.save(importRequest);
         ImportOrder order = importOrderRepository.save(importOrder);
 
@@ -230,7 +230,7 @@ public class ImportOrderService {
         validateAccountForAssignment(account);
         setTimeForStaffPerformance(account, importOrder);
         importOrder.setAssignedStaff(account);
-        importOrder.setStatus(ImportStatus.IN_PROGRESS);
+        importOrder.setStatus(RequestStatus.IN_PROGRESS);
         
         return mapToResponse(importOrderRepository.save(importOrder));
     }
@@ -256,7 +256,7 @@ public class ImportOrderService {
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
                 
         // Can only cancel orders that are NOT_STARTED or IN_PROGRESS
-        if (importOrder.getStatus() == ImportStatus.COMPLETED || importOrder.getStatus() == ImportStatus.CANCELLED) {
+        if (importOrder.getStatus() == RequestStatus.COMPLETED || importOrder.getStatus() == RequestStatus.CANCELLED) {
             throw new IllegalStateException("Cannot cancel import order with status: " + importOrder.getStatus());
         }
         
@@ -280,7 +280,7 @@ public class ImportOrderService {
             importOrder.setAssignedStaff(null);
         }
         
-        importOrder.setStatus(ImportStatus.CANCELLED);
+        importOrder.setStatus(RequestStatus.CANCELLED);
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
@@ -288,7 +288,7 @@ public class ImportOrderService {
         LOGGER.info("Completing import order with ID: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
-        importOrder.setStatus(ImportStatus.COMPLETED);
+        importOrder.setStatus(RequestStatus.COMPLETED);
         updateImportRequest(importOrder);
         updateImportOrder(importOrder);
         autoFillLocationForImport(importOrder);
@@ -304,18 +304,23 @@ public class ImportOrderService {
 
     public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime, String extendReason) {
         LOGGER.info("Extending import order with ID: " + importOrderId);
+
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
 
-        if (importOrder.getStatus() != ImportStatus.IN_PROGRESS
-                && importOrder.getStatus() != ImportStatus.EXTENDED) {
+        if(importOrder.isExtended()) {
+            throw new IllegalStateException("Import order has already been extended");
+        }
+
+        if (importOrder.getStatus() != RequestStatus.IN_PROGRESS
+                && importOrder.getStatus() != RequestStatus.EXTENDED) {
             throw new IllegalStateException("Cannot extend import order with status: " + importOrder.getStatus());
         }
 
         Configuration configuration = configurationRepository.findAll().stream()
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
-        importOrder.setStatus(ImportStatus.EXTENDED);
+        importOrder.setStatus(RequestStatus.EXTENDED);
         importOrder.setExtended(true);
         if(extendedDate == null) {
              extendedDate = importOrder.getDateReceived().plusDays(configuration.getMaxAllowedDateForExtended());
@@ -370,7 +375,7 @@ public class ImportOrderService {
         }
 
         if (allCompleted) {
-            importRequest.setStatus(ImportStatus.COMPLETED);
+            importRequest.setStatus(RequestStatus.COMPLETED);
             importRequestRepository.save(importRequest);
         }
     }
