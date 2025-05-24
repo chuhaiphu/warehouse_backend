@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class ImportRequestDetailResponse {
     private Long importRequestDetailId;
     private String importRequestId;
-    private Long itemId;
+    private String itemId;
     private String itemName;
     private int actualQuantity;
     private int expectQuantity;

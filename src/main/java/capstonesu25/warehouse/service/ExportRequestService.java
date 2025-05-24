@@ -117,7 +117,7 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
-        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+        exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
@@ -147,7 +147,7 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
-        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+        exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
@@ -187,7 +187,7 @@ public class ExportRequestService {
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setExpectedReturnDate(request.getExpectedReturnDate());
-        exportRequest.setStatus(ImportStatus.NOT_STARTED);
+        exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
@@ -228,7 +228,7 @@ public class ExportRequestService {
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
         exportRequest.setImportRequests(list);
-        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
+        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
@@ -267,7 +267,7 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setExportTime(request.getExportTime());
-        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
+        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         return mapToResponse(export);
@@ -304,7 +304,7 @@ public class ExportRequestService {
             exportRequestRepository.save(exportRequest);
         }
 
-        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
+        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
         exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
     }
@@ -332,7 +332,7 @@ public class ExportRequestService {
             setTimeForCountingStaffPerformance(staff, exportRequest);
             exportRequest.setCountingStaffId(staff.getId());
         }
-        exportRequest.setStatus(ImportStatus.IN_PROGRESS);
+        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
         exportRequestRepository.save(exportRequest);
         return mapToResponse(exportRequest);
     }
@@ -341,7 +341,7 @@ public class ExportRequestService {
         LOGGER.info("Confirming counted export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
-        exportRequest.setStatus(ImportStatus.COUNTED);
+        exportRequest.setStatus(RequestStatus.COUNTED);
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
@@ -350,22 +350,22 @@ public class ExportRequestService {
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
 
-        exportRequest.setStatus(ImportStatus.COMPLETED);
+        exportRequest.setStatus(RequestStatus.COMPLETED);
         updateInventoryItemAndLocationAfterExport(exportRequest);
         handleExportItems(exportRequest);
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse updateExportStatus (String exportRequestId, ImportStatus status) {
+    public ExportRequestResponse updateExportStatus (String exportRequestId, RequestStatus status) {
         LOGGER.info("Updating export request status for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
 
-        if(status == ImportStatus.CANCELLED) {
+        if(status == RequestStatus.CANCELLED) {
             LOGGER.info("Updating export request status to CANCELLED");
-            if(exportRequest.getStatus() != ImportStatus.NOT_STARTED
-                    && exportRequest.getStatus() != ImportStatus.IN_PROGRESS
-                    && exportRequest.getStatus() != ImportStatus.COUNTED) {
+            if(exportRequest.getStatus() != RequestStatus.NOT_STARTED
+                    && exportRequest.getStatus() != RequestStatus.IN_PROGRESS
+                    && exportRequest.getStatus() != RequestStatus.COUNTED) {
                 throw new IllegalStateException("Cannot cancel export request: Status is not NOT_STARTED");
             }
             LOGGER.info("Return working for pre confirm staff: {}",exportRequest.getAssignedStaff().getEmail());
@@ -416,6 +416,35 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
+    public ExportRequestResponse extendExportRequest(String exportRequestId, LocalDate extendedDate, LocalTime extendedTime,
+                                                     String extendReason) {
+        LOGGER.info("Extending export request with ID: " + exportRequestId);
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
+                () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
+        if(exportRequest.getIsExtended()) {
+            throw new IllegalStateException("Export request has already been extended");
+        }
+        Configuration configuration = configurationRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
+        exportRequest.setStatus(RequestStatus.EXTENDED);
+        exportRequest.setIsExtended(true);
+
+        if(extendedDate == null) {
+            extendedDate = exportRequest.getExportDate().plusDays(configuration.getMaxAllowedDateForExtended());
+        }
+        exportRequest.setExtendedDate(extendedDate);
+        if(extendedTime == null) {
+            extendedTime = exportRequest.getExportTime();
+        }
+        exportRequest.setExtendedTime(extendedTime);
+        exportRequest.setExtendedReason(extendReason);
+
+        LOGGER.info("auto asign staff for export request with ID: " + exportRequestId);
+        autoAssignCountingStaff(exportRequest);
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
     private void updateInventoryItemAndLocationAfterExport(ExportRequest exportRequest) {
         LOGGER.info("Updating inventory item after export request");
 
@@ -441,7 +470,7 @@ public class ExportRequestService {
     }
 
     private void handleExportItems(ExportRequest exportRequest) {
-        Map<Long, Item> updatedItems = new HashMap<>();
+        Map<String, Item> updatedItems = new HashMap<>();
         for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
             for (InventoryItem inventoryItem : detail.getInventoryItems()) {
                 Item item = inventoryItem.getItem();
@@ -465,12 +494,17 @@ public class ExportRequestService {
         LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
-        staffPerformance.setDate(exportRequest.getCountingDate());
+        if(exportRequest.getIsExtended()) {
+            staffPerformance.setDate(exportRequest.getExtendedDate().minusDays(1));
+        }else {
+            staffPerformance.setDate(exportRequest.getCountingDate());
+        }
         staffPerformance.setExportRequestId(exportRequest.getId());
         staffPerformance.setAssignedStaff(account);
         staffPerformance.setExportCounting(true);
         staffPerformanceRepository.save(staffPerformance);
     }
+
 
     private boolean checkType(ExportType expect, ExportType actual) {
         return expect == actual;
@@ -490,6 +524,10 @@ public class ExportRequestService {
             exportRequest.getExportDate(),
             exportRequest.getExportTime(),
             exportRequest.getExpectedReturnDate(),
+            exportRequest.getIsExtended(),
+            exportRequest.getExtendedDate(),
+            exportRequest.getExtendedTime(),
+            exportRequest.getExtendedReason(),
             exportRequest.getAssignedStaff() != null ? exportRequest.getAssignedStaff().getId() : null,
             exportRequest.getCountingDate(),
             exportRequest.getCountingTime(),
@@ -555,9 +593,13 @@ public class ExportRequestService {
 
     private ExportRequest autoAssignCountingStaff(ExportRequest exportRequest) {
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
-        activeAccountRequest.setDate(exportRequest.getCountingDate());
+        if(exportRequest.getIsExtended()) {
+            activeAccountRequest.setDate(exportRequest.getExtendedDate());
+        }else {
+            activeAccountRequest.setDate(exportRequest.getCountingDate());
+        }
         activeAccountRequest.setExportRequestId(exportRequest.getId());
-
+        LOGGER.info("date assign to counting staff is: {}", activeAccountRequest.getDate());
         List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
 
         Account account = accountRepository.findById(accountResponse.get(0).getId())
@@ -572,7 +614,12 @@ public class ExportRequestService {
     private void autoAssignConfirmStaff(ExportRequest exportRequest) {
         LOGGER.info("Auto assigning confirm staff for export request with ID: " + exportRequest.getId());
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
-        activeAccountRequest.setDate(exportRequest.getExportDate());
+        if(exportRequest.getIsExtended()) {
+            activeAccountRequest.setDate(exportRequest.getExtendedDate());
+        } else {
+            activeAccountRequest.setDate(exportRequest.getExportDate());
+        }
+        activeAccountRequest.setExportRequestId(exportRequest.getId());
         Configuration configuration = configurationRepository.findAll().getFirst();
         List<AccountResponse> accountResponses = accountService.getAllActiveStaffsInDate(activeAccountRequest);
         List<AccountResponse> responses = new ArrayList<>();
@@ -602,7 +649,11 @@ public class ExportRequestService {
         LOGGER.info("Confirm Account is: {}", account.getEmail());
         StaffPerformance staffPerformance = new StaffPerformance();
         staffPerformance.setExpectedWorkingTime(configuration.getTimeToAllowConfirm());
-        staffPerformance.setDate(exportRequest.getExportDate());
+        if(exportRequest.getIsExtended()) {
+            staffPerformance.setDate(exportRequest.getExtendedDate());
+        } else {
+            staffPerformance.setDate(exportRequest.getExportDate());
+        }
         staffPerformance.setAssignedStaff(account);
         staffPerformance.setExportCounting(false);
         staffPerformance.setExportRequestId(exportRequest.getId());
@@ -611,7 +662,7 @@ public class ExportRequestService {
     }
 
     private String createExportRequestId() {
-        String prefix = "ER";
+        String prefix = "PX";
         LocalDate today = LocalDate.now();
 
         LocalDateTime startOfDay = today.atStartOfDay();

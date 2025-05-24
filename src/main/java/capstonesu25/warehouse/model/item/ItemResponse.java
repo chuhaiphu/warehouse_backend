@@ -10,7 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemResponse {
-    private Long id;
+    private String id;
     private String name;
     private String description;
     private String measurementUnit;
@@ -25,5 +25,5 @@ public class ItemResponse {
     private List<Long> importOrderDetailIds;
     private List<Long> importRequestDetailIds;
     private List<Long> exportRequestDetailIds;
-    private List<Long> inventoryItemIds;
+    private List<String> inventoryItemIds;
 }

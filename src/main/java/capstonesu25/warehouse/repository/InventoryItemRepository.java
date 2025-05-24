@@ -13,12 +13,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface InventoryItemRepository extends JpaRepository<InventoryItem, Long> {
+public interface InventoryItemRepository extends JpaRepository<InventoryItem, String> {
     Page<InventoryItem> findByImportOrderDetailId(Long importOrderDetailId, Pageable pageable);
     Page<InventoryItem> findByExportRequestDetailId(Long exportRequestDetailId, Pageable pageable);
     Page<InventoryItem> findByStoredLocationId(Long storedLocationId, Pageable pageable);
-    List<InventoryItem> findByItem_IdAndParentNullAndStatus(Long itemId, ItemStatus status);
-    List<InventoryItem> findByItem_Id(Long itemId);
-    List<InventoryItem> findByItem_IdAndExpiredDateLessThanEqual(Long itemId, LocalDateTime expiredDate);
+    List<InventoryItem> findByItem_IdAndParentNullAndStatus(String itemId, ItemStatus status);
+    List<InventoryItem> findByItem_Id(String itemId);
+    List<InventoryItem> findByItem_IdAndExpiredDateLessThanEqual(String itemId, LocalDateTime expiredDate);
 
 }

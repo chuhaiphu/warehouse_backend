@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ImportOrderDetailUpdateRequest {
     @NotNull(message = "Item ID cannot be null")
-    private Long itemId;
+    private String itemId;
 
     @NotNull(message = "Actual quantity cannot be null")
     private int actualQuantity;

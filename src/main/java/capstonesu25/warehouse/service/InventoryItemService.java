@@ -43,7 +43,7 @@ public class InventoryItemService {
                 .map(this::mapToResponse);
     }
 
-    public InventoryItemResponse getInventoryItemById(Long id) {
+    public InventoryItemResponse getInventoryItemById(String id) {
         LOGGER.info("Getting inventory item by id: {}", id);
         InventoryItem inventoryItem = inventoryItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id));
@@ -71,7 +71,7 @@ public class InventoryItemService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(String id) {
         LOGGER.info("Deleting inventory item with id: {}", id);
         if (!inventoryItemRepository.existsById(id)) {
             throw new EntityNotFoundException("Inventory item not found with id: " + id);
@@ -100,7 +100,7 @@ public class InventoryItemService {
                 .map(this::mapToResponse);
     }
 
-    public List<QrCodeResponse> getListQrCodes(List<Long> inventoryItemIds) {
+    public List<QrCodeResponse> getListQrCodes(List<String> inventoryItemIds) {
         LOGGER.info("Getting QR codes by inventory item IDs: {}", inventoryItemIds);
         List<InventoryItem> inventoryItems = inventoryItemRepository.findAllById(inventoryItemIds);
         

@@ -47,7 +47,7 @@ public class ItemController {
     @Operation(summary = "Get item by ID")
     @GetMapping("/{itemId}")
     
-    public ResponseEntity<?> getById(@PathVariable Long itemId) {
+    public ResponseEntity<?> getById(@PathVariable String itemId) {
         LOGGER.info("Getting item by id: {}", itemId);
         ItemResponse result = itemService.getItemById(itemId);
         return ResponseUtil.getObject(
@@ -120,7 +120,7 @@ public class ItemController {
 
     @Operation(summary = "Delete an item by ID")
     @DeleteMapping("/{itemId}")
-    public ResponseEntity<?> deleteItem(@PathVariable Long itemId) {
+    public ResponseEntity<?> deleteItem(@PathVariable String itemId) {
         LOGGER.info("Deleting item");
         itemService.delete(itemId);
         return ResponseUtil.getObject(

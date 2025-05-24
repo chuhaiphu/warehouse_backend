@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportRequestDetailRequest {
-    private Long itemId;
+    private String itemId;
     private Integer quantity;
     private Long providerId;
 }

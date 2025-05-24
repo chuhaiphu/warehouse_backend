@@ -325,7 +325,7 @@ public class ExportRequestDetailService {
         response.setExportRequestId(exportRequestDetail.getExportRequest().getId());
         response.setItemId(exportRequestDetail.getItem().getId());
         if(exportRequestDetail.getInventoryItems() != null) {
-            List<Long> inventoryItemIds = exportRequestDetail.getInventoryItems().stream()
+            List<String> inventoryItemIds = exportRequestDetail.getInventoryItems().stream()
                     .map(InventoryItem::getId)
                     .collect(Collectors.toList());
             response.setInventoryItemIds(inventoryItemIds);

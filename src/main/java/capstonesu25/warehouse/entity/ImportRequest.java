@@ -1,5 +1,5 @@
 package capstonesu25.warehouse.entity;
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.enums.ImportType;
 import lombok.*;
 import jakarta.persistence.*;
@@ -27,7 +27,7 @@ public class ImportRequest {
     private String importReason;
 
     @Column(name = "status")
-    private ImportStatus status;
+    private RequestStatus status;
 
     @Column(name = "type")
     private ImportType type;

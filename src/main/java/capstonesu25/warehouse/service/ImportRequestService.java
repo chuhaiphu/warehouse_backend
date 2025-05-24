@@ -3,7 +3,7 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
-import capstonesu25.warehouse.enums.ImportStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
@@ -59,7 +59,7 @@ public class ImportRequestService {
         importRequest.setId(createImportRequestId());
         importRequest.setImportReason(request.getImportReason());
         importRequest.setType(request.getImportType());
-        importRequest.setStatus(ImportStatus.NOT_STARTED);
+        importRequest.setStatus(RequestStatus.NOT_STARTED);
         
         if (request.getExportRequestId() != null) {
             importRequest.setExportRequest(exportRequestRepository.findById(request.getExportRequestId())

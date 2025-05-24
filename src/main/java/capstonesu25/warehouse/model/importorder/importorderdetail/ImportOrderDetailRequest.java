@@ -18,7 +18,7 @@ public class ImportOrderDetailRequest {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class ImportOrderItem {
-        private Long itemId;
+        private String itemId;
         private Integer quantity;
     }
 }

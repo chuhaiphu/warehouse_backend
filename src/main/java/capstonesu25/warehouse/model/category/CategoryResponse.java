@@ -13,5 +13,5 @@ public class CategoryResponse {
     private Long id;
     private String name;
     private String description;
-    private List<Long> itemIds;
+    private List<String> itemIds;
 }

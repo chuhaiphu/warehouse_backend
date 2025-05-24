@@ -18,6 +18,6 @@ public class ExportRequestDetailResponse {
     private Integer quantity;
     private DetailStatus status;
     private String exportRequestId;
-    private Long itemId;
-    private List<Long> inventoryItemIds;
+    private String itemId;
+    private List<String> inventoryItemIds;
 }
