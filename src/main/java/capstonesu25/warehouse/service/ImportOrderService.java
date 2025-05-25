@@ -492,6 +492,8 @@ public class ImportOrderService {
                 importOrder.getStatus() != null ? importOrder.getStatus() : null,
                 importOrder.getImportOrderDetails() != null ? importOrder.getImportOrderDetails().stream()
                         .map(ImportOrderDetail::getId).toList() : null,
+                importOrder.getActualDateReceived(),
+                importOrder.getActualTimeReceived(),
                 importOrder.getCreatedBy(),
                 importOrder.getUpdatedBy(),
                 importOrder.getCreatedDate(),

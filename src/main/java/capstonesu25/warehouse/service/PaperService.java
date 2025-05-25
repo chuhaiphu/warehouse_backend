@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +69,8 @@ public class PaperService {
             LOGGER.info("Updating import order status at creating paper");
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
             importOrder.setStatus(RequestStatus.COUNTED);
+            importOrder.setActualDateReceived(LocalDate.now());
+            importOrder.setActualTimeReceived(LocalTime.now());
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
         }

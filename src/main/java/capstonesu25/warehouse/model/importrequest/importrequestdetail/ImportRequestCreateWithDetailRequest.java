@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,5 +18,7 @@ public class ImportRequestCreateWithDetailRequest {
     // Thêm các field cần thiết để tạo ImportRequest
     private String importReason;
     private ImportType importType;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String exportRequestId;
 }

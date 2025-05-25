@@ -1,18 +1,11 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.ImportRequest;
-import capstonesu25.warehouse.entity.ImportRequestDetail;
-import capstonesu25.warehouse.entity.Item;
-import capstonesu25.warehouse.entity.Provider;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestCreateWithDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
-import capstonesu25.warehouse.repository.ExportRequestRepository;
-import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
-import capstonesu25.warehouse.repository.ImportRequestRepository;
-import capstonesu25.warehouse.repository.ItemRepository;
-import capstonesu25.warehouse.repository.ProviderRepository;
+import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -29,6 +23,7 @@ public class ImportRequestDetailService {
     private final ImportRequestDetailRepository importRequestDetailRepository;
     private final ExportRequestRepository exportRequestRepository;
     private final ItemRepository itemRepository;
+    private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
 
@@ -43,6 +38,7 @@ public class ImportRequestDetailService {
         String importReason = firstRequest.getImportReason();
         ImportType importType = firstRequest.getImportType();
         String exportRequestId = firstRequest.getExportRequestId();
+
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
@@ -69,6 +65,45 @@ public class ImportRequestDetailService {
             importRequest.setStatus(RequestStatus.NOT_STARTED);
             importRequest.setType(importType);
             importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
+
+
+            Configuration configuration = configurationRepository.findAll()
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
+
+            LocalDate startDate = LocalDate.now();
+            LocalDate endDate = startDate.plusDays(configuration.getMaximumTimeForImportRequestProcess());
+
+            if(firstRequest.getEndDate() != null) {
+
+                if(firstRequest.getEndDate().isBefore(firstRequest.getStartDate())) {
+                    throw new IllegalArgumentException("End date cannot be before start date.");
+                }
+
+                long daysBetween = ChronoUnit.DAYS.between(firstRequest.getStartDate(), firstRequest.getEndDate());
+
+                if (daysBetween > configuration.getMaximumTimeForImportRequestProcess()) {
+                    throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
+                }
+
+                endDate = firstRequest.getEndDate();
+            }
+
+            if(firstRequest.getStartDate() != null) {
+                if(firstRequest.getStartDate().isAfter(endDate)) {
+                    throw new IllegalArgumentException("Start date cannot be after end date.");
+                }
+
+                if(firstRequest.getStartDate().isBefore(LocalDate.now())) {
+                    throw new IllegalArgumentException("Start date cannot be in the past.");
+                }
+
+                startDate = firstRequest.getStartDate();
+            }
+
+            importRequest.setStartDate(startDate);
+            importRequest.setEndDate(endDate);
 
             // Set export request if provided
             if (exportRequestId != null) {

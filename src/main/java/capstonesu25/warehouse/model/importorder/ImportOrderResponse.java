@@ -24,6 +24,8 @@ public class ImportOrderResponse {
     private String note;
     private RequestStatus status;
     private List<Long> importOrderDetailIds;
+    private LocalDate actualDateReceived;
+    private LocalTime actualTimeReceived;
     private String createdBy;
     private String updatedBy;
     private LocalDateTime createdDate;
