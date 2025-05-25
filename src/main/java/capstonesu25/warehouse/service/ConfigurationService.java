@@ -38,6 +38,7 @@ public class ConfigurationService {
         configuration.setTimeToAllowCancel(configurationDto.getTimeToAllowCancel());
         configuration.setDaysToAllowExtend(configurationDto.getDaysToAllowExtend());
         configuration.setMaxAllowedDaysForExtend(configurationDto.getMaxAllowedDaysForExtend());
+        configuration.setMaxAllowedDaysForImportRequestProcess(configurationDto.getMaxAllowedDaysForImportRequestProcess());
 
         Configuration updatedConfiguration = configurationRepository.save(configuration);
         return mapToDto(updatedConfiguration);
@@ -57,7 +58,8 @@ public class ConfigurationService {
                 configuration.getTimeToAllowConfirm(),
                 configuration.getTimeToAllowCancel(),
                 configuration.getDaysToAllowExtend(),
-                configuration.getMaxAllowedDaysForExtend()
+                configuration.getMaxAllowedDaysForExtend(),
+                configuration.getMaxAllowedDaysForImportRequestProcess()
         );
     }
 

@@ -72,7 +72,7 @@ public class ImportRequestService {
                 .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
 
         LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusDays(configuration.getMaximumTimeForImportRequestProcess());
+        LocalDate endDate = startDate.plusDays(configuration.getMaxAllowedDaysForImportRequestProcess());
 
         if(request.getEndDate() != null) {
 
@@ -82,7 +82,7 @@ public class ImportRequestService {
 
             long daysBetween = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
 
-            if (daysBetween > configuration.getMaximumTimeForImportRequestProcess()) {
+            if (daysBetween > configuration.getMaxAllowedDaysForImportRequestProcess()) {
                 throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
             }
 

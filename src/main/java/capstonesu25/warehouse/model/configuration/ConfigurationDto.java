@@ -21,4 +21,5 @@ public class ConfigurationDto {
     private LocalTime timeToAllowCancel;
     private Integer daysToAllowExtend;
     private Integer maxAllowedDaysForExtend;
+    private Integer maxAllowedDaysForImportRequestProcess;
 }
