@@ -363,10 +363,8 @@ public class ExportRequestService {
 
         if(status == RequestStatus.CANCELLED) {
             LOGGER.info("Updating export request status to CANCELLED");
-            if(exportRequest.getStatus() != RequestStatus.NOT_STARTED
-                    && exportRequest.getStatus() != RequestStatus.IN_PROGRESS
-                    && exportRequest.getStatus() != RequestStatus.COUNTED) {
-                throw new IllegalStateException("Cannot cancel export request: Status is not NOT_STARTED");
+            if(exportRequest.getStatus() == RequestStatus.COMPLETED) {
+                throw new IllegalStateException("Cannot cancel export request: Status is "+ exportRequest.getStatus());
             }
             LOGGER.info("Return working for pre confirm staff: {}",exportRequest.getAssignedStaff().getEmail());
             StaffPerformance staffPerformance = staffPerformanceRepository.findByExportRequestIdAndAssignedStaff_IdAndExportCounting
