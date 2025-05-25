@@ -49,5 +49,8 @@ public class Configuration {
     @Column(name = "max_allowed_date_for_extended")
     private Integer maxAllowedDateForExtended;
 
+    @Column(name = "maximum_time_for_import_request_process")
+    private Integer maximumTimeForImportRequestProcess;
+
 
 }

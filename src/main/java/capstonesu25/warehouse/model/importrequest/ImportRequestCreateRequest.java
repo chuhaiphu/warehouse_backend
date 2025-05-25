@@ -7,6 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,6 +20,10 @@ public class ImportRequestCreateRequest {
 
     @NotNull(message = "Import type cannot be null")
     private ImportType importType;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     private String exportRequestId;
 } 

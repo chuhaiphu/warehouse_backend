@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.entity.Configuration;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
@@ -7,6 +8,7 @@ import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
+import capstonesu25.warehouse.repository.ConfigurationRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -30,6 +33,7 @@ public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
     private final ExportRequestRepository exportRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
+    private final ConfigurationRepository configurationRepository;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
@@ -54,13 +58,52 @@ public class ImportRequestService {
 
     public ImportRequestResponse createImportRequest(ImportRequestCreateRequest request) {
         LOGGER.info("Create new import request");
-        
+
+
         ImportRequest importRequest = new ImportRequest();
         importRequest.setId(createImportRequestId());
         importRequest.setImportReason(request.getImportReason());
         importRequest.setType(request.getImportType());
         importRequest.setStatus(RequestStatus.NOT_STARTED);
-        
+
+        Configuration configuration = configurationRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
+
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(configuration.getMaximumTimeForImportRequestProcess());
+
+        if(request.getEndDate() != null) {
+
+            if(request.getEndDate().isBefore(request.getStartDate())) {
+                throw new IllegalArgumentException("End date cannot be before start date.");
+            }
+
+            long daysBetween = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
+
+            if (daysBetween > configuration.getMaximumTimeForImportRequestProcess()) {
+                throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
+            }
+
+            endDate = request.getEndDate();
+        }
+
+        if(request.getStartDate() != null) {
+            if(request.getStartDate().isAfter(endDate)) {
+                throw new IllegalArgumentException("Start date cannot be after end date.");
+            }
+
+            if(request.getStartDate().isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("Start date cannot be in the past.");
+            }
+
+            startDate = request.getStartDate();
+        }
+
+        importRequest.setStartDate(startDate);
+        importRequest.setEndDate(endDate);
+
         if (request.getExportRequestId() != null) {
             importRequest.setExportRequest(exportRequestRepository.findById(request.getExportRequestId())
                     .orElseThrow(() -> new NoSuchElementException("ExportRequest not found with ID: " + request.getExportRequestId())));
@@ -98,7 +141,9 @@ public class ImportRequestService {
                 importRequest.getUpdatedBy(),
                 importRequest.getCreatedDate(),
                 importRequest.getUpdatedDate(),
-                importRequest.getBatchCode()
+                importRequest.getBatchCode(),
+                importRequest.getStartDate(),
+                importRequest.getEndDate()
         );
     }
 
