@@ -18,5 +18,5 @@ public class ExtendImportOrderRequest {
     private LocalTime extendedTime;
     @NotNull(message = "Extend reason cannot be null")
     @NotEmpty(message = "Extend reason cannot be empty")
-    private String extendReason;
+    private String extendedReason;
 }

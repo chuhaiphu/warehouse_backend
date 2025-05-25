@@ -1,6 +1,6 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
+import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestCreateWithDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestDetailService;
@@ -27,23 +27,16 @@ public class ImportRequestDetailController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailController.class);
 
     @Operation(summary = "Get paginated import request details by import request ID")
-    @GetMapping("/page/{importRequestId}")
-    public ResponseEntity<?> getImportRequestDetails(@PathVariable String importRequestId,
-            @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit) {
+    @GetMapping("/import-request/{importRequestId}")
+    public ResponseEntity<?> getImportRequestDetails(@PathVariable String importRequestId) {
         LOGGER.info("Getting import request detail");
-        Page<ImportRequestDetailResponse> result = service.getImportRequestDetailsByImportRequestId(importRequestId,
-                page, limit);
+        List<ImportRequestDetailResponse> result = service.getImportRequestDetailsByImportRequestId(importRequestId);
 
         return ResponseUtil.getCollection(
-                result.getContent(),
+                result,
                 HttpStatus.OK,
                 "Successfully get import request detail",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
+                null);
     }
 
     @Operation(summary = "Get import request detail by ID")
@@ -56,18 +49,6 @@ public class ImportRequestDetailController {
                 "Successfully get import request detail");
     }
 
-    @Operation(summary = "Create import request details from file upload")
-    @PostMapping("/{importRequestId}")
-    public ResponseEntity<?> createImportRequestDetail(@RequestBody List<ImportRequestDetailRequest> request,
-            @PathVariable String importRequestId) {
-        LOGGER.info("Creating import request detail");
-        service.createImportRequestDetail(request, importRequestId);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.CREATED,
-                "Successfully created import request");
-    }
-
     @Operation(summary = "Delete import request details by import request ID")
     @DeleteMapping("/{importRequestDetailId}")
     public ResponseEntity<?> deleteImportRequestDetail(@PathVariable Long importRequestDetailId) {
@@ -77,5 +58,16 @@ public class ImportRequestDetailController {
                 null,
                 HttpStatus.OK,
                 "Successfully deleted import request");
+    }
+
+    @Operation(summary = "Create import requests with details")
+    @PostMapping("/import-requests-with-import-request-details")
+    public ResponseEntity<?> createImportRequestsWithDetails(@RequestBody List<ImportRequestCreateWithDetailRequest> request) {
+        LOGGER.info("Creating import requests with details");
+        List<String> createdIds = service.createImportRequestDetail(request);
+        return ResponseUtil.getObject(
+                createdIds,
+                HttpStatus.CREATED,
+                "Successfully created import requests with details");
     }
 }

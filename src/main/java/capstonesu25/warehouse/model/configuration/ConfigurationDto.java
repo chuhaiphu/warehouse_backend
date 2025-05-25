@@ -18,4 +18,7 @@ public class ConfigurationDto {
     private LocalTime createRequestTimeAtLeast;
     private LocalTime timeToAllowAssign;
     private LocalTime timeToAllowConfirm;
+    private LocalTime timeToAllowCancel;
+    private Integer daysToAllowExtend;
+    private Integer maxAllowedDaysForExtend;
 }

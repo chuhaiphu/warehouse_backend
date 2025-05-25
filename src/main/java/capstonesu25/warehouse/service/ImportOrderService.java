@@ -49,11 +49,10 @@ public class ImportOrderService {
         return mapToResponse(importOrder);
     }
 
-    public Page<ImportOrderResponse> getImportOrdersByImportRequestId(String id, int page, int limit) {
+    public List<ImportOrderResponse> getImportOrdersByImportRequestId(String id) {
         LOGGER.info("Get import orders by import request id: " + id);
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id, pageable);
-        return importOrders.map(this::mapToResponse);
+        List<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id);
+        return importOrders.stream().map(this::mapToResponse).toList();
     }
 
     public ImportOrderResponse create(ImportOrderCreateRequest request) {
@@ -295,14 +294,17 @@ public class ImportOrderService {
         handleImportItems(importOrder);
         // * Notification
         Map<String, Object> notificationPayload = new HashMap<>();
-        notificationPayload.put("id", importOrderId);
-        notificationPayload.put("message", "An import order has been confirmed.");
+        notificationPayload.put("objectId", importOrderId);
+        notificationPayload.put("content", "An import order has been completed.");
+        notificationPayload.put("isViewed", false);
+        notificationPayload.put("isClicked", false);
+        notificationPayload.put("createdDate", LocalDateTime.now().toString());
         notificationUtil.notify(NotificationUtil.DEPARTMENT_CHANNEL, NotificationUtil.IMPORT_ORDER_CONFIRMED_EVENT, notificationPayload);
         // *
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
-    public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime, String extendReason) {
+    public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime, String extendedReason) {
         LOGGER.info("Extending import order with ID: " + importOrderId);
 
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -323,14 +325,14 @@ public class ImportOrderService {
         importOrder.setStatus(RequestStatus.EXTENDED);
         importOrder.setExtended(true);
         if(extendedDate == null) {
-             extendedDate = importOrder.getDateReceived().plusDays(configuration.getMaxAllowedDateForExtended());
+             extendedDate = importOrder.getDateReceived().plusDays(configuration.getMaxAllowedDaysForExtend());
         }
         importOrder.setExtendedDate(extendedDate);
         if(extendedTime == null) {
             extendedTime = importOrder.getTimeReceived();
         }
         importOrder.setExtendedTime(extendedTime);
-        importOrder.setExtendedReason(extendReason);
+        importOrder.setExtendedReason(extendedReason);
 
         LOGGER.info("Auto assign staff after extended");
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();

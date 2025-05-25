@@ -4,8 +4,11 @@ import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.Provider;
-import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailRequest;
+import capstonesu25.warehouse.enums.ImportType;
+import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestCreateWithDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
+import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
@@ -13,14 +16,9 @@ import capstonesu25.warehouse.repository.ProviderRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -29,60 +27,66 @@ import java.util.*;
 public class ImportRequestDetailService {
     private final ImportRequestRepository importRequestRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
+    private final ExportRequestRepository exportRequestRepository;
     private final ItemRepository itemRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
-    private static final   String TODAY_PREFIX = LocalDate.now() + "_";
 
-    public void createImportRequestDetail(List<ImportRequestDetailRequest> detailRequests, String importRequestId) {
+    public List<String> createImportRequestDetail(List<ImportRequestCreateWithDetailRequest> detailRequests) {
         LOGGER.info("Creating import request detail svc");
+        
         // Validate that all items belong to the same provider
         checkSameProvider(detailRequests);
-        // Get the original import request to copy its properties
-        ImportRequest originalRequest = importRequestRepository.findById(importRequestId)
-                .orElseThrow(() -> new RuntimeException("Import request not found"));
+        
+        // Get common data from first request
+        ImportRequestCreateWithDetailRequest firstRequest = detailRequests.get(0);
+        String importReason = firstRequest.getImportReason();
+        ImportType importType = firstRequest.getImportType();
+        String exportRequestId = firstRequest.getExportRequestId();
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
 
-        // Group by providerId using the item's providers
-        Map<Long, List<ImportRequestDetailRequest>> requestsByProvider = new HashMap<>();
-
-        for (ImportRequestDetailRequest req : detailRequests) {
-            Item item = itemRepository.findById(req.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + req.getItemId()));
-
-            for (Provider provider : item.getProviders()) {
-                requestsByProvider
-                        .computeIfAbsent(provider.getId(), k -> new ArrayList<>())
-                        .add(req);
-            }
+        // Group by providerId
+        Map<Long, List<ImportRequestCreateWithDetailRequest>> requestsByProvider = new HashMap<>();
+        for (ImportRequestCreateWithDetailRequest req : detailRequests) {
+            requestsByProvider
+                    .computeIfAbsent(req.getProviderId(), k -> new ArrayList<>())
+                    .add(req);
         }
 
-        // Process each provider group
-        for (Map.Entry<Long, List<ImportRequestDetailRequest>> entry : requestsByProvider.entrySet()) {
-            Long providerId = entry.getKey();
-            List<ImportRequestDetailRequest> requests = entry.getValue();
+        List<String> createdImportRequestIds = new ArrayList<>();
 
-            // Create new ImportRequest for each provider
-            ImportRequest newImportRequest = new ImportRequest();
-            newImportRequest.setId(createImportRequestDetailId());
-            newImportRequest.setImportReason(originalRequest.getImportReason());
-            newImportRequest.setStatus(originalRequest.getStatus());
-            newImportRequest.setType(originalRequest.getType());
-            newImportRequest.setExportRequest(originalRequest.getExportRequest());
-            newImportRequest.setBatchCode(TODAY_PREFIX + batchSuffix);
+        // Process each provider group
+        for (Map.Entry<Long, List<ImportRequestCreateWithDetailRequest>> entry : requestsByProvider.entrySet()) {
+            Long providerId = entry.getKey();
+            List<ImportRequestCreateWithDetailRequest> requests = entry.getValue();
+
+            // Create ImportRequest for each provider
+            ImportRequest importRequest = new ImportRequest();
+            importRequest.setId(createImportRequestDetailId());
+            importRequest.setImportReason(importReason);
+            importRequest.setStatus(RequestStatus.NOT_STARTED);
+            importRequest.setType(importType);
+            importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
+
+            // Set export request if provided
+            if (exportRequestId != null) {
+                importRequest.setExportRequest(exportRequestRepository.findById(exportRequestId)
+                        .orElseThrow(() -> new RuntimeException("Export request not found with ID: " + exportRequestId)));
+            }
 
             // Set provider
             Provider provider = providerRepository.findById(providerId)
                     .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + providerId));
-            newImportRequest.setProvider(provider);
+            importRequest.setProvider(provider);
 
-            // Save the new import request
-            ImportRequest savedImportRequest = importRequestRepository.save(newImportRequest);
+            // Save the import request
+            ImportRequest savedImportRequest = importRequestRepository.save(importRequest);
+            createdImportRequestIds.add(savedImportRequest.getId());
 
             // Create import request details
-            for (ImportRequestDetailRequest req : requests) {
+            for (ImportRequestCreateWithDetailRequest req : requests) {
                 ImportRequestDetail detail = new ImportRequestDetail();
                 detail.setImportRequest(savedImportRequest);
                 detail.setExpectQuantity(req.getQuantity());
@@ -93,27 +97,22 @@ public class ImportRequestDetailService {
                 importRequestDetailRepository.save(detail);
             }
         }
-
-        // Delete the original empty import request
-        importRequestRepository.deleteById(importRequestId);
+        
+        return createdImportRequestIds;
     }
-
-
 
     public void deleteImportRequestDetail(Long importRequestDetailId) {
         LOGGER.info("Deleting import request detail");
         importRequestDetailRepository.deleteById(importRequestDetailId);
     }
 
-    public Page<ImportRequestDetailResponse> getImportRequestDetailsByImportRequestId(String importRequestId, int page, int limit) {
+    public List<ImportRequestDetailResponse>getImportRequestDetailsByImportRequestId(String importRequestId) {
         LOGGER.info("Getting import request detail for ImportRequest ID: {}", importRequestId);
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
-        Page<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
-                .findImportRequestDetailsByImportRequest_Id(importRequestId, pageable);
+        List<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
+                .findImportRequestDetailsByImportRequest_Id(importRequestId);
 
-        return importRequestDetails.map(this::mapToResponse);
+        return importRequestDetails.stream().map(this::mapToResponse).toList();
     }
-
 
     public ImportRequestDetailResponse getImportRequestDetailById(Long importRequestDetailId) {
         LOGGER.info("Getting import request detail for ImportRequestDetail ID: {}", importRequestDetailId);
@@ -123,17 +122,17 @@ public class ImportRequestDetailService {
 
     private OptionalInt findLatestBatchSuffixForToday() {
         LOGGER.info("Finding latest batch suffix for today");
-        List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(TODAY_PREFIX);
+        List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(getTodayPrefix());
 
         return requests.stream()
                 .map(ImportRequest::getBatchCode)
-                .map(code -> code.substring(TODAY_PREFIX.length()))
+                .map(code -> code.substring(getTodayPrefix().length()))
                 .mapToInt(Integer::parseInt)
                 .max(); // returns OptionalInt
     }
 
-    private void checkSameProvider(List<ImportRequestDetailRequest> request) {
-        for(ImportRequestDetailRequest itemOrder : request) {
+    private void checkSameProvider(List<ImportRequestCreateWithDetailRequest> request) {
+        for(ImportRequestCreateWithDetailRequest itemOrder : request) {
             Item item = itemRepository.findById(itemOrder.getItemId())
                     .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemOrder.getItemId()));
             boolean providerMatch = item.getProviders().stream()
@@ -163,10 +162,9 @@ public class ImportRequestDetailService {
         String prefix = "PN";
         LocalDate today = LocalDate.now();
 
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-
-        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+        int todayCount = (int) importRequestRepository.findAll().stream()
+                .filter(req -> req.getId().startsWith(prefix + "-" + today.format(DateTimeFormatter.BASIC_ISO_DATE)))
+                .count();
 
         String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
         String sequence = String.format("%03d", todayCount + 1);
@@ -174,5 +172,7 @@ public class ImportRequestDetailService {
         return String.format("%s-%s-%s", prefix, datePart, sequence);
     }
 
-
+    private String getTodayPrefix() {
+        return LocalDate.now() + "_";
+    }
 }

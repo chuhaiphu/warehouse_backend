@@ -16,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/import-order")
 @RequiredArgsConstructor
@@ -25,22 +27,15 @@ public class ImportOrderController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderController.class);
 
     @Operation(summary = "Get all import orders for a specific import request")
-    @GetMapping("/page/{importRequestId}")
-    public ResponseEntity<?> getAllImportOrdersByImportRequestId(@PathVariable String importRequestId, @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
+    @GetMapping("/import-request/{importRequestId}")
+    public ResponseEntity<?> getAllImportOrdersByImportRequestId(@PathVariable String importRequestId) {
         LOGGER.info("Getting all import orders");
-        Page<ImportOrderResponse> result = importOrderService.getImportOrdersByImportRequestId(importRequestId, page,
-                limit);
+        List<ImportOrderResponse> result = importOrderService.getImportOrdersByImportRequestId(importRequestId);
         return ResponseUtil.getCollection(
-                result.getContent(),
+                result,
                 HttpStatus.OK,
                 "Successfully get import orders",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
+                null);
     }
 
     @Operation(summary = "Get import order by ID")
@@ -164,7 +159,7 @@ public class ImportOrderController {
         ImportOrderResponse result = importOrderService.extendImportOrder(request.getImportOrderId(),
                 request.getExtendedDate(),
                 request.getExtendedTime(),
-                request.getExtendReason());
+                request.getExtendedReason());
         return ResponseUtil.getObject(
                 result,
                 HttpStatus.OK,
