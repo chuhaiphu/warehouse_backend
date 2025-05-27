@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;;
 @AllArgsConstructor
 public class RegisterResponse {
     private Long id;
+    private String username;
     private String email;
     private String phone;
     private String fullName;

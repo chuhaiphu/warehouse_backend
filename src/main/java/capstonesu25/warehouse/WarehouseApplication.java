@@ -228,7 +228,8 @@ public class WarehouseApplication {
 
 			// Replace the direct account creation with RegisterRequest
 			RegisterRequest admin = RegisterRequest.builder()
-				.email("admin@gmail.com")
+				.username("admin")
+				.email("admin@warehouse.com")
 				.password("12345")
 				.phone("0901234567")
 				.fullName("Nguyễn Văn Admin")
@@ -237,7 +238,8 @@ public class WarehouseApplication {
 			accountService.register(admin);
 
 			RegisterRequest warehouseManager = RegisterRequest.builder()
-				.email("quanly@gmail.com")
+				.username("quanly")
+				.email("quanly@warehouse.com")
 				.password("12345")
 				.phone("0912345678")
 				.fullName("Trần Thị Quản Lý")
@@ -246,7 +248,8 @@ public class WarehouseApplication {
 			accountService.register(warehouseManager);
 
 			RegisterRequest department = RegisterRequest.builder()
-				.email("phongban@gmail.com")
+				.username("phongban")
+				.email("phongban@warehouse.com")
 				.password("12345")
 				.phone("0923456789")
 				.fullName("Lê Văn Phòng")
@@ -255,7 +258,8 @@ public class WarehouseApplication {
 			accountService.register(department);
 
 			RegisterRequest staff1 = RegisterRequest.builder()
-				.email("nhanvien1@gmail.com")
+				.username("nhanvien1")
+				.email("nhanvien1@warehouse.com")
 				.password("12345")
 				.phone("0934567890")
 				.fullName("Phạm Thị Nhân")
@@ -264,7 +268,8 @@ public class WarehouseApplication {
 			accountService.register(staff1);
 			
 			RegisterRequest staff2 = RegisterRequest.builder()
-				.email("nhanvien2@gmail.com")
+				.username("nhanvien2")
+				.email("nhanvien2@warehouse.com")
 				.password("12345")
 				.phone("0945678901")
 				.fullName("Hoàng Văn Viên")
@@ -273,7 +278,8 @@ public class WarehouseApplication {
 			accountService.register(staff2);
 
 			RegisterRequest staff3 = RegisterRequest.builder()
-				.email("nhanvien3@gmail.com")
+				.username("nhanvien3")
+				.email("nhanvien3@warehouse.com")
 				.password("12345")
 				.phone("0956789012")
 				.fullName("Trần Văn Vũ")
@@ -282,7 +288,8 @@ public class WarehouseApplication {
 			accountService.register(staff3);
 
 			RegisterRequest staff4 = RegisterRequest.builder()
-				.email("nhanvien4@gmail.com")
+				.username("nhanvien4")
+				.email("nhanvien4@warehouse.com")
 				.password("12345")
 				.phone("0967890123")
 				.fullName("Nguyễn Thị Hà")
@@ -291,7 +298,8 @@ public class WarehouseApplication {
 			accountService.register(staff4);
 
 			RegisterRequest staff5 = RegisterRequest.builder()
-				.email("nhanvien5@gmail.com")
+				.username("nhanvien5")
+				.email("nhanvien5@warehouse.com")
 				.password("12345")
 				.phone("0978901234")
 				.fullName("Lê Văn Đại")

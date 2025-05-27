@@ -45,10 +45,10 @@ public class AccountService implements LogoutHandler {
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
         
-        Account account = accountRepository.findByEmail(request.getEmail())
+        Account account = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         String accessToken = jwtService.generateAccessToken(account);
@@ -64,11 +64,15 @@ public class AccountService implements LogoutHandler {
     }
 
     public RegisterResponse register(RegisterRequest request) {
+        if (accountRepository.existsByUsername(request.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
+        }
         if (accountRepository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
 
         Account account = Account.builder()
+                .username(request.getUsername())
                 .email(request.getEmail())
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
@@ -83,6 +87,7 @@ public class AccountService implements LogoutHandler {
 
         return RegisterResponse.builder()
                 .id(savedAccount.getId())
+                .username(savedAccount.getUsername())
                 .email(savedAccount.getEmail())
                 .phone(savedAccount.getPhone())
                 .fullName(savedAccount.getFullName())
