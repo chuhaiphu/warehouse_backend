@@ -88,7 +88,7 @@ public class PusherAuthService {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
-        String email = authentication.getName();
-        return accountRepository.findByEmail(email).orElse(null);
+        String username = authentication.getName();
+        return accountRepository.findByUsername(username).orElse(null);
     }
 }
