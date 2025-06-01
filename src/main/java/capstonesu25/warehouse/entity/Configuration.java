@@ -52,5 +52,8 @@ public class Configuration {
     @Column(name = "max_allowed_days_for_import_request_process")
     private Integer maxAllowedDaysForImportRequestProcess;
 
+    @Column(name = "max_dispatch_error_percent")
+    private Integer maxDispatchErrorPercent;
+
 
 }

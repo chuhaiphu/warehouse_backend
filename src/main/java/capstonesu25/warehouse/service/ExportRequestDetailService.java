@@ -130,12 +130,17 @@ public class ExportRequestDetailService {
     private void chooseInventoryItemsForThoseCases(ExportRequestDetail exportRequestDetail) {
         switch (exportRequestDetail.getExportRequest().getType()) {
             case RETURN -> {
-            //TODO
+                //TODO
             }
             case BORROWING, PARTIAL -> autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
             case LIQUIDATION -> autoChooseInventoryItemsForLiquidation(exportRequestDetail);
-            default -> // case PRODUCTION
-                    autoChooseInventoryItemsForProduction(exportRequestDetail);
+            default -> {
+                // case PRODUCTION
+            if (exportRequestDetail.getExportRequest().getDepartmentId() == null) {
+                autoChooseInventoryItemsForOutside(exportRequestDetail);
+            } else
+                autoChooseInventoryItemsForProduction(exportRequestDetail);
+            }
         }
     }
     private void autoChooseInventoryItemsForProduction(ExportRequestDetail exportRequestDetail) {
@@ -159,6 +164,50 @@ public class ExportRequestDetailService {
         for(InventoryItem inventoryItem : sortedInventoryItems) {
            inventoryItem.setExportRequestDetail(exportRequestDetail);
            inventoryItemRepository.save(inventoryItem);
+        }
+    }
+
+    private void autoChooseInventoryItemsForOutside(ExportRequestDetail exportRequestDetail) {
+        LOGGER.info("Auto choosing inventory items for outside export");
+        List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_Id(exportRequestDetail.getItem().getId());
+
+        //  sort by measurement value (min first)
+        List<InventoryItem> sortedInventoryItems = inventoryItemList.stream()
+                .sorted(Comparator.comparing(InventoryItem::getMeasurementValue))
+                .toList();
+        Configuration configuration = configurationRepository.findAll().getFirst();
+        double requestedMeasurement = exportRequestDetail.getMeasurementValue();
+        double maxAllowedMeasurement = requestedMeasurement + (requestedMeasurement * configuration.getMaxDispatchErrorPercent() / 100);
+
+        List<InventoryItem> selectedItems = new ArrayList<>();
+        double total = 0.0;
+
+        for (InventoryItem item : sortedInventoryItems) {
+            if (total >= requestedMeasurement) break;
+
+            double nextTotal = total + item.getMeasurementValue();
+
+            if (nextTotal <= maxAllowedMeasurement) {
+                selectedItems.add(item);
+                total = nextTotal;
+            } else {
+                continue;
+            }
+        }
+
+        if (total < requestedMeasurement || total > maxAllowedMeasurement) {
+            throw new IllegalArgumentException("Không thể chọn được inventory items với tổng measurement trong khoảng yêu cầu ("
+                    + requestedMeasurement + " đến " + maxAllowedMeasurement + "). Kết quả hiện tại: " + total);
+        }
+
+       LOGGER.info("save quantity");
+        exportRequestDetail.setQuantity(selectedItems.size());
+        exportRequestDetailRepository.save(exportRequestDetail);
+
+        LOGGER.info("Selected inventory items for outside export request detail ID: {}", exportRequestDetail.getId());
+        for(InventoryItem item : selectedItems) {
+            item.setExportRequestDetail(exportRequestDetail);
+            inventoryItemRepository.save(item);
         }
     }
 

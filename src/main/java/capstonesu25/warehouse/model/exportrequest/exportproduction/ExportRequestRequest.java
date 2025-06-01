@@ -21,9 +21,9 @@ public class ExportRequestRequest {
 
     private String receiverPhone;
 
-    private Long departmentId;
-
     private String receiverAddress;
+
+    private Long departmentId;
 
     private LocalDate countingDate;
 

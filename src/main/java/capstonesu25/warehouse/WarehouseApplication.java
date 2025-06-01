@@ -33,7 +33,8 @@ public class WarehouseApplication {
 			StoredLocationRepository storedLocationRepo,
 			AccountRepository accountRepo,
 			AccountService accountService,
-			ConfigurationRepository configurationRepo
+			ConfigurationRepository configurationRepo,
+			DepartmentRepository departmentRepo
 	) {
 		return args -> {
 			if (categoryRepo.count() > 0) {
@@ -68,7 +69,8 @@ public class WarehouseApplication {
 					LocalTime.parse("23:00"),
 					7,
 					7,
-					30
+					30,
+					5
 			);
 			configurationRepo.save(configuration);
 
@@ -91,36 +93,36 @@ public class WarehouseApplication {
 			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
 
 			// Items từ Provider 1 - Công ty Dệt may Phong Phú và Provider 2
-			Item vai1 = new Item("VAI-KT-001", "Vải Kate", "Vải kate 65/35", "mét", 1500.0, 1.0, 1500, "Vải", 730, 100, 2000,5,configuration, cat1, List.of(prov1, prov2), null, null, null, null, null);
-			Item vai3 = new Item("VAI-KK-001", "Vải Kaki", "Vải kaki thun", "mét", 1000.0, 1.0, 1000, "Vải", 730, 150, 2500,5,configuration, cat1, List.of(prov1), null, null, null, null, null);
+			Item vai1 = new Item("VAI-KT-001", "Vải Kate", "Vải kate 65/35", "mét", 0.0, 200.0, 0, "Vải", 730, 100, 2000,5,configuration, cat1, List.of(prov1, prov2), null, null, null, null, null);
+			Item vai3 = new Item("VAI-KK-001", "Vải Kaki", "Vải kaki thun", "mét", 0.0, 200.0, 0, "Vải", 730, 150, 2500,5,configuration, cat1, List.of(prov1), null, null, null, null, null);
 
 			// Items từ Provider 2 - Công ty CP Dệt may Nam Định và Provider 1
-			Item vai2 = new Item("VAI-JE-001", "Vải Jean", "Vải jean 100% cotton", "mét", 2000.0, 1.0, 2000, "Vải", 730, 200, 3000,5,configuration, cat1, List.of(prov2, prov1), null, null, null, null, null);
-			Item vai4 = new Item("VAI-TH-001", "Vải Thun", "Vải thun cotton 4 chiều", "mét", 800.0, 1.0, 800, "Vải", 730, 100, 1500,5,configuration, cat1, List.of(prov2), null, null, null, null, null);
+			Item vai2 = new Item("VAI-JE-001", "Vải Jean", "Vải jean 100% cotton", "mét", 0.0, 140.0, 0, "Vải", 730, 200, 3000,5,configuration, cat1, List.of(prov2, prov1), null, null, null, null, null);
+			Item vai4 = new Item("VAI-TH-001", "Vải Thun", "Vải thun cotton 4 chiều", "mét", 0.0, 150.0, 0, "Vải", 730, 100, 1500,5,configuration, cat1, List.of(prov2), null, null, null, null, null);
 
 			// Items từ Provider 3 - Công ty TNHH Phụ liệu may Việt Nam và Provider 6
-			Item nut1 = new Item("NUT-NH-001", "Nút nhựa 4 lỗ", "Nút nhựa màu trắng", "bịch", 100.0, 1.0, 100, "Nút", 365, 20, 200,5,configuration, cat2,  List.of(prov3, prov6), null, null, null, null, null);
-			Item nut2 = new Item("NUT-KL-001", "Nút kim loại", "Nút jean kim loại", "bịch", 50.0, 1.0, 50, "Nút", 365, 10, 100,5,configuration, cat2, List.of(prov3), null, null, null, null, null);
-			Item chi3 = new Item("CHI-JE-001", "Chỉ jean", "Chỉ may jean đặc biệt", "cuộn", 100.0, 1.0, 100, "Chỉ", 730, 20, 200,5,configuration, cat3, List.of(prov3, prov4), null, null, null, null, null);
-			Item chi4 = new Item("CHI-TH-001", "Chỉ thêu", "Chỉ thêu đa màu", "cuộn", 80.0, 1.0, 80, "Chỉ", 730, 15, 150,5,configuration, cat3, List.of(prov3), null, null, null, null, null);
-			Item kim1 = new Item("KIM-TH-001", "Kim may thường", "Kim may size 90/14", "hộp", 50.0, 1.0, 50, "Kim", 365, 10, 100,5,configuration, cat4, List.of(prov3), null, null, null, null, null);
-			Item kim2 = new Item("KIM-JE-001", "Kim may jean", "Kim may jean size 100/16", "hộp", 40.0, 1.0, 40, "Kim", 365, 8, 80,5,configuration, cat4, List.of(prov3, prov6), null, null, null, null, null);
+			Item nut1 = new Item("NUT-NH-001", "Nút nhựa 4 lỗ", "Nút nhựa màu trắng", "bịch", 0.0, 300.0, 0, "Nút", 365, 20, 200,5,configuration, cat2,  List.of(prov3, prov6), null, null, null, null, null);
+			Item nut2 = new Item("NUT-KL-001", "Nút kim loại", "Nút jean kim loại", "bịch", 0.0, 250.0, 0, "Nút", 365, 10, 100,5,configuration, cat2, List.of(prov3), null, null, null, null, null);
+			Item chi3 = new Item("CHI-JE-001", "Chỉ jean", "Chỉ may jean đặc biệt", "cuộn", 0.0, 300.0, 0, "Chỉ", 730, 20, 200,5,configuration, cat3, List.of(prov3, prov4), null, null, null, null, null);
+			Item chi4 = new Item("CHI-TH-001", "Chỉ thêu", "Chỉ thêu đa màu", "cuộn", 0.0, 120.0, 0, "Chỉ", 730, 15, 150,5,configuration, cat3, List.of(prov3), null, null, null, null, null);
+			Item kim1 = new Item("KIM-TH-001", "Kim may thường", "Kim may size 90/14", "hộp", 0.0, 200.0, 0, "Kim", 365, 10, 100,5,configuration, cat4, List.of(prov3), null, null, null, null, null);
+			Item kim2 = new Item("KIM-JE-001", "Kim may jean", "Kim may jean size 100/16", "hộp", 0.0, 200.0, 0, "Kim", 365, 8, 80,5,configuration, cat4, List.of(prov3, prov6), null, null, null, null, null);
 
 			// Items từ Provider 4 - Công ty TNHH Thành Công và Provider 3
-			Item chi1 = new Item("CHI-PL-001", "Chỉ polyester", "Chỉ may polyester 40/2", "cuộn", 200.0, 1.0, 200, "Chỉ", 730, 50, 500,5,configuration, cat3, List.of(prov4, prov3), null, null, null, null, null);
-			Item chi2 = new Item("CHI-CT-001", "Chỉ cotton", "Chỉ may cotton 100%", "cuộn", 150.0, 1.0, 150, "Chỉ", 730, 30, 300,5,configuration, cat3, List.of(prov4), null, null, null, null, null);
+			Item chi1 = new Item("CHI-PL-001", "Chỉ polyester", "Chỉ may polyester 40/2", "cuộn", 0.0, 250.0, 0, "Chỉ", 730, 50, 500,5,configuration, cat3, List.of(prov4, prov3), null, null, null, null, null);
+			Item chi2 = new Item("CHI-CT-001", "Chỉ cotton", "Chỉ may cotton 100%", "cuộn", 0.0, 300.0, 0, "Chỉ", 730, 30, 300,5,configuration, cat3, List.of(prov4), null, null, null, null, null);
 
 			// Items từ Provider 5 - Công ty TNHH YKK Việt Nam
-			Item khoa1 = new Item("KHO-NH-001", "Khóa kéo nhựa", "Khóa kéo nhựa 20cm", "bịch", 100.0, 1.0, 100, "Khóa", 365, 20, 200,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
-			Item khoa2 = new Item("KHO-KL-001", "Khóa kéo kim loại", "Khóa kéo kim loại 15cm", "bịch", 80.0, 1.0, 80, "Khóa", 365, 15, 150,5,configuration, cat5, List.of(prov5, prov6), null, null, null, null, null);
-			Item khoa3 = new Item("KHO-JE-001", "Khóa kéo jean", "Khóa kéo jean YKK", "bịch", 60.0, 1.0, 60, "Khóa", 365, 10, 100,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
-			Item khoa4 = new Item("KHO-AK-001", "Khóa kéo áo khoác", "Khóa kéo 2 chiều", "bịch", 40.0, 1.0, 40, "Khóa", 365, 8, 80,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
+			Item khoa1 = new Item("KHO-NH-001", "Khóa kéo nhựa", "Khóa kéo nhựa 20cm", "bịch", 0.0, 150.0, 0, "Khóa", 365, 20, 200,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
+			Item khoa2 = new Item("KHO-KL-001", "Khóa kéo kim loại", "Khóa kéo kim loại 15cm", "bịch", 0.0, 100.0, 0, "Khóa", 365, 15, 150,5,configuration, cat5, List.of(prov5, prov6), null, null, null, null, null);
+			Item khoa3 = new Item("KHO-JE-001", "Khóa kéo jean", "Khóa kéo jean YKK", "bịch", 0.0, 100.0, 0, "Khóa", 365, 10, 100,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
+			Item khoa4 = new Item("KHO-AK-001", "Khóa kéo áo khoác", "Khóa kéo 2 chiều", "bịch", 0.0, 350.0, 0, "Khóa", 365, 8, 80,5,configuration, cat5, List.of(prov5), null, null, null, null, null);
 
 			// Items từ Provider 6 - Công ty TNHH Phụ liệu may Phương Nam và Provider 2
-			Item nut3 = new Item("NUT-VS-001", "Nút áo vest", "Nút áo vest cao cấp", "bịch", 30.0, 1.0, 30, "Nút", 365, 5, 50,5,configuration, cat2, List.of(prov6, prov2), null, null, null, null, null);
-			Item nut4 = new Item("NUT-GO-001", "Nút gỗ", "Nút gỗ tự nhiên", "bịch", 40.0, 1.0, 40, "Nút", 365, 8, 80,5,configuration, cat2, List.of(prov6), null, null, null, null, null);
-			Item kim3 = new Item("KIM-DA-001", "Kim may da", "Kim may da đặc biệt", "hộp", 30.0, 1.0, 30, "Kim", 365, 5, 50,5,configuration, cat4, List.of(prov6, prov3), null, null, null, null, null);
-			Item kim4 = new Item("KIM-TH-002", "Kim thêu", "Kim thêu các loại", "hộp", 25.0, 1.0, 25, "Kim", 365, 5, 40,5,configuration, cat4, List.of(prov6), null, null, null, null, null);
+			Item nut3 = new Item("NUT-VS-001", "Nút áo vest", "Nút áo vest cao cấp", "bịch", 0.0, 300.0, 0, "Nút", 365, 5, 50,5,configuration, cat2, List.of(prov6, prov2), null, null, null, null, null);
+			Item nut4 = new Item("NUT-GO-001", "Nút gỗ", "Nút gỗ tự nhiên", "bịch", 0.0, 250.0, 0, "Nút", 365, 8, 80,5,configuration, cat2, List.of(prov6), null, null, null, null, null);
+			Item kim3 = new Item("KIM-DA-001", "Kim may da", "Kim may da đặc biệt", "hộp", 0.0, 250.0, 0, "Kim", 365, 5, 50,5,configuration, cat4, List.of(prov6, prov3), null, null, null, null, null);
+			Item kim4 = new Item("KIM-TH-002", "Kim thêu", "Kim thêu các loại", "hộp", 0.0, 250.0, 0, "Kim", 365, 5, 40,5,configuration, cat4, List.of(prov6), null, null, null, null, null);
 
 			// Lưu tất cả các items
 			itemRepo.saveAll(List.of(
@@ -225,6 +227,108 @@ public class WarehouseApplication {
 					locE1, locE2, locE3, locE4,
 					locF1, locF2, locF3, locF4
 			));
+
+			Department department1 = new Department(
+					null,
+					"Phòng ban A",
+					"Nguyễn Văn A",
+					"123 Đường Số 1, Quận 1, TP.HCM",
+					"0901234567"
+			);
+
+			Department department2 = new Department(
+					null,
+					"Phòng ban B",
+					"Trần Thị B",
+					"456 Đường Số 2, Quận 2, TP.HCM",
+					"0912345678"
+			);
+			Department department3 = new Department(
+					null,
+					"Phòng ban C",
+					"Lê Văn C",
+					"789 Đường Số 3, Quận 3, TP.HCM",
+					"0923456789"
+			);
+
+			Department department4 = new Department(
+					null,
+					"Phòng ban D",
+					"Phạm Thị D",
+					"101 Đường Số 4, Quận 4, TP.HCM",
+					"0934567890"
+			);
+
+			Department department5 = new Department(
+					null,
+					"Phòng ban E",
+					"Hoàng Văn E",
+					"202 Đường Số 5, Quận 5, TP.HCM",
+					"0945678901"
+			);
+
+			Department department6 = new Department(
+					null,
+					"Phòng ban F",
+					"Đặng Thị F",
+					"303 Đường Số 6, Quận 6, TP.HCM",
+					"0956789012"
+			);
+
+			Department department7 = new Department(
+					null,
+					"Phòng ban G",
+					"Ngô Văn G",
+					"404 Đường Số 7, Quận 7, TP.HCM",
+					"0967890123"
+			);
+
+			Department department8 = new Department(
+					null,
+					"Phòng ban H",
+					"Vũ Thị H",
+					"505 Đường Số 8, Quận 8, TP.HCM",
+					"0978901234"
+			);
+
+			Department department9 = new Department(
+					null,
+					"Phòng ban I",
+					"Bùi Văn I",
+					"606 Đường Số 9, Quận 9, TP.HCM",
+					"0989012345"
+			);
+
+			Department department10 = new Department(
+					null,
+					"Phòng ban J",
+					"Đỗ Thị J",
+					"707 Đường Số 10, Quận 10, TP.HCM",
+					"0990123456"
+			);
+
+			Department department11 = new Department(
+					null,
+					"Phòng ban K",
+					"Trịnh Văn K",
+					"808 Đường Số 11, Quận 11, TP.HCM",
+					"0901122334"
+			);
+
+			Department department12 = new Department(
+					null,
+					"Phòng ban L",
+					"Mai Thị L",
+					"909 Đường Số 12, Quận 12, TP.HCM",
+					"0911223344"
+			);
+
+			departmentRepo.saveAll(List.of(
+					department1, department2, department3, department4,
+					department5, department6, department7, department8,
+					department9, department10, department11, department12
+			));
+
 
 			// Replace the direct account creation with RegisterRequest
 			RegisterRequest admin = RegisterRequest.builder()

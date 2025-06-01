@@ -38,6 +38,7 @@ public class ExportRequestService {
     private final StoredLocationRepository storedLocationRepository;
     private final ItemRepository itemRepository;
     private final AccountService accountService;
+    private final DepartmentRepository departmentRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
     public List<ExportRequestResponse> getAllExportRequests() {
@@ -250,12 +251,20 @@ public class ExportRequestService {
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
-        if(request.getDepartmentId() != null) {
-            exportRequest.setDepartmentId(request.getDepartmentId());
-        }
         exportRequest.setReceiverName(request.getReceiverName());
         exportRequest.setReceiverPhone(request.getReceiverPhone());
         exportRequest.setReceiverAddress(request.getReceiverAddress());
+
+        if(request.getDepartmentId() != null) {
+           Department department = departmentRepository.findById(request.getDepartmentId()).orElseThrow(
+                   () -> new IllegalArgumentException("Department not found with ID: " + request.getDepartmentId())
+           );
+            exportRequest.setDepartmentId(department.getId());
+            exportRequest.setReceiverName(department.getDepartmentResponsible());
+            exportRequest.setReceiverPhone(department.getPhone());
+            exportRequest.setReceiverAddress(department.getLocation());
+        }
+
         exportRequest.setType(request.getType());
 
         LOGGER.info("Check counting date and counting time is valid?");
