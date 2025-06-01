@@ -52,6 +52,8 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("token_type", "ACCESS");
         claims.put("role", extractRoleFromUserDetails(userDetails));
+        claims.put("id", account.getId());
+        claims.put("username", account.getUsername());
         claims.put("email", account.getEmail());
         claims.put("full_name", account.getFullName());
         
@@ -67,7 +69,7 @@ public class JwtService {
         Account account = (Account) userDetails;
         Map<String, Object> claims = new HashMap<>();
         claims.put("token_type", "REFRESH");
-        claims.put("email", account.getEmail());
+        claims.put("username", account.getUsername());
         
         return buildToken(
             claims,
@@ -117,8 +119,8 @@ public class JwtService {
     }
 
     public Boolean isTokenValid(String token, UserDetails userDetails, TokenType tokenType) {
-        final String email = extractClaim(token, claims -> claims.get("email", String.class), tokenType);
-        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token, tokenType));
+        final String username = extractClaim(token, claims -> claims.get("username", String.class), tokenType);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token, tokenType));
     }
 
     public boolean isTokenExpired(String token, TokenType tokenType) {

@@ -40,7 +40,7 @@ public class AccountController {
     @Operation(summary = "Authenticate user")
     @PostMapping("/login")
     public ResponseEntity<?> authenticate(@Valid @RequestBody AuthenticationRequest request) {
-        LOGGER.info("Authenticating user with email: {}", request.getEmail());
+        LOGGER.info("Authenticating user with username: {}", request.getUsername());
         AuthenticationResponse response = accountService.authenticate(request);
         return ResponseUtil.getObject(
                 response,

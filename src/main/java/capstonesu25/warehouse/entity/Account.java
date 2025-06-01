@@ -25,6 +25,9 @@ public class Account implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "username", unique = true, nullable = false)
+    private String username;
+
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
@@ -79,7 +82,7 @@ public class Account implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override

@@ -19,6 +19,10 @@ public class RegisterRequest {
     @NotBlank(message = "Name can not be blank")
     private String fullName;
 
+    @NotNull(message = "Username can not be null")
+    @NotBlank(message = "Username can not be blank")
+    private String username;
+
     @NotNull(message = "Email can not be null")
     @NotBlank(message = "Email can not be blank")
     @Email

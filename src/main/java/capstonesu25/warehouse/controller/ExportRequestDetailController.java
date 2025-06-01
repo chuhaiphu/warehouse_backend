@@ -77,7 +77,7 @@ public class ExportRequestDetailController {
         LOGGER.info("Updating actual quantity for export request detail with ID: {}", request.getExportRequestDetailId());
         return ResponseUtil.getObject(
                 service.updateActualQuantity(
-                        request.getExportRequestDetailId(), request.getActualQuantity()),
+                        request.getExportRequestDetailId(), request.getInventoryItemId()),
             HttpStatus.OK,
             "Successfully updated actual quantity"
         );

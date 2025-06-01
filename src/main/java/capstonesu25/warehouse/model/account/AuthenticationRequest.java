@@ -15,8 +15,7 @@ import lombok.NoArgsConstructor;
 public class AuthenticationRequest {
     @NotNull(message = "can not be null")
     @NotBlank(message = "can not be blank")
-    @Email
-    private String email;
+    private String username;
 
     @NotNull(message = "can not be null")
     @NotBlank(message = "can not be blank")

@@ -389,6 +389,7 @@ public class ExportRequestService {
                         .forEach(inventoryItem -> {
                             LOGGER.info("Update item status to AVAILABLE: {}", inventoryItem.getId());
                             inventoryItem.setStatus(ItemStatus.AVAILABLE);
+                            inventoryItem.setIsTrackingForExport(false);
                             inventoryItem.setExportRequestDetail(null);
                             inventoryItemRepository.save(inventoryItem);
                         });

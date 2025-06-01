@@ -110,20 +110,25 @@ public class ExportRequestDetailService {
     }
 
 
-    public ExportRequestDetailResponse updateActualQuantity(Long exportRequestDetailId, Integer actual) {
+    public ExportRequestDetailResponse updateActualQuantity(Long exportRequestDetailId, String inventoryItemId) {
         LOGGER.info("Updating actual quantity for export request detail with ID: {}", exportRequestDetailId);
         ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
                 .orElseThrow(() -> new RuntimeException("Export request detail not found"));
-        exportRequestDetail.setActualQuantity(actual);
-        if(actual > exportRequestDetail.getQuantity()) {
-            throw new RuntimeException("Just allow to update actual quantity to match or less than quantity");
-        }
-        if(actual.equals(exportRequestDetail.getQuantity())) {
-            exportRequestDetail.setStatus(DetailStatus.MATCH);
-        }
-        if(actual < exportRequestDetail.getQuantity()) {
-            exportRequestDetail.setStatus(DetailStatus.LACK);
-        }
+       InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryItemId)
+               .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+
+       if(!exportRequestDetail.getInventoryItems().contains(inventoryItem)) {
+           throw new IllegalArgumentException("Inventory item with ID: "+inventoryItemId+ "is not stable for export request detail ");
+       }
+
+       if(inventoryItem.getIsTrackingForExport() == true) {
+           throw new IllegalArgumentException("Inventory item with ID: "+inventoryItemId+" has been tracked");
+       }
+
+       exportRequestDetail.setActualQuantity(exportRequestDetail.getActualQuantity() + 1);
+       inventoryItem.setIsTrackingForExport(true);
+       inventoryItemRepository.save(inventoryItem);
+
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }
 
