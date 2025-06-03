@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.paper.PaperRequest;
 import capstonesu25.warehouse.model.paper.PaperResponse;
@@ -18,9 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +28,8 @@ public class PaperService {
     private final ImportOrderRepository importOrderRepository;
     private final ExportRequestRepository exportRequestRepository;
     private final CloudinaryUtil cloudinaryUtil;
-    private final NotificationUtil notificationUtil;
+    private final NotificationService notificationService;
+    private final AccountRepository accountRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PaperService.class);
 
@@ -84,10 +84,13 @@ public class PaperService {
         }
         paperRepository.save(paper);
         // * Notification
-        Map<String, Object> notificationPayload = new HashMap<>();
-        notificationPayload.put("id", request.getImportOrderId());
-        notificationPayload.put("message", "An import order has been counted.");
-        notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_COUNTED_EVENT, notificationPayload);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.IMPORT_ORDER_COUNTED_EVENT,
+            request.getImportOrderId(),
+            "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
     }
 
 

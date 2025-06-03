@@ -1,7 +1,5 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.entity.Notification;
-import capstonesu25.warehouse.model.notification.NotificationRequest;
 import capstonesu25.warehouse.service.NotificationService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,8 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/notification")

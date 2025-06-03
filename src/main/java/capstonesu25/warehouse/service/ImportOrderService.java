@@ -38,8 +38,7 @@ public class ImportOrderService {
     private final InventoryItemRepository inventoryItemRepository;
     private final StoredLocationRepository storedLocationRepository;
     private final ItemRepository itemRepository;
-    private final NotificationRepository notificationRepository;
-    private final NotificationUtil notificationUtil;
+    private final NotificationService notificationService;
     private final AccountService accountService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
@@ -108,29 +107,14 @@ public class ImportOrderService {
         importRequestRepository.save(importRequest);
         ImportOrder order = importOrderRepository.save(importOrder);
 
-        // *** Notification
-        Map<String, Object> notificationPayload = new HashMap<>();
-        notificationPayload.put("objectId", order.getId());
-        notificationPayload.put("content", "An import order has been created.");
-        notificationPayload.put("isViewed", false);
-        notificationPayload.put("isClicked", false);
-        notificationPayload.put("createdDate", LocalDateTime.now().toString());
-        notificationUtil.notify(NotificationUtil.WAREHOUSE_MANAGER_CHANNEL, NotificationUtil.IMPORT_ORDER_CREATED_EVENT, notificationPayload);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.IMPORT_ORDER_CREATED_EVENT,
+            order.getId(),
+            "Đơn nhập mã #" + order.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         
-        // Create and save actual Notification entity objects for warehouse managers
-        List<Account> warehouseManagers = accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER);
-        for (Account manager : warehouseManagers) {
-            Notification notification = Notification.builder()
-                .receiver(manager)
-                .objectId(order.getId())
-                .content("An import order has been created.")
-                .isViewed(false)
-                .isClicked(false)
-                .createdDate(LocalDateTime.now())
-                .build();
-            notificationRepository.save(notification);
-        }
-        // ***
         return mapToResponse(importOrderRepository.save(order));
     }
 
@@ -280,6 +264,20 @@ public class ImportOrderService {
         }
         
         importOrder.setStatus(RequestStatus.CANCELLED);
+        notificationService.handleNotification(
+            NotificationUtil.DEPARTMENT_CHANNEL,
+            NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+            importOrderId,
+            "Đơn nhập mã #" + importOrderId + " đã bị hủy",
+            accountRepository.findByRole(AccountRole.DEPARTMENT)
+        );
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+            importOrderId,
+            "Đơn nhập mã #" + importOrderId + " đã bị hủy",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
@@ -292,15 +290,13 @@ public class ImportOrderService {
         updateImportOrder(importOrder);
         autoFillLocationForImport(importOrder);
         handleImportItems(importOrder);
-        // * Notification
-        Map<String, Object> notificationPayload = new HashMap<>();
-        notificationPayload.put("objectId", importOrderId);
-        notificationPayload.put("content", "An import order has been completed.");
-        notificationPayload.put("isViewed", false);
-        notificationPayload.put("isClicked", false);
-        notificationPayload.put("createdDate", LocalDateTime.now().toString());
-        notificationUtil.notify(NotificationUtil.DEPARTMENT_CHANNEL, NotificationUtil.IMPORT_ORDER_CONFIRMED_EVENT, notificationPayload);
-        // *
+        notificationService.handleNotification(
+            NotificationUtil.DEPARTMENT_CHANNEL,
+            NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT,
+            importOrderId,
+            "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
+            accountRepository.findByRole(AccountRole.DEPARTMENT)
+        );
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 
@@ -344,6 +340,13 @@ public class ImportOrderService {
 
         importOrder.setAssignedStaff(account);
         setTimeForStaffPerformance(importOrder.getAssignedStaff(), importOrder);
+        notificationService.handleNotification(
+            NotificationUtil.DEPARTMENT_CHANNEL,
+            NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
+            importOrderId,
+            "Đơn nhập mã #" + importOrderId + " đã được gia hạn",
+            accountRepository.findByRole(AccountRole.DEPARTMENT)
+        );
         return mapToResponse(importOrderRepository.save(importOrder));
     }
 

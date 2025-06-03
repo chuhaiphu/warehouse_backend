@@ -1,33 +1,26 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Account;
 import capstonesu25.warehouse.entity.Notification;
-import capstonesu25.warehouse.model.notification.NotificationRequest;
 import capstonesu25.warehouse.model.notification.NotificationResponse;
-import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.NotificationRepository;
+import capstonesu25.warehouse.utils.NotificationUtil;
+import capstonesu25.warehouse.entity.Account;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
     private final NotificationRepository notificationRepository;
-    private final AccountRepository accountRepository;
+    private final NotificationUtil notificationUtil;
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
-
-    public NotificationResponse createNotification(NotificationRequest notificationRequest) {
-        Account receiver = accountRepository.findById(notificationRequest.getReceiverId())
-                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
-        Notification notification = mapToEntity(notificationRequest, receiver);
-        LOGGER.info("Creating notification for receiverId={}, objectId={}", notification.getReceiver().getId(), notification.getObjectId());
-        Notification saved = notificationRepository.save(notification);
-        return mapToResponse(saved);
-    }
 
     public NotificationResponse deleteNotification(Long id) {
         LOGGER.info("Deleting notification with id={}", id);
@@ -62,6 +55,29 @@ public class NotificationService {
         return mapToResponse(notification);
     }
 
+    public void handleNotification(String channel, String event, String objectId, String content, List<Account> receivers) {
+        LOGGER.info("Handling notification: channel={}, event={}, objectId={}, content={}", channel, event, objectId, content);
+        LocalDateTime now = LocalDateTime.now();
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("objectId", objectId);
+        payload.put("content", content);
+        payload.put("isViewed", false);
+        payload.put("isClicked", false);
+        payload.put("createdDate", now.toString());
+        notificationUtil.notify(channel, event, payload);
+        for (Account receiver : receivers) {
+            Notification notification = Notification.builder()
+                .receiver(receiver)
+                .objectId(objectId)
+                .content(content)
+                .isViewed(false)
+                .isClicked(false)
+                .createdDate(now)
+                .build();
+            notificationRepository.save(notification);
+        }
+    }
+
     private NotificationResponse mapToResponse(Notification notification) {
         NotificationResponse response = new NotificationResponse();
         response.setId(notification.getId());
@@ -72,15 +88,5 @@ public class NotificationService {
         response.setIsViewed(notification.getIsViewed());
         response.setIsClicked(notification.getIsClicked());
         return response;
-    }
-
-    private Notification mapToEntity(NotificationRequest notificationRequest, Account receiver) {
-        Notification notification = new Notification();
-        notification.setReceiver(receiver);
-        notification.setObjectId(notificationRequest.getObjectId());
-        notification.setContent(notificationRequest.getContent());
-        notification.setIsViewed(false);
-        notification.setIsClicked(false);
-        return notification;
     }
 }
