@@ -26,6 +26,17 @@ public class ImportOrderController {
     private final ImportOrderService importOrderService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderController.class);
 
+    @Operation(summary = "Get all import orders")
+    @GetMapping()
+    public ResponseEntity<?> getAll() {
+        LOGGER.info("Getting all import orders");
+        return ResponseUtil.getCollection(
+                importOrderService.getAllImportOrdersList(),
+                HttpStatus.OK,
+                "Successfully retrieved all import orders",
+                null);
+    }
+
     @Operation(summary = "Get all import orders for a specific import request")
     @GetMapping("/import-request/{importRequestId}")
     public ResponseEntity<?> getAllImportOrdersByImportRequestId(@PathVariable String importRequestId) {
@@ -114,10 +125,10 @@ public class ImportOrderController {
 
     @Operation(summary = "Get all import orders")
     @GetMapping("/page")
-    public ResponseEntity<?> getAllImportOrders(@RequestParam(defaultValue = "1") int page,
+    public ResponseEntity<?> getAllByPage(@RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting all import orders");
-        Page<ImportOrderResponse> result = importOrderService.getAllImportOrders(page, limit);
+        Page<ImportOrderResponse> result = importOrderService.getImportOrdersByPage(page, limit);
         return ResponseUtil.getCollection(
                 result.getContent(),
                 HttpStatus.OK,

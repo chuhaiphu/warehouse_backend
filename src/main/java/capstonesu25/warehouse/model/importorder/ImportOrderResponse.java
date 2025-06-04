@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.model.importorder;
 
 import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,7 +24,7 @@ public class ImportOrderResponse {
     private String extendedReason;
     private String note;
     private RequestStatus status;
-    private List<Long> importOrderDetailIds;
+    private List<ImportOrderDetailResponse> importOrderDetails;
     private LocalDate actualDateReceived;
     private LocalTime actualTimeReceived;
     private String createdBy;

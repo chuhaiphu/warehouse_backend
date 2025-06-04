@@ -180,7 +180,7 @@ public class ImportRequestDetailService {
         }
     }
 
-    private ImportRequestDetailResponse mapToResponse(ImportRequestDetail importRequestDetail) {
+    public ImportRequestDetailResponse mapToResponse(ImportRequestDetail importRequestDetail) {
         return new ImportRequestDetailResponse(
                 importRequestDetail.getId(),
                 importRequestDetail.getImportRequest() != null ? importRequestDetail.getImportRequest().getId() : null,

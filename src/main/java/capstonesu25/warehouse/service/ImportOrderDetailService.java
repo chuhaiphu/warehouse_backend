@@ -250,7 +250,7 @@ public class ImportOrderDetailService {
         importOrderDetailRepository.deleteById(importOrderDetailId);
     }
 
-    private ImportOrderDetailResponse mapToResponse(ImportOrderDetail importOrderDetail) {
+    public ImportOrderDetailResponse mapToResponse(ImportOrderDetail importOrderDetail) {
         return new ImportOrderDetailResponse(
                 importOrderDetail.getId(),
                 importOrderDetail.getImportOrder().getId(),

@@ -8,6 +8,7 @@ import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
+import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
@@ -26,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class ImportRequestService {
     private final ExportRequestRepository exportRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
     private final ConfigurationRepository configurationRepository;
+    private final ImportRequestDetailService importRequestDetailService;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
@@ -124,6 +127,12 @@ public class ImportRequestService {
     }
 
     private ImportRequestResponse mapToResponse(ImportRequest importRequest) {
+        List<ImportRequestDetailResponse> details = importRequest.getDetails() != null ?
+                importRequest.getDetails().stream()
+                        .map(importRequestDetailService::mapToResponse)
+                        .collect(Collectors.toList()) :
+                List.of();
+
         return new ImportRequestResponse(
                 importRequest.getId(),
                 importRequest.getImportReason(),
@@ -131,9 +140,7 @@ public class ImportRequestService {
                 importRequest.getStatus(),
                 importRequest.getProvider() != null ? importRequest.getProvider().getId() : null,
                 importRequest.getExportRequest() != null ? importRequest.getExportRequest().getId() : null,
-                importRequest.getDetails() != null ?
-                        importRequest.getDetails().stream().map(ImportRequestDetail::getId).toList() :
-                        List.of(),
+                details,
                 importRequest.getImportOrders() != null ?
                         importRequest.getImportOrders().stream().map(ImportOrder::getId).toList() :
                         List.of(),

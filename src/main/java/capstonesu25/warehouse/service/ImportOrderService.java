@@ -7,6 +7,7 @@ import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +41,20 @@ public class ImportOrderService {
     private final ItemRepository itemRepository;
     private final NotificationService notificationService;
     private final AccountService accountService;
+    private final ImportOrderDetailService importOrderDetailService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(String id) {
         LOGGER.info("Get import order by id: " + id);
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
         return mapToResponse(importOrder);
+    }
+
+    public List<ImportOrderResponse> getAllImportOrdersList() {
+        LOGGER.info("Get all import orders list");
+        return importOrderRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public List<ImportOrderResponse> getImportOrdersByImportRequestId(String id) {
@@ -225,7 +234,7 @@ public class ImportOrderService {
         return importOrders.map(this::mapToResponse);
     }
 
-    public Page<ImportOrderResponse> getAllImportOrders(int page, int limit) {
+    public Page<ImportOrderResponse> getImportOrdersByPage(int page, int limit) {
         LOGGER.info("Get all import orders");
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findAll(pageable);
@@ -482,6 +491,12 @@ public class ImportOrderService {
     }
 
     private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
+        List<ImportOrderDetailResponse> details = importOrder.getImportOrderDetails() != null ?
+                importOrder.getImportOrderDetails().stream()
+                        .map(importOrderDetailService::mapToResponse)
+                        .toList() :
+                List.of();
+
         return new ImportOrderResponse(
                 importOrder.getId(),
                 importOrder.getImportRequest() != null ? importOrder.getImportRequest().getId() : null,
@@ -493,8 +508,7 @@ public class ImportOrderService {
                 importOrder.getExtendedReason(),
                 importOrder.getNote(),
                 importOrder.getStatus() != null ? importOrder.getStatus() : null,
-                importOrder.getImportOrderDetails() != null ? importOrder.getImportOrderDetails().stream()
-                        .map(ImportOrderDetail::getId).toList() : null,
+                details,
                 importOrder.getActualDateReceived(),
                 importOrder.getActualTimeReceived(),
                 importOrder.getCreatedBy(),
