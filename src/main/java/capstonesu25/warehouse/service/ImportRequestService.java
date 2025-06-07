@@ -3,7 +3,6 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.Configuration;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportRequest;
-import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;

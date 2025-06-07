@@ -101,6 +101,13 @@ public class ImportOrderService {
                     .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
             validateAccountForAssignment(account);
             importOrder.setAssignedStaff(account);
+            notificationService.handleNotification(
+                NotificationUtil.STAFF_CHANNEL + account.getId(),
+                NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                importOrder.getId(),
+                "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
+                List.of(account)
+            );
             importOrder.setStatus(RequestStatus.IN_PROGRESS);
         }
         
@@ -215,6 +222,13 @@ public class ImportOrderService {
             if(staffPerformance != null) {
             LOGGER.info("Delete working time for pre staff: {}",importOrder.getAssignedStaff().getEmail());
                 staffPerformanceRepository.delete(staffPerformance);
+                notificationService.handleNotification(
+                    NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
+                    NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                    importOrder.getId(),
+                    "Bạn đã được hủy phân công cho đơn nhập mã #" + importOrder.getId(),
+                    List.of(importOrder.getAssignedStaff())
+                );
             }
         }
         Account account = accountRepository.findById(accountId)
@@ -222,6 +236,13 @@ public class ImportOrderService {
         validateAccountForAssignment(account);
         setTimeForStaffPerformance(account, importOrder);
         importOrder.setAssignedStaff(account);
+        notificationService.handleNotification(
+            NotificationUtil.STAFF_CHANNEL + account.getId(),
+            NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+            importOrder.getId(),
+            "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
+            List.of(account)
+        );
         importOrder.setStatus(RequestStatus.IN_PROGRESS);
         
         return mapToResponse(importOrderRepository.save(importOrder));
@@ -270,6 +291,13 @@ public class ImportOrderService {
             staff.setStatus(AccountStatus.ACTIVE);
             accountRepository.save(staff);
             importOrder.setAssignedStaff(null);
+            notificationService.handleNotification(
+                NotificationUtil.STAFF_CHANNEL + staff.getId(),
+                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+                importOrder.getId(),
+                "Đơn nhập mã #" + importOrder.getId() + " đã bị hủy",
+                List.of(staff)
+            );
         }
         
         importOrder.setStatus(RequestStatus.CANCELLED);
@@ -349,6 +377,13 @@ public class ImportOrderService {
 
         importOrder.setAssignedStaff(account);
         setTimeForStaffPerformance(importOrder.getAssignedStaff(), importOrder);
+        notificationService.handleNotification(
+            NotificationUtil.STAFF_CHANNEL + account.getId(),
+            NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
+            importOrder.getId(),
+            "Đơn nhập mã #" + importOrder.getId() + " đã được gia hạn",
+            List.of(account)
+        );
         notificationService.handleNotification(
             NotificationUtil.DEPARTMENT_CHANNEL,
             NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,

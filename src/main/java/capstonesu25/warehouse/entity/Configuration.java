@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cache.annotation.CacheConfig;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 

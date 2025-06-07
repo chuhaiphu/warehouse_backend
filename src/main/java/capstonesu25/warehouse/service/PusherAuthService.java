@@ -73,6 +73,8 @@ public class PusherAuthService {
                 return channelName.equals(NotificationUtil.ACCOUNTING_CHANNEL);
             case ADMIN:
                 return channelName.equals(NotificationUtil.ADMIN_CHANNEL);
+            case STAFF:
+                return channelName.equals(NotificationUtil.STAFF_CHANNEL + account.getId());
             default:
                 return false;
         }

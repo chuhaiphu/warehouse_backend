@@ -1,7 +1,6 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
-import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
