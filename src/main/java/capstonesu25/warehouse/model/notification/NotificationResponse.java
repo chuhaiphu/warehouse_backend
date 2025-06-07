@@ -8,6 +8,7 @@ public class NotificationResponse {
     private Long id;
     private Long receiverId;
     private String objectId;
+    private String eventType;
     private String content;
     private LocalDateTime createdDate;
     private Boolean isViewed;

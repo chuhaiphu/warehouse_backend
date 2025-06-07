@@ -27,6 +27,9 @@ public class Notification {
     @Column(name = "object_id", nullable = false)
     private String objectId;
 
+    @Column(name = "event_type", nullable = false)
+    private String eventType;
+
     @Column(name = "content")
     private String content;
 

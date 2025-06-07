@@ -63,12 +63,14 @@ public class NotificationService {
         payload.put("content", content);
         payload.put("isViewed", false);
         payload.put("isClicked", false);
+        payload.put("eventType", event);
         payload.put("createdDate", now.toString());
         notificationUtil.notify(channel, event, payload);
         for (Account receiver : receivers) {
             Notification notification = Notification.builder()
                 .receiver(receiver)
                 .objectId(objectId)
+                .eventType(event)
                 .content(content)
                 .isViewed(false)
                 .isClicked(false)
@@ -83,6 +85,7 @@ public class NotificationService {
         response.setId(notification.getId());
         response.setReceiverId(notification.getReceiver() != null ? notification.getReceiver().getId() : null);
         response.setObjectId(notification.getObjectId());
+        response.setEventType(notification.getEventType());
         response.setContent(notification.getContent());
         response.setCreatedDate(notification.getCreatedDate());
         response.setIsViewed(notification.getIsViewed());
