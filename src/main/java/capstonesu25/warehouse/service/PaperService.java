@@ -73,6 +73,16 @@ public class PaperService {
             importOrder.setActualTimeReceived(LocalTime.now());
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
+
+            paperRepository.save(paper);
+            // * Notification
+            notificationService.handleNotification(
+                    NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT,
+                    request.getImportOrderId(),
+                    "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
+                    accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+            );
         }
         if(request.getExportRequestId() != null) {
             //update status
@@ -81,16 +91,18 @@ public class PaperService {
             exportRequest.setStatus(RequestStatus.COUNTED);
             exportRequestRepository.save(exportRequest);
             paper.setExportRequest(exportRequest);
+
+            paperRepository.save(paper);
+            // * Notification
+            notificationService.handleNotification(
+                    NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT,
+                    request.getExportRequestId(),
+                    "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
+                    accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+            );
         }
-        paperRepository.save(paper);
-        // * Notification
-        notificationService.handleNotification(
-            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-            NotificationUtil.IMPORT_ORDER_COUNTED_EVENT,
-            request.getImportOrderId(),
-            "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
-            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
-        );
+
     }
 
 

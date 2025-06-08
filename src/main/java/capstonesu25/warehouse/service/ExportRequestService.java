@@ -120,9 +120,8 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(), null);
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setStatus(RequestStatus.NOT_STARTED);
-
+        exportRequest.setExportRequestDetails(new ArrayList<>());
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignCountingStaff(exportRequest);
         notificationService.handleNotification(
             NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
             NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
@@ -692,9 +691,11 @@ public class ExportRequestService {
             exportRequest.getImportRequests() != null ?
                 exportRequest.getImportRequests().stream().map(ImportRequest::getId).toList() :
                 List.of(),
-            exportRequest.getExportRequestDetails() != null ?
-                exportRequest.getExportRequestDetails().stream().map(ExportRequestDetail::getId).toList() :
-                List.of(),
+                exportRequest.getExportRequestDetails().isEmpty()
+                        ? List.of()
+                        : exportRequest.getExportRequestDetails().stream()
+                        .map(ExportRequestDetail::getId)
+                        .toList(),
             exportRequest.getCreatedBy(),
             exportRequest.getUpdatedBy(),
             exportRequest.getCreatedDate(),
