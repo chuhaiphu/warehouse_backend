@@ -12,9 +12,8 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateExportDateTimeRequest {
-    @NotNull(message = "exportDate cannot be null")
-    private LocalDate exportDate;
+    @NotNull(message = "date cannot be null")
+    private LocalDate date;
 
-    @NotNull(message = "exportTime cannot be null")
-    private LocalTime exportTime;
+    private LocalTime time;
 }

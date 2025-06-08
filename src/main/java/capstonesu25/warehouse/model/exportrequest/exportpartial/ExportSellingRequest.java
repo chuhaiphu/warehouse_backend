@@ -13,7 +13,7 @@ import java.time.LocalTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ExportPartialRequest {
+public class ExportSellingRequest {
     private LocalDate countingDate;
 
     private LocalTime countingTime;
@@ -24,8 +24,6 @@ public class ExportPartialRequest {
 
     private String receiverPhone;
 
-    private Long departmentId;
-
     private String receiverAddress;
 
     @NotNull(message = "cannot be null")
@@ -35,6 +33,4 @@ public class ExportPartialRequest {
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
 
-    @NotNull(message = "cannot be null")
-    private LocalTime exportTime;
 }

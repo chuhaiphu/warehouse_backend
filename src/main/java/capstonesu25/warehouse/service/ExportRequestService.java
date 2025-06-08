@@ -4,9 +4,10 @@ import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
+import capstonesu25.warehouse.model.exportrequest.RenewExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
-import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialRequest;
+import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportSellingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
@@ -40,6 +41,7 @@ public class ExportRequestService {
     private final ItemRepository itemRepository;
     private final AccountService accountService;
     private final DepartmentRepository departmentRepository;
+    private final ExportRequestDetailRepository exportRequestDetailRepository;
     private final NotificationService notificationService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
@@ -89,23 +91,21 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
-    public ExportRequestResponse createExportPartialRequest (ExportPartialRequest request) {
-        LOGGER.info("Creating export partial request");
-        if(!checkType(ExportType.PARTIAL, request.getType())) {
+    public ExportRequestResponse createExportSellingRequest(ExportSellingRequest request) {
+        LOGGER.info("Creating export selling request");
+        if(!checkType(ExportType.SELLING, request.getType())) {
             LOGGER.error("Invalid export type: " + request.getType());
             throw new IllegalArgumentException("Invalid export type: " + request.getType());
         }
-        if(request.getDepartmentId() == null && request.getReceiverName() == null
+        if(request.getReceiverName() == null
                 && request.getReceiverPhone() == null && request.getReceiverAddress() == null) {
-            LOGGER.error("Department ID, receiver name, phone, and address cannot be null");
-            throw new IllegalArgumentException("Department ID, receiver name, phone, and address cannot be null");
+            LOGGER.error("receiver name, phone, and address cannot be null");
+            throw new IllegalArgumentException("receiver name, phone, and address cannot be null");
         }
 
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setId(createExportRequestId());
-        if(request.getDepartmentId() != null) {
-            exportRequest.setDepartmentId(request.getDepartmentId());
-        }
+
         exportRequest.setReceiverName(request.getReceiverName());
         exportRequest.setReceiverPhone(request.getReceiverPhone());
         exportRequest.setReceiverAddress(request.getReceiverAddress());
@@ -117,9 +117,8 @@ public class ExportRequestService {
         exportRequest.setCountingDate(request.getCountingDate());
         exportRequest.setCountingTime(request.getCountingTime());
         LOGGER.info("Check export date and export time is valid?");
-        validateForTimeDate(request.getExportDate(), request.getExportTime());
+        validateForTimeDate(request.getExportDate(), null);
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
@@ -156,7 +155,6 @@ public class ExportRequestService {
         LOGGER.info("Check export date and export time is valid?");
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
@@ -202,7 +200,6 @@ public class ExportRequestService {
         LOGGER.info("Check export date and export time is valid?");
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setExportTime(request.getExportTime());
         exportRequest.setExpectedReturnDate(request.getExpectedReturnDate());
         exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
@@ -250,7 +247,6 @@ public class ExportRequestService {
         LOGGER.info("Check export date and export time is valid?");
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setExportTime(request.getExportTime());
         exportRequest.setImportRequests(list);
         exportRequest.setStatus(RequestStatus.IN_PROGRESS);
 
@@ -305,7 +301,6 @@ public class ExportRequestService {
         LOGGER.info("Check export date and export time is valid?");
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setExportTime(request.getExportTime());
         exportRequest.setStatus(RequestStatus.IN_PROGRESS);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
@@ -430,7 +425,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse updateExportStatus(String exportRequestId, RequestStatus status) {
+    public ExportRequestResponse updateExportStatus (String exportRequestId, RequestStatus status) {
         LOGGER.info("Updating export request status for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
@@ -465,14 +460,13 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse updateExportDateTime(String exportRequestId, LocalDate date, LocalTime time) {
+    public ExportRequestResponse updateExportDateTime(String exportRequestId, LocalDate date) {
         LOGGER.info("Updating export date and time for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
 
-        validateForTimeDate(date, time);
+        validateForTimeDate(date, null);
         exportRequest.setExportDate(date);
-        exportRequest.setExportTime(time);
 
         // reassign confirm staff
         if(exportRequest.getAssignedStaff() != null) {
@@ -489,7 +483,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
-    public ExportRequestResponse extendExportRequest(String exportRequestId, LocalDate extendedDate, LocalTime extendedTime,
+    public ExportRequestResponse extendExportRequest(String exportRequestId, LocalDate extendedDate,
                                                      String extendReason) {
         LOGGER.info("Extending export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
@@ -507,15 +501,106 @@ public class ExportRequestService {
             extendedDate = exportRequest.getExportDate().plusDays(configuration.getMaxAllowedDaysForExtend());
         }
         exportRequest.setExtendedDate(extendedDate);
-        if(extendedTime == null) {
-            extendedTime = exportRequest.getExportTime();
-        }
-        exportRequest.setExtendedTime(extendedTime);
+
         exportRequest.setExtendedReason(extendReason);
 
         LOGGER.info("auto asign staff for export request with ID: " + exportRequestId);
         autoAssignCountingStaff(exportRequest);
         return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+    public ExportRequestResponse updateCountingDateAndTime(String exportRequestId, LocalDate date, LocalTime time) {
+        LOGGER.info("Updating counting date and time for export request with ID: " + exportRequestId);
+        ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
+                () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
+
+        validateForTimeDate(date, time);
+        exportRequest.setCountingDate(date);
+        exportRequest.setCountingTime(time);
+
+        // reassign counting staff
+        if(exportRequest.getCountingStaffId() != null) {
+            LOGGER.info("Return working for pre counting staff: {}",exportRequest.getCountingStaffId());
+            StaffPerformance staffPerformance = staffPerformanceRepository.
+                    findByExportRequestIdAndAssignedStaff_IdAndExportCounting(exportRequest.getId(),exportRequest.getCountingStaffId(), true);
+            if(staffPerformance != null) {
+                LOGGER.info("Delete working time for pre counting staff: {}",exportRequest.getCountingStaffId());
+                staffPerformanceRepository.delete(staffPerformance);
+            }
+        }
+        // assign new counting staff
+        autoAssignCountingStaff(exportRequest);
+        return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+    public ExportRequestResponse renewExportRequest(RenewExportRequestRequest request) {
+        ExportRequest oldExportRequest = exportRequestRepository.findById(request.getExportRequestId())
+                .orElseThrow(() -> new NoSuchElementException("Export request not found with ID: " + request.getExportRequestId()));
+
+        if(oldExportRequest.getStatus() != RequestStatus.COUNT_CONFIRMED && oldExportRequest.getStatus() != RequestStatus.WAITING_EXPORT) {
+            LOGGER.error("Cannot renew export request: Invalid status " + oldExportRequest.getStatus());
+            throw new IllegalStateException("Cannot renew export request: Invalid status " + oldExportRequest.getStatus());
+
+        }
+
+        if(request.getItems().size() > oldExportRequest.getExportRequestDetails().size()) {
+            LOGGER.error("Cannot renew export request: Number of items exceeds original request");
+            throw new IllegalArgumentException("Cannot renew export request: Number of items exceeds original request");
+        }
+        ExportRequest newExportRequest = new ExportRequest();
+        String id = createExportRequestId();
+        newExportRequest.setId(id);
+        newExportRequest.setExportReason(oldExportRequest.getExportReason());
+        newExportRequest.setReceiverName(oldExportRequest.getReceiverName());
+        newExportRequest.setReceiverPhone(oldExportRequest.getReceiverPhone());
+        newExportRequest.setReceiverAddress(oldExportRequest.getReceiverAddress());
+        newExportRequest.setType(oldExportRequest.getType());
+        newExportRequest.setCountingDate(oldExportRequest.getCountingDate());
+        newExportRequest.setCountingTime(oldExportRequest.getCountingTime());
+        newExportRequest.setExportDate(oldExportRequest.getExportDate());
+        newExportRequest.setExpectedReturnDate(oldExportRequest.getExpectedReturnDate());
+        newExportRequest.setProviderId(oldExportRequest.getProviderId());
+        newExportRequest.setDepartmentId(oldExportRequest.getDepartmentId());
+        newExportRequest.setCountingStaffId(oldExportRequest.getCountingStaffId());
+        newExportRequest.setNote(oldExportRequest.getNote());
+        newExportRequest.setStatus(RequestStatus.WAITING_EXPORT);
+        newExportRequest.setAssignedStaff(oldExportRequest.getAssignedStaff());
+        newExportRequest = exportRequestRepository.save(newExportRequest);
+
+        List<ExportRequestDetail> newExportRequestDetails = new ArrayList<>();
+
+        for (RenewExportRequestRequest.itemList item : request.getItems()) {
+            ExportRequestDetail matchedDetail = oldExportRequest.getExportRequestDetails().stream()
+                    .filter(detail -> detail.getItem().getId().equals(item.getItemId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Item not found in original export request: " + item.getItemId()));
+
+            if (item.getQuantity() != null && item.getQuantity() > matchedDetail.getQuantity()) {
+                LOGGER.error("Invalid quantity for item: " + item.getItemId());
+                throw new IllegalArgumentException("Invalid quantity for item: " + item.getItemId());
+            }
+
+            if (item.getMeasurementValue() != null && item.getMeasurementValue() > matchedDetail.getMeasurementValue()) {
+                LOGGER.error("Invalid measurement value for item: " + item.getItemId());
+                throw new IllegalArgumentException("Invalid measurement value for item: " + item.getItemId());
+            }
+
+            ExportRequestDetail newDetail = new ExportRequestDetail();
+            newDetail.setExportRequest(newExportRequest);
+            newDetail.setItem(matchedDetail.getItem());
+            newDetail.setQuantity(item.getQuantity());
+            newDetail.setActualQuantity(item.getQuantity());
+            newDetail.setMeasurementValue(item.getMeasurementValue());
+            newDetail.setActualMeasurementValue(item.getMeasurementValue());
+
+            // Set other fields if needed (e.g., unit, notes, etc.)
+
+            newExportRequestDetails.add(newDetail);
+        }
+
+        exportRequestDetailRepository.saveAll(newExportRequestDetails);
+        newExportRequest.setExportRequestDetails(newExportRequestDetails);
+        return mapToResponse(newExportRequest);
     }
 
     private void updateInventoryItemAndLocationAfterExport(ExportRequest exportRequest) {
@@ -595,11 +680,9 @@ public class ExportRequestService {
             exportRequest.getStatus(),
             exportRequest.getType(),
             exportRequest.getExportDate(),
-            exportRequest.getExportTime(),
             exportRequest.getExpectedReturnDate(),
             exportRequest.getIsExtended(),
             exportRequest.getExtendedDate(),
-            exportRequest.getExtendedTime(),
             exportRequest.getExtendedReason(),
             exportRequest.getAssignedStaff() != null ? exportRequest.getAssignedStaff().getId() : null,
             exportRequest.getCountingDate(),
@@ -629,6 +712,19 @@ public class ExportRequestService {
         }
     }
 
+    private void updateAccountStatusForExportRequest(Account account, ExportRequest exportRequest) {
+        LOGGER.info("Update account status to INACTIVE");
+        if(exportRequest.getAssignedStaff() != null) {
+            // If the import order is being reassigned, set the previous staff's status to ACTIVE
+            LOGGER.info("Update previous staff status to ACTIVE");
+            Account preStaff = exportRequest.getAssignedStaff();
+            preStaff.setStatus(AccountStatus.ACTIVE);
+            accountRepository.save(preStaff);
+        }
+        account.setStatus(AccountStatus.INACTIVE);
+        accountRepository.save(account);
+    }
+
     private void validateForTimeDate(LocalDate date, LocalTime time) {
         LOGGER.info("Validating time and date for export request");
         Configuration configuration = configurationRepository.findAll().stream()
@@ -639,16 +735,19 @@ public class ExportRequestService {
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
         LOGGER.info("Check if date is in the past");
-        if(date.isBefore(LocalDate.now())) {
+        if (date.isBefore(LocalDate.now())) {
             throw new IllegalStateException("Cannot set time for  export request: Date is in the past");
         }
 
-        LOGGER.info("Check if time set is too early");
-        if (date.isEqual(LocalDate.now()) &&
-                LocalTime.now()
-                        .plusMinutes(minutesToAdd)
-                        .isAfter(time)) {
-            throw new IllegalStateException("Cannot set time for  export request: Time is too early");
+        if (time != null) {
+            LOGGER.info("Check if time set is too early");
+            if (date.isEqual(LocalDate.now()) &&
+                    LocalTime.now()
+                            .plusMinutes(minutesToAdd)
+                            .isAfter(time)) {
+                throw new IllegalStateException("Cannot set time for  export request: Time is too early");
+            }
+
         }
     }
 
@@ -690,17 +789,7 @@ public class ExportRequestService {
                     accountResponse.getId(),
                     exportRequest.getExportDate()
             );
-            LOGGER.info("Checking export requests size {} ", checkExportRequest.size());
-
-            if (checkExportRequest.isEmpty()) {
-                responses.add(accountResponse);
-            } else {
-                for (ExportRequest exportCheck : checkExportRequest) {
-                    if (exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(configuration.getTimeToAllowConfirm().toSecondOfDay() / 60))) {
-                        responses.add(accountResponse);
-                    }
-                }
-            }
+            responses.add(accountResponse);
         }
 
         Account account = accountRepository.findById(responses.get(0).getId())

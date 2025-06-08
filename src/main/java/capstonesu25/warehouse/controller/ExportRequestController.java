@@ -3,10 +3,11 @@ package capstonesu25.warehouse.controller;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.ExtendExportRequestRequest;
+import capstonesu25.warehouse.model.exportrequest.RenewExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.UpdateExportDateTimeRequest;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
-import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportPartialRequest;
+import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportSellingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
@@ -134,7 +135,7 @@ public class ExportRequestController {
     }
 
     @Operation(summary = "Create a new export request for liquidation")
-    @PostMapping("/liquidation")
+    @PostMapping("/liquid")
     public ResponseEntity<?> createExportRequestForLiquidation(@RequestBody ExportLiquidationRequest request) {
         LOGGER.info("Creating export request for liquidation");
         return ResponseUtil.getObject(
@@ -144,14 +145,14 @@ public class ExportRequestController {
         );
     }
 
-    @Operation(summary = "Create a new export request for partial")
-    @PostMapping("/partial")
-    public ResponseEntity<?> createExportRequestForPartial(@RequestBody ExportPartialRequest request) {
-        LOGGER.info("Creating export request for partial");
+    @Operation(summary = "Create a new export request for selling")
+    @PostMapping("/selling")
+    public ResponseEntity<?> createExportRequestForPartial(@RequestBody ExportSellingRequest request) {
+        LOGGER.info("Creating export request for selling");
         return ResponseUtil.getObject(
-            exportRequestService.createExportPartialRequest(request),
+            exportRequestService.createExportSellingRequest(request),
             HttpStatus.CREATED,
-            "Successfully created export request for partial"
+            "Successfully created export request for selling"
         );
     }
 
@@ -210,7 +211,6 @@ public class ExportRequestController {
         LOGGER.info("Extending import order");
         ExportRequestResponse result = exportRequestService.extendExportRequest(request.getExportRequestId(),
                 request.getExtendedDate(),
-                request.getExtendedTime(),
                 request.getExtendReason());
         return ResponseUtil.getObject(
                 result,
@@ -224,7 +224,7 @@ public class ExportRequestController {
                                                   @RequestBody UpdateExportDateTimeRequest request) {
         LOGGER.info("Updating export date and time");
         return ResponseUtil.getObject(
-                exportRequestService.updateExportDateTime(exportRequestId, request.getExportDate(),request.getExportTime()),
+                exportRequestService.updateExportDateTime(exportRequestId, request.getDate()),
                 HttpStatus.OK,
                 "Successfully updated export date and time"
         );
@@ -238,6 +238,29 @@ public class ExportRequestController {
                 exportRequestService.updateExportStatus(exportRequestId, status),
                 HttpStatus.OK,
                 "Successfully updated status of export request"
+        );
+    }
+
+    @Operation(summary = "Update counting date and time for export request")
+    @PostMapping("/update-counting-date-time/{exportRequestId}")
+    public ResponseEntity<?> updateCountingDateAndTime (@PathVariable String exportRequestId,
+                                                  @RequestBody UpdateExportDateTimeRequest request) {
+        LOGGER.info("Updating counting date and time");
+        return ResponseUtil.getObject(
+                exportRequestService.updateCountingDateAndTime(exportRequestId, request.getDate(), request.getTime()),
+                HttpStatus.OK,
+                "Successfully updated counting date and time"
+        );
+    }
+
+    @Operation(summary = "Renew export request")
+    @PostMapping("/renew")
+    public ResponseEntity<?> renewExportRequest(@RequestBody RenewExportRequestRequest request) {
+        LOGGER.info("Renewing export request");
+        return ResponseUtil.getObject(
+            exportRequestService.renewExportRequest(request),
+            HttpStatus.OK,
+            "Successfully renewed export request"
         );
     }
 

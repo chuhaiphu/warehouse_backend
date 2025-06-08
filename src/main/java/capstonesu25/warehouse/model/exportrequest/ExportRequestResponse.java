@@ -25,11 +25,9 @@ public class ExportRequestResponse {
     private RequestStatus status;
     private ExportType type;
     private LocalDate exportDate;
-    private LocalTime exportTime;
     private LocalDate expectedReturnDate;
     private Boolean isExtended;
     private LocalDate extendedDate;
-    private LocalTime extendedTime;
     private String extendedReason;
     private Long assignedWareHouseKeeperId;
     private LocalDate countingDate;

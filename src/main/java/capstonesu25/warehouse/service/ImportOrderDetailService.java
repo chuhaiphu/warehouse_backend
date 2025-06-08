@@ -205,6 +205,9 @@ public class ImportOrderDetailService {
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
 
         List<ImportOrderDetail> details = importOrderDetailRepository.findImportOrderDetailByImportOrder_Id(importOrderId);
+        if (details.isEmpty()) {
+            throw new NoSuchElementException("No ImportOrderDetails found for ImportOrder ID: " + importOrderId);
+        }
 
         for (ImportOrderDetail detail : details) {
             requests.stream()

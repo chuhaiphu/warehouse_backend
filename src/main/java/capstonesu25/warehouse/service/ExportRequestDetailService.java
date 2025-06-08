@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
@@ -83,9 +84,8 @@ public class ExportRequestDetailService {
                 }
             }
 
-            // Handling for PARTIAL and BORROWING types
-            if (exportRequest.getType().equals(ExportType.PARTIAL)
-                    || exportRequest.getType().equals(ExportType.BORROWING)) {
+            // Handling for  BORROWING types
+            if(exportRequest.getType().equals(ExportType.BORROWING)) {
                 exportRequestDetail.setMeasurementValue(request.getMeasurementValue());
             }
 
@@ -123,9 +123,16 @@ public class ExportRequestDetailService {
        if(inventoryItem.getIsTrackingForExport() == true) {
            throw new IllegalArgumentException("Inventory item with ID: "+inventoryItemId+" has been tracked");
        }
-
+        if(exportRequestDetail.getActualQuantity() >= exportRequestDetail.getQuantity()) {
+            throw new IllegalArgumentException("Actual quantity cannot be greater to requested quantity");
+        }
        exportRequestDetail.setActualQuantity(exportRequestDetail.getActualQuantity() + 1);
        inventoryItem.setIsTrackingForExport(true);
+
+       exportRequestDetail.setStatus(DetailStatus.LACK);
+       if(exportRequestDetail.getActualQuantity().equals(exportRequestDetail.getQuantity())) {
+           exportRequestDetail.setStatus(DetailStatus.MATCH);
+       }
        inventoryItemRepository.save(inventoryItem);
 
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
@@ -133,29 +140,21 @@ public class ExportRequestDetailService {
 
     private void chooseInventoryItemsForThoseCases(ExportRequestDetail exportRequestDetail) {
         switch (exportRequestDetail.getExportRequest().getType()) {
-            case RETURN -> {
-                //TODO
-            }
-            case BORROWING, PARTIAL -> autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
+            case RETURN -> {}
+//                autoChooseInventoryItemsForSelling(exportRequestDetail);
+
+            case BORROWING -> autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
+            case SELLING -> autoChooseInventoryItemsForSelling(exportRequestDetail);
             case LIQUIDATION -> autoChooseInventoryItemsForLiquidation(exportRequestDetail);
-            default -> {
+            default ->
                 // case PRODUCTION
-            if (exportRequestDetail.getExportRequest().getDepartmentId() == null) {
-                autoChooseInventoryItemsForOutside(exportRequestDetail);
-            } else
-                autoChooseInventoryItemsForProduction(exportRequestDetail);
-            }
+                    autoChooseInventoryItemsForProduction(exportRequestDetail);
         }
     }
-    private void autoChooseInventoryItemsForProduction(ExportRequestDetail exportRequestDetail) {
-        LOGGER.info("Auto choosing inventory items for production");
+    private void autoChooseInventoryItemsForSelling(ExportRequestDetail exportRequestDetail) {
+        LOGGER.info("Auto choosing inventory items for Selling");
 
         int quantity = exportRequestDetail.getQuantity();
-        double requiredMeasurement = quantity * exportRequestDetail.getItem().getMeasurementValue();
-
-        if (requiredMeasurement > exportRequestDetail.getItem().getTotalMeasurementValue()) {
-            throw new RuntimeException("Insufficient stock for export.");
-        }
 
         // Fetch and sort inventory items
         List<InventoryItem> sortedInventoryItems = inventoryItemRepository
@@ -171,7 +170,7 @@ public class ExportRequestDetailService {
         }
     }
 
-    private void autoChooseInventoryItemsForOutside(ExportRequestDetail exportRequestDetail) {
+    private void autoChooseInventoryItemsForProduction(ExportRequestDetail exportRequestDetail) {
         LOGGER.info("Auto choosing inventory items for outside export");
         List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_Id(exportRequestDetail.getItem().getId());
 
@@ -342,16 +341,8 @@ public class ExportRequestDetailService {
                     exportRequest.getExportDate()
             );
             LOGGER.info("Checking export requests size {} ", checkExportRequest.size());
-
-            if (checkExportRequest.isEmpty()) {
                 responses.add(accountResponse);
-            } else {
-                for (ExportRequest exportCheck : checkExportRequest) {
-                    if (exportCheck.getExportTime().isAfter(exportCheck.getExportTime().plusMinutes(configuration.getTimeToAllowConfirm().toSecondOfDay() / 60))) {
-                        responses.add(accountResponse);
-                    }
-                }
-            }
+
         }
 
         Account account = accountRepository.findById(responses.get(0).getId())

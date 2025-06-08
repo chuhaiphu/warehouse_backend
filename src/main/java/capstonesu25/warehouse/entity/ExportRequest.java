@@ -47,9 +47,6 @@ public class ExportRequest {
     @Column(name = "export_date")
     private LocalDate exportDate;
 
-    @Column(name = "export_time")
-    private LocalTime exportTime;
-
     @Column(name = "expected_return_date")
     private LocalDate expectedReturnDate;
 
@@ -73,9 +70,6 @@ public class ExportRequest {
 
     @Column(name = "extended_date")
     private LocalDate extendedDate;
-
-    @Column(name = "extended_time")
-    private LocalTime extendedTime;
 
     @Column(name = "extended_reason")
     private String extendedReason;
