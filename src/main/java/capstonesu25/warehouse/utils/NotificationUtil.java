@@ -23,6 +23,14 @@ public class NotificationUtil {
     public static final String IMPORT_ORDER_EXTENDED_EVENT = "import-order-extended";
     public static final String IMPORT_ORDER_COMPLETED_EVENT = "import-order-completed";
 
+    public static final String EXPORT_REQUEST_CREATED_EVENT = "export-request-created";
+    public static final String EXPORT_REQUEST_ASSIGNED_EVENT = "export-request-assigned";
+    public static final String EXPORT_REQUEST_COUNTED_EVENT = "export-request-counted";
+    public static final String EXPORT_REQUEST_CONFIRMED_EVENT = "export-request-confirmed";
+    public static final String EXPORT_REQUEST_CANCELLED_EVENT = "export-request-cancelled";
+    public static final String EXPORT_REQUEST_EXTENDED_EVENT = "export-request-extended";
+    public static final String EXPORT_REQUEST_COMPLETED_EVENT = "export-request-completed";
+
     public NotificationUtil(Pusher pusher) {
         this.pusher = pusher;
     }

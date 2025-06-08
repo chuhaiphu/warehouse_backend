@@ -12,6 +12,7 @@ import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ public class ExportRequestService {
     private final ItemRepository itemRepository;
     private final AccountService accountService;
     private final DepartmentRepository departmentRepository;
+    private final NotificationService notificationService;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
     public List<ExportRequestResponse> getAllExportRequests() {
@@ -122,6 +124,13 @@ public class ExportRequestService {
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
+            export.getId(),
+            "Đơn xuất mã #" + export.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         return mapToResponse(export);
     }
 
@@ -152,6 +161,13 @@ public class ExportRequestService {
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
+            export.getId(),
+            "Đơn xuất mã #" + export.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         return mapToResponse(export);
     }
 
@@ -192,6 +208,13 @@ public class ExportRequestService {
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
+            export.getId(),
+            "Đơn xuất mã #" + export.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         return mapToResponse(export);
     }
 
@@ -233,6 +256,13 @@ public class ExportRequestService {
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
         export = autoAssignCountingStaff(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
+            export.getId(),
+            "Đơn xuất mã #" + export.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         return mapToResponse(export);
     }
 
@@ -279,6 +309,13 @@ public class ExportRequestService {
         exportRequest.setStatus(RequestStatus.IN_PROGRESS);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
+            export.getId(),
+            "Đơn xuất mã #" + export.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
         return mapToResponse(export);
     }
 
@@ -329,6 +366,13 @@ public class ExportRequestService {
             if(staffPerformance != null) {
                 LOGGER.info("Delete working time for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
                 staffPerformanceRepository.delete(staffPerformance);
+                notificationService.handleNotification(
+                    NotificationUtil.STAFF_CHANNEL + exportRequest.getAssignedStaff().getId(),
+                    NotificationUtil.EXPORT_REQUEST_ASSIGNED_EVENT,
+                    exportRequest.getId(),
+                    "Bạn đã được hủy phân công cho đơn xuất mã #" + exportRequest.getId(),
+                    List.of(exportRequest.getAssignedStaff())
+                );
             }
         }
 
@@ -340,6 +384,13 @@ public class ExportRequestService {
             validateAccountForAssignment(staff);
             setTimeForCountingStaffPerformance(staff, exportRequest);
             exportRequest.setCountingStaffId(staff.getId());
+            notificationService.handleNotification(
+                NotificationUtil.STAFF_CHANNEL + staff.getId(),
+                NotificationUtil.EXPORT_REQUEST_ASSIGNED_EVENT,
+                exportRequest.getId(),
+                "Bạn được phân công cho đơn xuất mã #" + exportRequest.getId(),
+                List.of(staff)
+            );
         }
         exportRequest.setStatus(RequestStatus.IN_PROGRESS);
         exportRequestRepository.save(exportRequest);
@@ -365,7 +416,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
-    public ExportRequestResponse updateExportStatus (String exportRequestId, RequestStatus status) {
+    public ExportRequestResponse updateExportStatus(String exportRequestId, RequestStatus status) {
         LOGGER.info("Updating export request status for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
@@ -564,18 +615,6 @@ public class ExportRequestService {
         }
     }
 
-    private void updateAccountStatusForExportRequest(Account account, ExportRequest exportRequest) {
-        LOGGER.info("Update account status to INACTIVE");
-        if(exportRequest.getAssignedStaff() != null) {
-            // If the import order is being reassigned, set the previous staff's status to ACTIVE
-            LOGGER.info("Update previous staff status to ACTIVE");
-            Account preStaff = exportRequest.getAssignedStaff();
-            preStaff.setStatus(AccountStatus.ACTIVE);
-            accountRepository.save(preStaff);
-        }
-        account.setStatus(AccountStatus.INACTIVE);
-        accountRepository.save(account);
-    }
     private void validateForTimeDate(LocalDate date, LocalTime time) {
         LOGGER.info("Validating time and date for export request");
         Configuration configuration = configurationRepository.findAll().stream()
