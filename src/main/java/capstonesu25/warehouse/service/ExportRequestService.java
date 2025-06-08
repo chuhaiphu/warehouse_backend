@@ -330,6 +330,13 @@ public class ExportRequestService {
             if(staffPerformance != null) {
                 LOGGER.info("Delete working time for pre staff: {}",exportRequest.getAssignedStaff().getEmail());
                 staffPerformanceRepository.delete(staffPerformance);
+                notificationService.handleNotification(
+                    NotificationUtil.STAFF_CHANNEL + exportRequest.getAssignedStaff().getId(),
+                    NotificationUtil.EXPORT_REQUEST_ASSIGNED_EVENT,
+                    exportRequest.getId(),
+                    "Bạn đã được hủy phân công cho đơn xuất mã #" + exportRequest.getId(),
+                    List.of(exportRequest.getAssignedStaff())
+                );
             }
         }
 
@@ -352,6 +359,13 @@ public class ExportRequestService {
 
         exportRequest.setStatus(RequestStatus.IN_PROGRESS);
         exportRequestRepository.save(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.STAFF_CHANNEL + exportRequest.getAssignedStaff().getId(),
+            NotificationUtil.EXPORT_REQUEST_ASSIGNED_EVENT,
+            exportRequest.getId(),
+            "Bạn được phân công cho đơn xuất mã #" + exportRequest.getId(),
+            List.of(exportRequest.getAssignedStaff())
+        );
         return mapToResponse(exportRequest);
     }
 
