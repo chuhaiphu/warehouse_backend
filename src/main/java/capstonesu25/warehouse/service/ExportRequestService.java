@@ -119,7 +119,7 @@ public class ExportRequestService {
         LOGGER.info("Check export date and export time is valid?");
         validateForTimeDate(request.getExportDate(), null);
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setStatus(RequestStatus.NOT_STARTED);
+        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
         exportRequest.setExportRequestDetails(new ArrayList<>());
         ExportRequest export = exportRequestRepository.save(exportRequest);
         notificationService.handleNotification(
