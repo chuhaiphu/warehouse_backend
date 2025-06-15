@@ -15,6 +15,7 @@ public class ItemResponse {
     private String description;
     private String measurementUnit;
     private Double totalMeasurementValue;
+    private Integer quantity;
     private String unitType;
     private Integer daysUntilDue;
     private Integer minimumStockQuantity;

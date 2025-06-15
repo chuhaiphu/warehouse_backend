@@ -23,9 +23,6 @@ public class ExportReturnRequest {
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
 
-    @NotNull(message = "cannot be null")
-    private LocalTime exportTime;
-
     private List<String> importRequestIds;
 
     @NotNull(message = "cannot be null")
@@ -34,7 +31,6 @@ public class ExportReturnRequest {
     @NotNull(message = "cannot be null")
     private Long providerId;
 
+    @NotNull(message = "cannot be null")
     private ExportType type;
-
-
 }

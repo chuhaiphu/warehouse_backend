@@ -39,6 +39,12 @@ public class InventoryItem {
     @Column(name = "is_tracking_for_export")
     private Boolean isTrackingForExport = false;
 
+    @Column(name = "need_return_to_provider")
+    private Boolean needReturnToProvider = false;
+
+    @Column(name = "need_to_liquidate")
+    private Boolean needToLiquidate = false;
+
     @Column(name = "updated_date")
     private LocalDateTime updatedDate;
 

@@ -94,6 +94,7 @@ public class ItemService {
         response.setDescription(item.getDescription());
         response.setMeasurementUnit(item.getMeasurementUnit());
         response.setTotalMeasurementValue(item.getTotalMeasurementValue());
+        response.setQuantity(item.getQuantity());
         response.setUnitType(item.getUnitType());
         response.setDaysUntilDue(item.getDaysUntilDue());
         response.setMinimumStockQuantity(item.getMinimumStockQuantity());

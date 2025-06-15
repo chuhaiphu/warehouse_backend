@@ -215,25 +215,28 @@ public class ExportRequestService {
     }
 
     public ExportRequestResponse createExportReturnRequest(ExportReturnRequest request) {
-        LOGGER.info("Creating export production request");
+        LOGGER.info("Creating export return request");
         if(!checkType(ExportType.RETURN, request.getType())) {
             LOGGER.error("Invalid export type: " + request.getType());
             throw new IllegalArgumentException("Invalid export type: " + request.getType());
         }
-
-        List<ImportRequest> list = request.getImportRequestIds().stream()
-            .map(importRequestId -> importRequestRepository.findById(importRequestId).orElseThrow())
-            .toList();
-
-        LOGGER.info("Check if any import request in request is invalid");
-        for(ImportRequest importRequest : list ) {
-            if(!Objects.equals(importRequest.getProvider().getId(), request.getProviderId())) {
-                LOGGER.error("Invalid import request: " + importRequest.getId());
-                throw new IllegalArgumentException("Invalid import request: " + importRequest.getId());
-            }
-        }
-
         ExportRequest exportRequest = new ExportRequest();
+//        if(request.getImportRequestIds() == null || request.getImportRequestIds().isEmpty()) {
+//            List<ImportRequest> list = request.getImportRequestIds().stream()
+//                    .map(importRequestId -> importRequestRepository.findById(importRequestId).orElseThrow())
+//                    .toList();
+//
+//            LOGGER.info("Check if any import request in request is invalid");
+//            for(ImportRequest importRequest : list ) {
+//                if(!Objects.equals(importRequest.getProvider().getId(), request.getProviderId())) {
+//                    LOGGER.error("Invalid import request: " + importRequest.getId());
+//                    throw new IllegalArgumentException("Invalid import request: " + importRequest.getId());
+//                }
+//            }
+//            exportRequest.setImportRequests(list);
+//        }
+
+
         exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setProviderId(request.getProviderId());
@@ -244,13 +247,12 @@ public class ExportRequestService {
         exportRequest.setCountingDate(request.getCountingDate());
         exportRequest.setCountingTime(request.getCountingTime());
         LOGGER.info("Check export date and export time is valid?");
-        validateForTimeDate(request.getExportDate(), request.getExportTime());
+        validateForTimeDate(request.getExportDate(),null);
         exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setImportRequests(list);
-        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
 
+        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
+        exportRequest.setExportRequestDetails(new ArrayList<>());
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignCountingStaff(exportRequest);
         notificationService.handleNotification(
             NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
             NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
@@ -562,7 +564,7 @@ public class ExportRequestService {
         newExportRequest.setDepartmentId(oldExportRequest.getDepartmentId());
         newExportRequest.setCountingStaffId(oldExportRequest.getCountingStaffId());
         newExportRequest.setNote(oldExportRequest.getNote());
-        newExportRequest.setStatus(RequestStatus.WAITING_EXPORT);
+        newExportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
         newExportRequest.setAssignedStaff(oldExportRequest.getAssignedStaff());
         newExportRequest = exportRequestRepository.save(newExportRequest);
 
@@ -591,15 +593,34 @@ public class ExportRequestService {
             newDetail.setActualQuantity(item.getQuantity());
             newDetail.setMeasurementValue(item.getMeasurementValue());
             newDetail.setActualMeasurementValue(item.getMeasurementValue());
-
-            // Set other fields if needed (e.g., unit, notes, etc.)
-
+            newDetail.setStatus(matchedDetail.getStatus());
+            newDetail = exportRequestDetailRepository.save(newDetail);
             newExportRequestDetails.add(newDetail);
+
+            List<InventoryItem> inventoryItems = matchedDetail.getInventoryItems().stream()
+                    .limit(item.getQuantity()).toList();
+
+            List<InventoryItem> notSelectedItems = matchedDetail.getInventoryItems().stream()
+                    .filter(i -> !inventoryItems.contains(i))
+                    .toList();
+
+            for (InventoryItem inventoryItem : inventoryItems) {
+                inventoryItem.setExportRequestDetail(newDetail);
+                inventoryItemRepository.save(inventoryItem);
+            }
+
+            for(InventoryItem inventoryItem : notSelectedItems) {
+                inventoryItem.setExportRequestDetail(null);
+                inventoryItem.setIsTrackingForExport(false);
+                inventoryItem.setStatus(ItemStatus.AVAILABLE);
+                inventoryItem.setNeedReturnToProvider(false);
+                inventoryItem.setNeedToLiquidate(false);
+                inventoryItemRepository.save(inventoryItem);
+            }
         }
 
-        exportRequestDetailRepository.saveAll(newExportRequestDetails);
         newExportRequest.setExportRequestDetails(newExportRequestDetails);
-        return mapToResponse(newExportRequest);
+        return mapToResponse(exportRequestRepository.save(newExportRequest));
     }
 
     private void updateInventoryItemAndLocationAfterExport(ExportRequest exportRequest) {

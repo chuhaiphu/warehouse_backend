@@ -113,6 +113,10 @@ public class ExportRequestDetailService {
         LOGGER.info("Updating actual quantity for export request detail with ID: {}", exportRequestDetailId);
         ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
                 .orElseThrow(() -> new RuntimeException("Export request detail not found"));
+
+       ExportRequest exportRequest = exportRequestDetail.getExportRequest();
+
+
        InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryItemId)
                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
 
@@ -128,7 +132,12 @@ public class ExportRequestDetailService {
         }
        exportRequestDetail.setActualQuantity(exportRequestDetail.getActualQuantity() + 1);
        inventoryItem.setIsTrackingForExport(true);
-
+        exportRequest.getExportRequestDetails().forEach(detail -> {
+            if (detail.getStatus() == null) {
+                detail.setStatus(DetailStatus.LACK);
+                exportRequestDetailRepository.save(detail);
+            }
+        });
        exportRequestDetail.setStatus(DetailStatus.LACK);
        if(exportRequestDetail.getActualQuantity().equals(exportRequestDetail.getQuantity())) {
            exportRequestDetail.setStatus(DetailStatus.MATCH);
@@ -140,9 +149,7 @@ public class ExportRequestDetailService {
 
     private void chooseInventoryItemsForThoseCases(ExportRequestDetail exportRequestDetail) {
         switch (exportRequestDetail.getExportRequest().getType()) {
-            case RETURN -> {}
-//                autoChooseInventoryItemsForSelling(exportRequestDetail);
-
+            case RETURN -> autoChooseInventoryItemsForReturn(exportRequestDetail);
             case BORROWING -> autoChooseInventoryItemsForPartialAndBorrowing(exportRequestDetail);
             case SELLING -> autoChooseInventoryItemsForSelling(exportRequestDetail);
             case LIQUIDATION -> autoChooseInventoryItemsForLiquidation(exportRequestDetail);
@@ -166,7 +173,35 @@ public class ExportRequestDetailService {
 
         for(InventoryItem inventoryItem : sortedInventoryItems) {
            inventoryItem.setExportRequestDetail(exportRequestDetail);
+           inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
            inventoryItemRepository.save(inventoryItem);
+        }
+    }
+
+    private void autoChooseInventoryItemsForReturn(ExportRequestDetail exportRequestDetail) {
+        LOGGER.info("Auto choosing inventory items for Return");
+        int quantity = exportRequestDetail.getQuantity();
+
+        // Fetch and sort inventory items
+        List<InventoryItem> sortedInventoryItems = inventoryItemRepository
+                .findByItem_IdAndParentNullAndStatusAndNeedReturnToProvider
+                        (exportRequestDetail.getItem().getId(), ItemStatus.AVAILABLE, true)
+                .stream()
+                .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
+                .limit(quantity)
+                .toList();
+
+        if(sortedInventoryItems.isEmpty()) {
+            throw new IllegalArgumentException("No inventory items available for return for item ID: " + exportRequestDetail.getItem().getId());
+        }
+        if(sortedInventoryItems.size() < quantity) {
+            throw new IllegalArgumentException("Not enough inventory items of items: "+exportRequestDetail.getItem().getId()+" available for return. Required: " + quantity + ", Available: " + sortedInventoryItems.size());
+        }
+
+        for(InventoryItem inventoryItem : sortedInventoryItems) {
+            inventoryItem.setExportRequestDetail(exportRequestDetail);
+            inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+            inventoryItemRepository.save(inventoryItem);
         }
     }
 
@@ -210,6 +245,7 @@ public class ExportRequestDetailService {
         LOGGER.info("Selected inventory items for outside export request detail ID: {}", exportRequestDetail.getId());
         for(InventoryItem item : selectedItems) {
             item.setExportRequestDetail(exportRequestDetail);
+            item.setStatus(ItemStatus.UNAVAILABLE);
             inventoryItemRepository.save(item);
         }
     }

@@ -16,6 +16,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     Page<InventoryItem> findByExportRequestDetailId(Long exportRequestDetailId, Pageable pageable);
     Page<InventoryItem> findByStoredLocationId(Long storedLocationId, Pageable pageable);
     List<InventoryItem> findByItem_IdAndParentNullAndStatus(String itemId, ItemStatus status);
+    List<InventoryItem> findByItem_IdAndParentNullAndStatusAndNeedReturnToProvider(
+            String itemId, ItemStatus status, Boolean needReturnToProvider);
     List<InventoryItem> findByItem_Id(String itemId);
     List<InventoryItem> findByItem_IdAndExpiredDateLessThanEqual(String itemId, LocalDateTime expiredDate);
 
