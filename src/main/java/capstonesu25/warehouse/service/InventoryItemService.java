@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
 import capstonesu25.warehouse.model.inventoryitem.QrCodeRequest;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,6 +51,23 @@ public class InventoryItemService {
                 .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id));
         return mapToResponse(inventoryItem);
     }
+
+    public Page<InventoryItemResponse> getAllNeedToReturnByItemId(String itemId, int page, int limit) {
+        LOGGER.info("Getting all inventory items that need to return by item id: {}", itemId);
+        Pageable pageable = PageRequest.of(page - 1, limit);
+
+        Page<InventoryItem> inventoryItemsPage = inventoryItemRepository
+                .findByItem_IdAndParentNullAndStatusAndNeedReturnToProvider(itemId, ItemStatus.AVAILABLE, true, pageable);
+
+        List<InventoryItemResponse> filteredList = inventoryItemsPage
+                .stream()
+                .filter(inventoryItem -> inventoryItem.getExportRequestDetail() == null)
+                .map(this::mapToResponse)
+                .toList();
+
+        return new PageImpl<>(filteredList, pageable, filteredList.size());
+    }
+
 
     @Transactional
     public List<QrCodeResponse> createQRCode(QrCodeRequest request) {

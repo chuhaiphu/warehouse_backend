@@ -29,7 +29,6 @@ public class InventoryItemController {
 
 	@Operation(summary = "Get all inventory items with pagination")
 	@GetMapping
-	
 	public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
 			@RequestParam(defaultValue = "10") int limit) {
 		LOGGER.info("Getting all inventory items");
@@ -38,6 +37,25 @@ public class InventoryItemController {
 				result.getContent(),
 				HttpStatus.OK,
 				"Successfully get all inventory items with pagination",
+				new MetaDataDTO(
+						result.hasNext(),
+						result.hasPrevious(),
+						limit,
+						(int) result.getTotalElements(),
+						page));
+	}
+
+	@Operation(summary = "Get all inventory items that need to return by item ID which not have export detail")
+	@GetMapping("/need-to-return")
+	public ResponseEntity<?> getAllNeedToReturnByItemId(@RequestParam String itemId,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "10") int limit) {
+		LOGGER.info("Getting all inventory items that need to return by item id: {}", itemId);
+		Page<InventoryItemResponse> result = inventoryItemService.getAllNeedToReturnByItemId(itemId, page, limit);
+		return ResponseUtil.getCollection(
+				result.getContent(),
+				HttpStatus.OK,
+				"Successfully get all inventory items that need to return by item ID",
 				new MetaDataDTO(
 						result.hasNext(),
 						result.hasPrevious(),
