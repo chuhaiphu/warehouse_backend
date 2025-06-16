@@ -593,7 +593,7 @@ public class ExportRequestService {
             newDetail.setActualQuantity(item.getQuantity());
             newDetail.setMeasurementValue(item.getMeasurementValue());
             newDetail.setActualMeasurementValue(item.getMeasurementValue());
-            newDetail.setStatus(matchedDetail.getStatus());
+            newDetail.setStatus(DetailStatus.MATCH);
             newDetail = exportRequestDetailRepository.save(newDetail);
             newExportRequestDetails.add(newDetail);
 
