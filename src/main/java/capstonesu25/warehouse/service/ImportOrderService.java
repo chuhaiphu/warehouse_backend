@@ -7,8 +7,8 @@ import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderCreateRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
-import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.utils.Mapper;
 import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -34,87 +34,89 @@ public class ImportOrderService {
     private final AccountRepository accountRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final ConfigurationRepository configurationRepository;
-    private final ImportRequestDetailRepository  importRequestDetailRepository;
+    private final ImportRequestDetailRepository importRequestDetailRepository;
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final StoredLocationRepository storedLocationRepository;
     private final ItemRepository itemRepository;
     private final NotificationService notificationService;
     private final AccountService accountService;
-    private final ImportOrderDetailService importOrderDetailService;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(String id) {
         LOGGER.info("Get import order by id: " + id);
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
-        return mapToResponse(importOrder);
+        return Mapper.mapToImportOrderResponse(importOrder);
     }
 
     public List<ImportOrderResponse> getAllImportOrdersList() {
         LOGGER.info("Get all import orders list");
         return importOrderRepository.findAll().stream()
-                .map(this::mapToResponse)
+                .map(Mapper::mapToImportOrderResponse)
                 .toList();
     }
 
     public List<ImportOrderResponse> getImportOrdersByImportRequestId(String id) {
         LOGGER.info("Get import orders by import request id: " + id);
         List<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id);
-        return importOrders.stream().map(this::mapToResponse).toList();
+        return importOrders.stream().map(Mapper::mapToImportOrderResponse).toList();
     }
 
     public ImportOrderResponse create(ImportOrderCreateRequest request) {
         LOGGER.info("Create new import order");
-        
+
         ImportRequest importRequest = importRequestRepository.findById(request.getImportRequestId())
-                .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + request.getImportRequestId()));
+                .orElseThrow(() -> new NoSuchElementException(
+                        "ImportRequest not found with ID: " + request.getImportRequestId()));
         boolean canBeContinued = false;
-        for(ImportRequestDetail detail : importRequest.getDetails()) {
-           if(detail.getActualQuantity() == 0) {
-               // If no actual imports yet, check against ordered quantity
-               if(detail.getOrderedQuantity() < detail.getExpectQuantity()) {
-                   canBeContinued = true;
-               }
-           } else {
-               // If there are actual imports, check against actual quantity
-               if(detail.getActualQuantity() < detail.getExpectQuantity()) {
-                   canBeContinued = true;
-               }
-           }
+        for (ImportRequestDetail detail : importRequest.getDetails()) {
+            if (detail.getActualQuantity() == 0) {
+                // If no actual imports yet, check against ordered quantity
+                if (detail.getOrderedQuantity() < detail.getExpectQuantity()) {
+                    canBeContinued = true;
+                }
+            } else {
+                // If there are actual imports, check against actual quantity
+                if (detail.getActualQuantity() < detail.getExpectQuantity()) {
+                    canBeContinued = true;
+                }
+            }
         }
-        if(!canBeContinued) {
-            throw new IllegalStateException("Cannot create import order: All items have been fully imported or planned");
+        if (!canBeContinued) {
+            throw new IllegalStateException(
+                    "Cannot create import order: All items have been fully imported or planned");
         }
 
         ImportOrder importOrder = new ImportOrder();
         importOrder.setId(createImportOrderId(importRequest));
         importOrder.setImportRequest(importRequest);
-        if(request.getDateReceived() != null && request.getTimeReceived() != null) {
+        if (request.getDateReceived() != null && request.getTimeReceived() != null) {
             validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
             importOrder.setDateReceived(request.getDateReceived());
             importOrder.setTimeReceived(request.getTimeReceived());
         }
         importOrder.setStatus(RequestStatus.IN_PROGRESS);
-        
+
         if (request.getAccountId() != null) {
             Account account = accountRepository.findById(request.getAccountId())
-                    .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
+                    .orElseThrow(
+                            () -> new NoSuchElementException("Account not found with ID: " + request.getAccountId()));
             validateAccountForAssignment(account);
             importOrder.setAssignedStaff(account);
             notificationService.handleNotification(
-                NotificationUtil.STAFF_CHANNEL + account.getId(),
-                NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
-                importOrder.getId(),
-                "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
-                List.of(account)
-            );
+                    NotificationUtil.STAFF_CHANNEL + account.getId(),
+                    NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                    importOrder.getId(),
+                    "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
+                    List.of(account));
             importOrder.setStatus(RequestStatus.IN_PROGRESS);
         }
-        
+
         if (request.getNote() != null) {
             importOrder.setNote(request.getNote());
         }
-        if(request.getDateReceived() != null && request.getTimeReceived() != null) {
+        if (request.getDateReceived() != null && request.getTimeReceived() != null) {
             validateForTimeDate(request.getDateReceived(), request.getTimeReceived());
             importOrder.setDateReceived(request.getDateReceived());
             importOrder.setTimeReceived(request.getTimeReceived());
@@ -124,35 +126,35 @@ public class ImportOrderService {
         ImportOrder order = importOrderRepository.save(importOrder);
 
         notificationService.handleNotification(
-            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-            NotificationUtil.IMPORT_ORDER_CREATED_EVENT,
-            order.getId(),
-            "Đơn nhập mã #" + order.getId() + " đã được tạo",
-            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
-        );
-        
-        return mapToResponse(importOrderRepository.save(order));
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_CREATED_EVENT,
+                order.getId(),
+                "Đơn nhập mã #" + order.getId() + " đã được tạo",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
+
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(order));
     }
 
     public ImportOrderResponse update(ImportOrderUpdateRequest request) {
         LOGGER.info("Update import order");
-        
+
         ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
-                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + request.getImportOrderId()));
+                .orElseThrow(() -> new NoSuchElementException(
+                        "ImportOrder not found with ID: " + request.getImportOrderId()));
 
         if (request.getNote() != null) {
             importOrder.setNote(request.getNote());
         }
-        
+
         if (request.getDateReceived() != null) {
             importOrder.setDateReceived(request.getDateReceived());
         }
-        
+
         if (request.getTimeReceived() != null) {
             importOrder.setTimeReceived(request.getTimeReceived());
         }
-        
-        return mapToResponse(importOrderRepository.save(importOrder));
+
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
     private void validateAccountForAssignment(Account account) {
@@ -190,7 +192,7 @@ public class ImportOrderService {
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
         LOGGER.info("Check if date is in the past");
-        if(date.isBefore(LocalDate.now())) {
+        if (date.isBefore(LocalDate.now())) {
             throw new IllegalStateException("Cannot set time for import order: Date is in the past");
         }
 
@@ -215,20 +217,19 @@ public class ImportOrderService {
 
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
-        if(importOrder.getAssignedStaff() != null) {
-            LOGGER.info("Return working for pre staff: {}",importOrder.getAssignedStaff().getEmail());
-            StaffPerformance staffPerformance = staffPerformanceRepository.
-                    findByImportOrderIdAndAssignedStaff_Id(importOrderId,importOrder.getAssignedStaff().getId());
-            if(staffPerformance != null) {
-            LOGGER.info("Delete working time for pre staff: {}",importOrder.getAssignedStaff().getEmail());
+        if (importOrder.getAssignedStaff() != null) {
+            LOGGER.info("Return working for pre staff: {}", importOrder.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository
+                    .findByImportOrderIdAndAssignedStaff_Id(importOrderId, importOrder.getAssignedStaff().getId());
+            if (staffPerformance != null) {
+                LOGGER.info("Delete working time for pre staff: {}", importOrder.getAssignedStaff().getEmail());
                 staffPerformanceRepository.delete(staffPerformance);
                 notificationService.handleNotification(
-                    NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
-                    NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
-                    importOrder.getId(),
-                    "Bạn đã được hủy phân công cho đơn nhập mã #" + importOrder.getId(),
-                    List.of(importOrder.getAssignedStaff())
-                );
+                        NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
+                        NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                        importOrder.getId(),
+                        "Bạn đã được hủy phân công cho đơn nhập mã #" + importOrder.getId(),
+                        List.of(importOrder.getAssignedStaff()));
             }
         }
         Account account = accountRepository.findById(accountId)
@@ -237,42 +238,41 @@ public class ImportOrderService {
         setTimeForStaffPerformance(account, importOrder);
         importOrder.setAssignedStaff(account);
         notificationService.handleNotification(
-            NotificationUtil.STAFF_CHANNEL + account.getId(),
-            NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
-            importOrder.getId(),
-            "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
-            List.of(account)
-        );
+                NotificationUtil.STAFF_CHANNEL + account.getId(),
+                NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                importOrder.getId(),
+                "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
+                List.of(account));
         importOrder.setStatus(RequestStatus.IN_PROGRESS);
-        
-        return mapToResponse(importOrderRepository.save(importOrder));
+
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
     public Page<ImportOrderResponse> getImportOrdersByStaffId(Long staffId, int page, int limit) {
         LOGGER.info("Get import orders by staff id: " + staffId);
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByAssignedStaff_Id(staffId, pageable);
-        return importOrders.map(this::mapToResponse);
+        return importOrders.map(Mapper::mapToImportOrderResponse);
     }
 
     public Page<ImportOrderResponse> getImportOrdersByPage(int page, int limit) {
         LOGGER.info("Get all import orders");
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findAll(pageable);
-        return importOrders.map(this::mapToResponse);
+        return importOrders.map(Mapper::mapToImportOrderResponse);
     }
 
     public ImportOrderResponse cancelImportOrder(String importOrderId) {
         LOGGER.info("Cancelling import order with ID: " + importOrderId);
-        
+
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
-                
+
         // Can only cancel orders that are NOT_STARTED or IN_PROGRESS
         if (importOrder.getStatus() == RequestStatus.COMPLETED || importOrder.getStatus() == RequestStatus.CANCELLED) {
             throw new IllegalStateException("Cannot cancel import order with status: " + importOrder.getStatus());
         }
-        
+
         // Update ordered quantities in import request details
         ImportRequest importRequest = importOrder.getImportRequest();
         for (ImportOrderDetail orderDetail : importOrder.getImportOrderDetails()) {
@@ -280,11 +280,12 @@ public class ImportOrderService {
                     .filter(requestDetail -> requestDetail.getItem().getId().equals(orderDetail.getItem().getId()))
                     .findFirst()
                     .ifPresent(requestDetail -> {
-                        requestDetail.setOrderedQuantity(requestDetail.getOrderedQuantity() - orderDetail.getExpectQuantity());
+                        requestDetail.setOrderedQuantity(
+                                requestDetail.getOrderedQuantity() - orderDetail.getExpectQuantity());
                         importRequestRepository.save(importRequest);
                     });
         }
-        
+
         // If staff was assigned, set them back to ACTIVE
         if (importOrder.getAssignedStaff() != null) {
             Account staff = importOrder.getAssignedStaff();
@@ -292,30 +293,27 @@ public class ImportOrderService {
             accountRepository.save(staff);
             importOrder.setAssignedStaff(null);
             notificationService.handleNotification(
-                NotificationUtil.STAFF_CHANNEL + staff.getId(),
-                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
-                importOrder.getId(),
-                "Đơn nhập mã #" + importOrder.getId() + " đã bị hủy",
-                List.of(staff)
-            );
+                    NotificationUtil.STAFF_CHANNEL + staff.getId(),
+                    NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+                    importOrder.getId(),
+                    "Đơn nhập mã #" + importOrder.getId() + " đã bị hủy",
+                    List.of(staff));
         }
-        
+
         importOrder.setStatus(RequestStatus.CANCELLED);
         notificationService.handleNotification(
-            NotificationUtil.DEPARTMENT_CHANNEL,
-            NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
-            importOrderId,
-            "Đơn nhập mã #" + importOrderId + " đã bị hủy",
-            accountRepository.findByRole(AccountRole.DEPARTMENT)
-        );
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã bị hủy",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
         notificationService.handleNotification(
-            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-            NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
-            importOrderId,
-            "Đơn nhập mã #" + importOrderId + " đã bị hủy",
-            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
-        );
-        return mapToResponse(importOrderRepository.save(importOrder));
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã bị hủy",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
     public ImportOrderResponse completeImportOrder(String importOrderId) {
@@ -328,22 +326,22 @@ public class ImportOrderService {
         autoFillLocationForImport(importOrder);
         handleImportItems(importOrder);
         notificationService.handleNotification(
-            NotificationUtil.DEPARTMENT_CHANNEL,
-            NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT,
-            importOrderId,
-            "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
-            accountRepository.findByRole(AccountRole.DEPARTMENT)
-        );
-        return mapToResponse(importOrderRepository.save(importOrder));
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
-    public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime, String extendedReason) {
+    public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime,
+            String extendedReason) {
         LOGGER.info("Extending import order with ID: " + importOrderId);
 
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
 
-        if(importOrder.isExtended()) {
+        if (importOrder.isExtended()) {
             throw new IllegalStateException("Import order has already been extended");
         }
 
@@ -357,11 +355,11 @@ public class ImportOrderService {
                 .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
         importOrder.setStatus(RequestStatus.EXTENDED);
         importOrder.setExtended(true);
-        if(extendedDate == null) {
-             extendedDate = importOrder.getDateReceived().plusDays(configuration.getMaxAllowedDaysForExtend());
+        if (extendedDate == null) {
+            extendedDate = importOrder.getDateReceived().plusDays(configuration.getMaxAllowedDaysForExtend());
         }
         importOrder.setExtendedDate(extendedDate);
-        if(extendedTime == null) {
+        if (extendedTime == null) {
             extendedTime = importOrder.getTimeReceived();
         }
         importOrder.setExtendedTime(extendedTime);
@@ -373,39 +371,38 @@ public class ImportOrderService {
         activeAccountRequest.setImportOrderId(importOrder.getId());
         List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
         Account account = accountRepository.findById(accountResponse.get(0).getId())
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
+                .orElseThrow(() -> new NoSuchElementException(
+                        "Account not found with ID: " + accountResponse.get(0).getId()));
 
         importOrder.setAssignedStaff(account);
         setTimeForStaffPerformance(importOrder.getAssignedStaff(), importOrder);
         notificationService.handleNotification(
-            NotificationUtil.STAFF_CHANNEL + account.getId(),
-            NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
-            importOrder.getId(),
-            "Đơn nhập mã #" + importOrder.getId() + " đã được gia hạn",
-            List.of(account)
-        );
+                NotificationUtil.STAFF_CHANNEL + account.getId(),
+                NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
+                importOrder.getId(),
+                "Đơn nhập mã #" + importOrder.getId() + " đã được gia hạn",
+                List.of(account));
         notificationService.handleNotification(
-            NotificationUtil.DEPARTMENT_CHANNEL,
-            NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
-            importOrderId,
-            "Đơn nhập mã #" + importOrderId + " đã được gia hạn",
-            accountRepository.findByRole(AccountRole.DEPARTMENT)
-        );
-        return mapToResponse(importOrderRepository.save(importOrder));
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã được gia hạn",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
-    private void updateImportRequest( ImportOrder importOrder) {
+    private void updateImportRequest(ImportOrder importOrder) {
         LOGGER.info("Updating import request after paper creation");
 
         ImportRequest importRequest = importOrder.getImportRequest();
         List<ImportRequestDetail> importRequestDetails = importRequest.getDetails();
         for (ImportRequestDetail detail : importRequestDetails) {
-            for(ImportOrderDetail importOrderDetail : importOrder.getImportOrderDetails()) {
+            for (ImportOrderDetail importOrderDetail : importOrder.getImportOrderDetails()) {
                 if (detail.getItem().getId().equals(importOrderDetail.getItem().getId())) {
                     detail.setActualQuantity(detail.getActualQuantity() + importOrderDetail.getActualQuantity());
-                    if(detail.getActualQuantity() == detail.getExpectQuantity()) {
+                    if (detail.getActualQuantity() == detail.getExpectQuantity()) {
                         detail.setStatus(DetailStatus.MATCH);
-                    } else if(detail.getActualQuantity() > detail.getExpectQuantity()) {
+                    } else if (detail.getActualQuantity() > detail.getExpectQuantity()) {
                         detail.setStatus(DetailStatus.EXCESS);
                     } else {
                         detail.setStatus(DetailStatus.LACK);
@@ -429,17 +426,17 @@ public class ImportOrderService {
         }
     }
 
-    //Update import Order
-    private void updateImportOrder (ImportOrder importOrder) {
+    // Update import Order
+    private void updateImportOrder(ImportOrder importOrder) {
         LOGGER.info("Updating import order after completed");
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
-        for(ImportOrderDetail importOrderDetail : importOrderDetails) {
+        for (ImportOrderDetail importOrderDetail : importOrderDetails) {
             LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
             createInventoryItem(importOrderDetail);
             LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
-            if(importOrderDetail.getActualQuantity() == importOrderDetail.getExpectQuantity()) {
+            if (importOrderDetail.getActualQuantity() == importOrderDetail.getExpectQuantity()) {
                 importOrderDetail.setStatus(DetailStatus.MATCH);
-            } else if(importOrderDetail.getActualQuantity() > importOrderDetail.getExpectQuantity()) {
+            } else if (importOrderDetail.getActualQuantity() > importOrderDetail.getExpectQuantity()) {
                 importOrderDetail.setStatus(DetailStatus.EXCESS);
             } else {
                 importOrderDetail.setStatus(DetailStatus.LACK);
@@ -455,21 +452,24 @@ public class ImportOrderService {
         LOGGER.info("Auto fill location");
 
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
-        for(ImportOrderDetail importOrderDetail : importOrderDetails) {
+        for (ImportOrderDetail importOrderDetail : importOrderDetails) {
             List<InventoryItem> inventoryItemList = importOrderDetail.getItem().getInventoryItems();
-            //get the stored location
+            // get the stored location
             List<StoredLocation> storedLocationList = storedLocationRepository
-                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(importOrderDetail.getItem().getId());
+                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(
+                            importOrderDetail.getItem().getId());
             for (InventoryItem inventoryItem : inventoryItemList) {
                 for (StoredLocation storedLocation : storedLocationList) {
-                    if (storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue() <= storedLocation.getMaximumCapacityForItem()) {
+                    if (storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue() <= storedLocation
+                            .getMaximumCapacityForItem()) {
                         inventoryItem.setStoredLocation(storedLocation);
                         double newCapacity = storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue();
                         storedLocation.setCurrentCapacity(newCapacity);
 
                         storedLocation.setUsed(true);
 
-                        boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < inventoryItem.getMeasurementValue();
+                        boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < inventoryItem
+                                .getMeasurementValue();
                         storedLocation.setFulled(isNowFull);
 
                         storedLocationRepository.save(storedLocation);
@@ -487,7 +487,7 @@ public class ImportOrderService {
 
     private void createInventoryItem(ImportOrderDetail importOrderDetail) {
         LOGGER.info("Creating inventory item for import order detail id: {}", importOrderDetail.getId());
-        for(int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
+        for (int i = 0; i < importOrderDetail.getActualQuantity(); i++) {
             InventoryItem inventoryItem = new InventoryItem();
             inventoryItem.setId(createInventoryItemId(importOrderDetail, i));
             inventoryItem.setImportOrderDetail(importOrderDetail);
@@ -497,14 +497,13 @@ public class ImportOrderService {
             inventoryItem.setMeasurementValue(importOrderDetail.getItem().getMeasurementValue());
             inventoryItem.setStatus(ItemStatus.AVAILABLE);
             inventoryItem.setUpdatedDate(LocalDateTime.now());
-            if(importOrderDetail.getItem().getDaysUntilDue() != null) {
-                inventoryItem.setExpiredDate(inventoryItem.getImportedDate().plusDays(importOrderDetail.getItem().getDaysUntilDue()));
+            if (importOrderDetail.getItem().getDaysUntilDue() != null) {
+                inventoryItem.setExpiredDate(
+                        inventoryItem.getImportedDate().plusDays(importOrderDetail.getItem().getDaysUntilDue()));
             }
             inventoryItemRepository.save(inventoryItem);
         }
     }
-
-
 
     private void handleImportItems(ImportOrder importOrder) {
         LOGGER.info("Handling import items for import order id: {}", importOrder.getId());
@@ -514,7 +513,8 @@ public class ImportOrderService {
             for (InventoryItem inventoryItem : detail.getInventoryItems()) {
                 Item item = inventoryItem.getItem();
                 if (item != null) {
-                    item.setTotalMeasurementValue(item.getTotalMeasurementValue() + inventoryItem.getMeasurementValue());
+                    item.setTotalMeasurementValue(
+                            item.getTotalMeasurementValue() + inventoryItem.getMeasurementValue());
                     item.setQuantity(item.getQuantity() + 1);
                     updatedItems.put(item.getId(), item);
                 }
@@ -525,42 +525,13 @@ public class ImportOrderService {
         LOGGER.info("Updated {} imported items", updatedItems.size());
     }
 
-    private ImportOrderResponse mapToResponse(ImportOrder importOrder) {
-        List<ImportOrderDetailResponse> details = importOrder.getImportOrderDetails() != null ?
-                importOrder.getImportOrderDetails().stream()
-                        .map(importOrderDetailService::mapToResponse)
-                        .toList() :
-                List.of();
-
-        return new ImportOrderResponse(
-                importOrder.getId(),
-                importOrder.getImportRequest() != null ? importOrder.getImportRequest().getId() : null,
-                importOrder.getDateReceived(),
-                importOrder.getTimeReceived(),
-                importOrder.isExtended(),
-                importOrder.getExtendedDate(),
-                importOrder.getExtendedTime(),
-                importOrder.getExtendedReason(),
-                importOrder.getNote(),
-                importOrder.getStatus() != null ? importOrder.getStatus() : null,
-                details,
-                importOrder.getActualDateReceived(),
-                importOrder.getActualTimeReceived(),
-                importOrder.getCreatedBy(),
-                importOrder.getUpdatedBy(),
-                importOrder.getCreatedDate(),
-                importOrder.getUpdatedDate(),
-                importOrder.getPaper() != null ? importOrder.getPaper().getId() : null,
-                importOrder.getAssignedStaff() != null ? importOrder.getAssignedStaff().getId() : null);
-    }
-
-    private String createImportOrderId (ImportRequest importRequest) {
+    private String createImportOrderId(ImportRequest importRequest) {
         int size = importRequest.getImportOrders().size();
-        return  "DN-" + importRequest.getId() + "-" + (size + 1);
+        return "DN-" + importRequest.getId() + "-" + (size + 1);
     }
 
     private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
-        return "ITM-" +importOrderDetail.getItem().getId()+"-"+ importOrderDetail.getImportOrder().getId() + "-" +
-                + (index + 1);
+        return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" +
+                +(index + 1);
     }
 }

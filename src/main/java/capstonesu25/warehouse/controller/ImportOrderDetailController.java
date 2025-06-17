@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
@@ -29,7 +30,7 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Get paginated import order details by import order ID")
     @GetMapping("/page/{importOrderId}")
-    
+
     public ResponseEntity<?> getImportOrderDetails(@PathVariable String importOrderId,
             @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int limit) {
         LOGGER.info("Getting import order details");
@@ -48,7 +49,7 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Get import order detail by ID")
     @GetMapping("/{importOrderDetailId}")
-    
+
     public ResponseEntity<?> getImportOrderDetail(@PathVariable Long importOrderDetailId) {
         LOGGER.info("Getting import order detail");
         var result = service.getById(importOrderDetailId);
@@ -59,19 +60,19 @@ public class ImportOrderDetailController {
     }
 
     @Operation(summary = "Create import order details from Excel file")
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "CREATE")
     @PostMapping("/{importOrderId}")
-    
     public ResponseEntity<?> createImportOrderDetails(@RequestBody ImportOrderDetailRequest request,
-                                                      @PathVariable String importOrderId) {
+            @PathVariable String importOrderId) {
         LOGGER.info("Creating import order details from Excel file");
-        service.create(request, importOrderId);
         return ResponseUtil.getObject(
-                null,
+                service.create(request, importOrderId),
                 HttpStatus.CREATED,
                 "Successfully created import order details");
     }
 
     @Operation(summary = "Update actual quantities of import order details")
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "UPDATE_ACTUAL_QUANTITIES")
     @PutMapping("/{importOrderId}")
     public ResponseEntity<?> updateActualQuantities(@RequestBody List<ImportOrderDetailUpdateRequest> requests,
             @PathVariable String importOrderId) {

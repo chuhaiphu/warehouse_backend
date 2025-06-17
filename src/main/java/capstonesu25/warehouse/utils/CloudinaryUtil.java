@@ -21,6 +21,7 @@ public class CloudinaryUtil {
         this.cloudinary = new Cloudinary(cloudinaryUrl);
     }
 
+    @SuppressWarnings("unchecked")
     public String uploadImage(MultipartFile file) throws IOException {
         Map<String, Object> uploadParams = ObjectUtils.asMap(
                 "use_filename", false,

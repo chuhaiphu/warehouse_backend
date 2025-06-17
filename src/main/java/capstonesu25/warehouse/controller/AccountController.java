@@ -86,6 +86,18 @@ public class AccountController {
         );
     }
 
+    @Operation(summary = "Find account by username")
+    @GetMapping("/by-username")
+    public ResponseEntity<?> findAccountByUsername(@RequestParam String username) {
+        LOGGER.info("Finding account by username: {}", username);
+        AccountResponse account = accountService.findAccountByUsername(username);
+        return ResponseUtil.getObject(
+                account,
+                HttpStatus.OK,
+                "Account found successfully"
+        );
+    }
+
     @Operation(summary = "Find account by id")
     @GetMapping("/by-id")
     public ResponseEntity<?> findAccountById(@RequestParam Long id) {

@@ -1,16 +1,15 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.Configuration;
-import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
-import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
+import capstonesu25.warehouse.utils.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,13 +32,12 @@ public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
     private final ExportRequestRepository exportRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
-    private final ConfigurationRepository configurationRepository;
-    private final ImportRequestDetailService importRequestDetailService;
+    private final ConfigurationRepository configurationRepository;  
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
         return importRequestRepository.findAll().stream()
-                .map(this::mapToResponse)
+                .map(Mapper::mapToImportRequestResponse)
                 .toList();
     }
 
@@ -48,14 +45,14 @@ public class ImportRequestService {
         LOGGER.info("Get all import requests by page");
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportRequest> importRequests = importRequestRepository.findAll(pageable);
-        return importRequests.map(this::mapToResponse);
+        return importRequests.map(Mapper::mapToImportRequestResponse);
     }
 
     public ImportRequestResponse getImportRequestById(String id) {
         LOGGER.info("Get import request by id: " + id);
         ImportRequest importRequest = importRequestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + id));
-        return mapToResponse(importRequest);
+        return Mapper.mapToImportRequestResponse(importRequest);
     }
 
     public ImportRequestResponse createImportRequest(ImportRequestCreateRequest request) {
@@ -111,7 +108,7 @@ public class ImportRequestService {
                     .orElseThrow(() -> new NoSuchElementException("ExportRequest not found with ID: " + request.getExportRequestId())));
         }
         
-        return mapToResponse(importRequestRepository.save(importRequest));
+        return Mapper.mapToImportRequestResponse(importRequestRepository.save(importRequest));
     }
 
     public ImportRequestResponse updateImportRequest(ImportRequestUpdateRequest request) {
@@ -122,35 +119,7 @@ public class ImportRequestService {
         
         importRequest.setImportReason(request.getImportReason());
         
-        return mapToResponse(importRequestRepository.save(importRequest));
-    }
-
-    private ImportRequestResponse mapToResponse(ImportRequest importRequest) {
-        List<ImportRequestDetailResponse> details = importRequest.getDetails() != null ?
-                importRequest.getDetails().stream()
-                        .map(importRequestDetailService::mapToResponse)
-                        .collect(Collectors.toList()) :
-                List.of();
-
-        return new ImportRequestResponse(
-                importRequest.getId(),
-                importRequest.getImportReason(),
-                importRequest.getType(),
-                importRequest.getStatus(),
-                importRequest.getProvider() != null ? importRequest.getProvider().getId() : null,
-                importRequest.getExportRequest() != null ? importRequest.getExportRequest().getId() : null,
-                details,
-                importRequest.getImportOrders() != null ?
-                        importRequest.getImportOrders().stream().map(ImportOrder::getId).toList() :
-                        List.of(),
-                importRequest.getCreatedBy(),
-                importRequest.getUpdatedBy(),
-                importRequest.getCreatedDate(),
-                importRequest.getUpdatedDate(),
-                importRequest.getBatchCode(),
-                importRequest.getStartDate(),
-                importRequest.getEndDate()
-        );
+        return Mapper.mapToImportRequestResponse(importRequestRepository.save(importRequest));
     }
 
     private String createImportRequestId() {

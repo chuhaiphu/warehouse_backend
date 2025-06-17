@@ -1,6 +1,5 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestService;
@@ -63,15 +62,5 @@ public class ImportRequestController {
                 result,
                 HttpStatus.OK,
                 "Successfully retrieved import request");
-    }
-
-    @Operation(summary = "Create a new import request")
-    @PostMapping()
-    public ResponseEntity<?> createImportRequest(@RequestBody ImportRequestCreateRequest request) {
-        LOGGER.info("Creating import request");
-        return ResponseUtil.getObject(
-                importRequestService.createImportRequest(request),
-                HttpStatus.CREATED,
-                "Successfully created import request");
     }
 }

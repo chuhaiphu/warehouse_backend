@@ -4,10 +4,12 @@ import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
+import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.utils.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,24 +43,23 @@ public class ImportOrderDetailService {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ImportOrderDetail> importOrderDetailPage = importOrderDetailRepository.
                 findImportOrderDetailByImportOrder_Id(importOrderId, pageable);
-        return importOrderDetailPage.map(this::mapToResponse);
+        return importOrderDetailPage.map(Mapper::mapToImportOrderDetailResponse);
     }
 
     public ImportOrderDetailResponse getById(Long importOrderDetailId) {
         LOGGER.info("Getting import order detail by id: {}", importOrderDetailId);
         ImportOrderDetail importOrderDetail = importOrderDetailRepository.findById(importOrderDetailId).orElseThrow();
-        return mapToResponse(importOrderDetail);
+        return Mapper.mapToImportOrderDetailResponse(importOrderDetail);
     }
 
-    public void create(ImportOrderDetailRequest request, String importOrderId) {
+    public ImportOrderResponse create(ImportOrderDetailRequest request, String importOrderId) {
         LOGGER.info("Creating import order detail for import order id: {}", importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
         checkSameProvider(request);
-        createImportOrderDetails(importOrder, request);
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
-
+        return createImportOrderDetails(importOrder, request);
     }
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
@@ -104,7 +105,7 @@ public class ImportOrderDetailService {
 
     }
 
-    private void createImportOrderDetails(ImportOrder importOrder, ImportOrderDetailRequest request) {
+    private ImportOrderResponse createImportOrderDetails(ImportOrder importOrder, ImportOrderDetailRequest request) {
         // Set date/time/note from the request
         LOGGER.info("Setting date, time and note for import order");
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
@@ -127,7 +128,7 @@ public class ImportOrderDetailService {
 
         importOrder.setAssignedStaff(account);
         setTimeForStaffPerformance(account, importOrder);
-        importOrderRepository.save(importOrder);
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
     private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ImportOrderItem importOrderItem, Item item) {
@@ -253,15 +254,5 @@ public class ImportOrderDetailService {
         importOrderDetailRepository.deleteById(importOrderDetailId);
     }
 
-    public ImportOrderDetailResponse mapToResponse(ImportOrderDetail importOrderDetail) {
-        return new ImportOrderDetailResponse(
-                importOrderDetail.getId(),
-                importOrderDetail.getImportOrder().getId(),
-                importOrderDetail.getItem().getId(),
-                importOrderDetail.getItem().getName(),
-                importOrderDetail.getExpectQuantity(),
-                importOrderDetail.getActualQuantity(),
-                importOrderDetail.getStatus()
-        );
-    }
+
 }

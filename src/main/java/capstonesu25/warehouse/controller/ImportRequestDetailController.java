@@ -1,5 +1,7 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
+import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestCreateWithDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.service.ImportRequestDetailService;
@@ -59,10 +61,11 @@ public class ImportRequestDetailController {
     }
 
     @Operation(summary = "Create import requests with details")
+    @TransactionLoggable(type = "IMPORT_REQUEST", action = "CREATE")
     @PostMapping("/import-requests-with-import-request-details")
     public ResponseEntity<?> createImportRequestsWithDetails(@RequestBody List<ImportRequestCreateWithDetailRequest> request) {
         LOGGER.info("Creating import requests with details");
-        List<String> createdIds = service.createImportRequestDetail(request);
+        List<ImportRequestResponse> createdIds = service.createImportRequestWithDetails(request);
         return ResponseUtil.getObject(
                 createdIds,
                 HttpStatus.CREATED,

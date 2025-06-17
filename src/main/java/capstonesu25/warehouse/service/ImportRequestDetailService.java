@@ -3,15 +3,19 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestCreateWithDetailRequest;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.utils.Mapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -27,7 +31,7 @@ public class ImportRequestDetailService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
 
-    public List<String> createImportRequestDetail(List<ImportRequestCreateWithDetailRequest> detailRequests) {
+    public List<ImportRequestResponse> createImportRequestWithDetails(List<ImportRequestCreateWithDetailRequest> detailRequests) {
         LOGGER.info("Creating import request detail svc");
         
         // Validate that all items belong to the same provider
@@ -38,7 +42,6 @@ public class ImportRequestDetailService {
         String importReason = firstRequest.getImportReason();
         ImportType importType = firstRequest.getImportType();
         String exportRequestId = firstRequest.getExportRequestId();
-
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
@@ -51,7 +54,7 @@ public class ImportRequestDetailService {
                     .add(req);
         }
 
-        List<String> createdImportRequestIds = new ArrayList<>();
+        List<ImportRequestResponse> createdImportRequestResponses = new ArrayList<>();
 
         // Process each provider group
         for (Map.Entry<Long, List<ImportRequestCreateWithDetailRequest>> entry : requestsByProvider.entrySet()) {
@@ -60,12 +63,11 @@ public class ImportRequestDetailService {
 
             // Create ImportRequest for each provider
             ImportRequest importRequest = new ImportRequest();
-            importRequest.setId(createImportRequestDetailId());
+            importRequest.setId(createImportRequestId());
             importRequest.setImportReason(importReason);
             importRequest.setStatus(RequestStatus.NOT_STARTED);
             importRequest.setType(importType);
             importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
-
 
             Configuration configuration = configurationRepository.findAll()
                     .stream()
@@ -76,7 +78,6 @@ public class ImportRequestDetailService {
             LocalDate endDate = startDate.plusDays(configuration.getMaxAllowedDaysForImportRequestProcess());
 
             if(firstRequest.getEndDate() != null) {
-
                 if(firstRequest.getEndDate().isBefore(firstRequest.getStartDate())) {
                     throw new IllegalArgumentException("End date cannot be before start date.");
                 }
@@ -118,9 +119,9 @@ public class ImportRequestDetailService {
 
             // Save the import request
             ImportRequest savedImportRequest = importRequestRepository.save(importRequest);
-            createdImportRequestIds.add(savedImportRequest.getId());
 
             // Create import request details
+            List<ImportRequestDetail> savedDetails = new ArrayList<>();
             for (ImportRequestCreateWithDetailRequest req : requests) {
                 ImportRequestDetail detail = new ImportRequestDetail();
                 detail.setImportRequest(savedImportRequest);
@@ -129,11 +130,19 @@ public class ImportRequestDetailService {
                         .orElseThrow(() -> new RuntimeException("Item not found with ID: " + req.getItemId())));
                 detail.setActualQuantity(0);
                 detail.setOrderedQuantity(0);
-                importRequestDetailRepository.save(detail);
+                ImportRequestDetail savedDetail = importRequestDetailRepository.save(detail);
+                savedDetails.add(savedDetail);
             }
+
+            // Set the saved details to the saved import request for mapping
+            savedImportRequest.setDetails(savedDetails);
+            
+            // Convert to response and add to result list
+            ImportRequestResponse response = Mapper.mapToImportRequestResponse(savedImportRequest);
+            createdImportRequestResponses.add(response);
         }
         
-        return createdImportRequestIds;
+        return createdImportRequestResponses;
     }
 
     public void deleteImportRequestDetail(Long importRequestDetailId) {
@@ -146,13 +155,13 @@ public class ImportRequestDetailService {
         List<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
                 .findImportRequestDetailsByImportRequest_Id(importRequestId);
 
-        return importRequestDetails.stream().map(this::mapToResponse).toList();
+        return importRequestDetails.stream().map(Mapper::mapToImportRequestDetailResponse).toList();
     }
 
     public ImportRequestDetailResponse getImportRequestDetailById(Long importRequestDetailId) {
         LOGGER.info("Getting import request detail for ImportRequestDetail ID: {}", importRequestDetailId);
         ImportRequestDetail importRequestDetail = importRequestDetailRepository.findById(importRequestDetailId).orElseThrow();
-        return mapToResponse(importRequestDetail);
+        return Mapper.mapToImportRequestDetailResponse(importRequestDetail);
     }
 
     private OptionalInt findLatestBatchSuffixForToday() {
@@ -180,19 +189,6 @@ public class ImportRequestDetailService {
         }
     }
 
-    public ImportRequestDetailResponse mapToResponse(ImportRequestDetail importRequestDetail) {
-        return new ImportRequestDetailResponse(
-                importRequestDetail.getId(),
-                importRequestDetail.getImportRequest() != null ? importRequestDetail.getImportRequest().getId() : null,
-                importRequestDetail.getItem() != null ? importRequestDetail.getItem().getId() : null,
-                importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
-                importRequestDetail.getActualQuantity(),
-                importRequestDetail.getExpectQuantity(),
-                importRequestDetail.getOrderedQuantity(),
-                importRequestDetail.getStatus() != null ? importRequestDetail.getStatus() : null
-        );
-    }
-
     private String createImportRequestDetailId() {
         String prefix = "PN";
         LocalDate today = LocalDate.now();
@@ -200,6 +196,21 @@ public class ImportRequestDetailService {
         int todayCount = (int) importRequestRepository.findAll().stream()
                 .filter(req -> req.getId().startsWith(prefix + "-" + today.format(DateTimeFormatter.BASIC_ISO_DATE)))
                 .count();
+
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String sequence = String.format("%03d", todayCount + 1);
+
+        return String.format("%s-%s-%s", prefix, datePart, sequence);
+    }
+
+    private String createImportRequestId() {
+        String prefix = "PN";
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
 
         String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
         String sequence = String.format("%03d", todayCount + 1);

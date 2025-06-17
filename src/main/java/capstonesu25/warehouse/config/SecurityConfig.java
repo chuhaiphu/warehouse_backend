@@ -35,6 +35,7 @@ public class SecurityConfig {
                                 "/account/register",
                                 "/account/login",
                                 "/account/refresh-token",
+                                "/transaction-log",
                                 "/pusher/auth")
                         .permitAll()
                         .anyRequest().authenticated())

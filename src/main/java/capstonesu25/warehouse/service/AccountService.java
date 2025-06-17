@@ -140,6 +140,12 @@ public class AccountService implements LogoutHandler {
         return mapToResponse(account);
     }
 
+    public AccountResponse findAccountByUsername(String username) {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        return mapToResponse(account);
+    }
+
     public AccountResponse findAccountById(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
