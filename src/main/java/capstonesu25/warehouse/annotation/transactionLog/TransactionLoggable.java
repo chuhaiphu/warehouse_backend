@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 public @interface TransactionLoggable {
     String type();
     String action();
+    String objectIdSource() default "";
 }

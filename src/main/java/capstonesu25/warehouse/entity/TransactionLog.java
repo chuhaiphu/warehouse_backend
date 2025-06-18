@@ -44,10 +44,13 @@ public class TransactionLog {
     @Column(name = "action")
     private String action;  
 
+    @Column(name = "object_id")
+    private String objectId;
+
     @JsonRawValue
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "response_data")
-    private String responseData; 
+    @Column(name = "response_content")
+    private String responseContent; 
 
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)

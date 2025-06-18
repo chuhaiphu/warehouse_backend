@@ -1,5 +1,8 @@
 package capstonesu25.warehouse.annotation.transactionLog;
 
+import java.util.Collection;
+import java.lang.reflect.Field;
+
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -7,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,12 +38,19 @@ public class TransactionLogAspect {
         String fullName = accountService.findAccountByUsername(username).getFullName();
         String type = transactionLoggable.type();
         String action = transactionLoggable.action();
+        String objectIdSource = transactionLoggable.objectIdSource();
 
         // Convert response to JSON
-        String responseData = "null";
+        String responseContent = "null";
         Object contentToLog = extractContentFromResponse(result);
         if (contentToLog != null) {
-            responseData = objectMapper.writeValueAsString(contentToLog);
+            responseContent = objectMapper.writeValueAsString(contentToLog);
+        }
+
+        // Extract objectId if objectIdSource is specified
+        String objectId = null;
+        if (objectIdSource != null && !objectIdSource.trim().isEmpty()) {
+            objectId = extractObjectId(result, objectIdSource);
         }
 
         TransactionLog transactionLog = new TransactionLog();
@@ -47,21 +58,22 @@ public class TransactionLogAspect {
         transactionLog.setExecutorFullName(fullName);
         transactionLog.setType(type);
         transactionLog.setAction(action);
-        transactionLog.setResponseData(responseData);
+        transactionLog.setObjectId(objectId);
+        transactionLog.setResponseContent(responseContent);
         transactionLogRepository.save(transactionLog);
     }
 
     private Object extractContentFromResponse(Object result) {
         try {
             // Check if result is ResponseEntity
-            if (result instanceof org.springframework.http.ResponseEntity) {
-                org.springframework.http.ResponseEntity<?> responseEntity = (org.springframework.http.ResponseEntity<?>) result;
+            if (result instanceof ResponseEntity) {
+                ResponseEntity<?> responseEntity = (ResponseEntity<?>) result;
                 Object body = responseEntity.getBody();
                 
                 // Check if body is ResponseDTO and extract content field
                 if (body != null && body.getClass().getSimpleName().equals("ResponseDTO")) {
                     // Use reflection to get the content field
-                    java.lang.reflect.Field contentField = body.getClass().getDeclaredField("content");
+                    Field contentField = body.getClass().getDeclaredField("content");
                     contentField.setAccessible(true);
                     return contentField.get(body);
                 }
@@ -72,6 +84,65 @@ public class TransactionLogAspect {
         } catch (Exception e) {
             // If extraction fails, return the original result
             return result;
+        }
+    }
+
+    private String extractObjectId(Object result, String objectIdSource) {
+        try {
+            Object targetObject = result;
+            
+            // Check if result is ResponseEntity and extract body
+            if (result instanceof ResponseEntity) {
+                ResponseEntity<?> responseEntity = (ResponseEntity<?>) result;
+                Object body = responseEntity.getBody();
+                
+                // Check if body is ResponseDTO and extract content field
+                if (body != null && body.getClass().getSimpleName().equals("ResponseDTO")) {
+                    Field contentField = body.getClass().getDeclaredField("content");
+                    contentField.setAccessible(true);
+                    targetObject = contentField.get(body);
+                }
+            }
+            
+            // If targetObject is null, return null
+            if (targetObject == null) {
+                return null;
+            }
+            
+            // Handle List/Collection case - get first element
+            if (targetObject instanceof Collection) {
+                Collection<?> collection = (Collection<?>) targetObject;
+                if (!collection.isEmpty()) {
+                    targetObject = collection.iterator().next();
+                } else {
+                    return null;
+                }
+            }
+            
+            // Use reflection to get the field value
+            Class<?> targetClass = targetObject.getClass();
+            Field field = null;
+            
+            // Try to find the field in the class hierarchy
+            while (field == null && targetClass != null) {
+                try {
+                    field = targetClass.getDeclaredField(objectIdSource);
+                } catch (NoSuchFieldException e) {
+                    targetClass = targetClass.getSuperclass();
+                }
+            }
+            
+            if (field != null) {
+                field.setAccessible(true);
+                Object value = field.get(targetObject);
+                return value != null ? value.toString() : null;
+            }
+            
+            return null;
+        } catch (Exception e) {
+            // Log the exception but don't fail the transaction
+            System.err.println("Error extracting objectId: " + e.getMessage());
+            return null;
         }
     }
 }

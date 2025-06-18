@@ -93,6 +93,7 @@ public class ItemService {
         response.setName(item.getName());
         response.setDescription(item.getDescription());
         response.setMeasurementUnit(item.getMeasurementUnit());
+        response.setMeasurementValue(item.getMeasurementValue());
         response.setTotalMeasurementValue(item.getTotalMeasurementValue());
         response.setQuantity(item.getQuantity());
         response.setUnitType(item.getUnitType());

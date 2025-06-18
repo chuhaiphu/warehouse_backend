@@ -128,7 +128,8 @@ public class ImportOrderDetailService {
 
         importOrder.setAssignedStaff(account);
         setTimeForStaffPerformance(account, importOrder);
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        ImportOrder newImportOrder = importOrderRepository.save(importOrder);
+        return Mapper.mapToImportOrderResponse(importOrderRepository.findById(newImportOrder.getId()).orElseThrow());
     }
 
     private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ImportOrderItem importOrderItem, Item item) {

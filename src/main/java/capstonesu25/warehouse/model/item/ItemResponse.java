@@ -14,6 +14,7 @@ public class ItemResponse {
     private String name;
     private String description;
     private String measurementUnit;
+    private Double measurementValue;
     private Double totalMeasurementValue;
     private Integer quantity;
     private String unitType;
