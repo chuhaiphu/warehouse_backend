@@ -58,8 +58,9 @@ public class ImportOrderDetailService {
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
         checkSameProvider(request);
+        ImportOrderResponse response = createImportOrderDetails(importOrder, request);
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
-        return createImportOrderDetails(importOrder, request);
+        return response;
     }
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
