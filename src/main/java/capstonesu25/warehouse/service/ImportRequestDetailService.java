@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
@@ -31,6 +32,7 @@ public class ImportRequestDetailService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
 
+    @TransactionLoggable(type = "IMPORT_REQUEST", action = "CREATE", objectIdSource = "importRequestId")
     public List<ImportRequestResponse> createImportRequestWithDetails(List<ImportRequestCreateWithDetailRequest> detailRequests) {
         LOGGER.info("Creating import request detail svc");
         

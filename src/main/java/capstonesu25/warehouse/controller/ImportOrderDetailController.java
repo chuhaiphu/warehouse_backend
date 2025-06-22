@@ -60,7 +60,6 @@ public class ImportOrderDetailController {
     }
 
     @Operation(summary = "Create import order details from Excel file")
-    @TransactionLoggable(type = "IMPORT_ORDER", action = "CREATE")
     @PostMapping("/{importOrderId}")
     public ResponseEntity<?> createImportOrderDetails(@RequestBody ImportOrderDetailRequest request,
             @PathVariable String importOrderId) {
@@ -72,7 +71,6 @@ public class ImportOrderDetailController {
     }
 
     @Operation(summary = "Update actual quantities of import order details")
-    @TransactionLoggable(type = "IMPORT_ORDER", action = "UPDATE_ACTUAL_QUANTITIES")
     @PutMapping("/{importOrderId}")
     public ResponseEntity<?> updateActualQuantities(@RequestBody List<ImportOrderDetailUpdateRequest> requests,
             @PathVariable String importOrderId) {

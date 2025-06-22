@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.account.AccountResponse;
@@ -212,6 +213,7 @@ public class ImportOrderService {
         importOrderRepository.delete(importOrder);
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "ASSIGN_STAFF", objectIdSource = "importOrderId")
     public ImportOrderResponse assignStaff(String importOrderId, Long accountId) {
         LOGGER.info("Assigning staff to import order: " + importOrderId);
 

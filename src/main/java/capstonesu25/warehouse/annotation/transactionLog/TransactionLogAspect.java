@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.http.ResponseEntity;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import capstonesu25.warehouse.entity.TransactionLog;
@@ -30,8 +28,8 @@ public class TransactionLogAspect {
     @Autowired
     private AccountService accountService;
 
-    @AfterReturning(pointcut = "@annotation(transactionLoggable)", returning = "result")
-    public void logTransaction(JoinPoint joinPoint, TransactionLoggable transactionLoggable, Object result)
+    @AfterReturning(pointcut = "@annotation(transactionLoggable)", returning = "responseContent")
+    public void logTransaction(JoinPoint joinPoint, TransactionLoggable transactionLoggable, Object responseContent)
             throws Throwable {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -40,17 +38,31 @@ public class TransactionLogAspect {
         String action = transactionLoggable.action();
         String objectIdSource = transactionLoggable.objectIdSource();
 
-        // Convert response to JSON
+        // Check if response content is a List/Collection
+        // If yes - create multiple transaction log records
+        // Else - create single transaction log
+        if (responseContent instanceof Collection) {
+            Collection<?> responseCollection = (Collection<?>) responseContent;
+            for (Object responseItem : responseCollection) {
+                createTransactionLog(username, fullName, type, action, objectIdSource, responseItem);
+            }
+        } else {
+            createTransactionLog(username, fullName, type, action, objectIdSource, responseContent);
+        }
+    }
+    
+    private void createTransactionLog(String username, String fullName, String type, String action, 
+                                    String objectIdSource, Object responseItem) throws Exception {
+        // Convert individual response item to JSON
         String responseContent = "null";
-        Object contentToLog = extractContentFromResponse(result);
-        if (contentToLog != null) {
-            responseContent = objectMapper.writeValueAsString(contentToLog);
+        if (responseItem != null) {
+            responseContent = objectMapper.writeValueAsString(responseItem);
         }
 
-        // Extract objectId if objectIdSource is specified
+        // Extract objectId from individual response item
         String objectId = null;
         if (objectIdSource != null && !objectIdSource.trim().isEmpty()) {
-            objectId = extractObjectId(result, objectIdSource);
+            objectId = extractObjectIdFromItem(responseItem, objectIdSource);
         }
 
         TransactionLog transactionLog = new TransactionLog();
@@ -63,86 +75,37 @@ public class TransactionLogAspect {
         transactionLogRepository.save(transactionLog);
     }
 
-    private Object extractContentFromResponse(Object result) {
-        try {
-            // Check if result is ResponseEntity
-            if (result instanceof ResponseEntity) {
-                ResponseEntity<?> responseEntity = (ResponseEntity<?>) result;
-                Object body = responseEntity.getBody();
-                
-                // Check if body is ResponseDTO and extract content field
-                if (body != null && body.getClass().getSimpleName().equals("ResponseDTO")) {
-                    // Use reflection to get the content field
-                    Field contentField = body.getClass().getDeclaredField("content");
-                    contentField.setAccessible(true);
-                    return contentField.get(body);
-                }
-            }
-            
-            // If it's not the expected structure, return the original result
-            return result;
-        } catch (Exception e) {
-            // If extraction fails, return the original result
-            return result;
-        }
-    }
-
-    private String extractObjectId(Object result, String objectIdSource) {
-        try {
-            Object targetObject = result;
-            
-            // Check if result is ResponseEntity and extract body
-            if (result instanceof ResponseEntity) {
-                ResponseEntity<?> responseEntity = (ResponseEntity<?>) result;
-                Object body = responseEntity.getBody();
-                
-                // Check if body is ResponseDTO and extract content field
-                if (body != null && body.getClass().getSimpleName().equals("ResponseDTO")) {
-                    Field contentField = body.getClass().getDeclaredField("content");
-                    contentField.setAccessible(true);
-                    targetObject = contentField.get(body);
-                }
-            }
-            
-            // If targetObject is null, return null
-            if (targetObject == null) {
-                return null;
-            }
-            
-            // Handle List/Collection case - get first element
-            if (targetObject instanceof Collection) {
-                Collection<?> collection = (Collection<?>) targetObject;
-                if (!collection.isEmpty()) {
-                    targetObject = collection.iterator().next();
-                } else {
-                    return null;
-                }
-            }
-            
-            // Use reflection to get the field value
-            Class<?> targetClass = targetObject.getClass();
-            Field field = null;
-            
-            // Try to find the field in the class hierarchy
-            while (field == null && targetClass != null) {
-                try {
-                    field = targetClass.getDeclaredField(objectIdSource);
-                } catch (NoSuchFieldException e) {
-                    targetClass = targetClass.getSuperclass();
-                }
-            }
-            
-            if (field != null) {
-                field.setAccessible(true);
-                Object value = field.get(targetObject);
-                return value != null ? value.toString() : null;
-            }
-            
-            return null;
-        } catch (Exception e) {
-            // Log the exception but don't fail the transaction
-            System.err.println("Error extracting objectId: " + e.getMessage());
+    private String extractObjectIdFromItem(Object responseItem, String objectIdSource) throws Exception {
+        // If responseItem is null, return null
+        if (responseItem == null) {
             return null;
         }
+        
+        // Use reflection technique - Get the class of the response item
+        // Example: targetClass = class ImportRequestResponse
+        Class<?> targetClass = responseItem.getClass();
+        Field field = null; // Hold the field (objectIdSource field) we're looking for
+        
+        // Try to find the field in the class hierarchy
+        // Looks in current class first, then parent classes
+        while (field == null && targetClass != null) {
+            try {
+                field = targetClass.getDeclaredField(objectIdSource);
+            } catch (NoSuchFieldException e) {
+                // Field not found in current class, move to parent class
+                targetClass = targetClass.getSuperclass();
+            }
+        }
+        
+        // If we found the field, extract its value
+        if (field != null) {
+            field.setAccessible(true);
+            // Get the actual value of the field from the response object
+            // Example: value = "PN-20241201-001" (the actual ID value from the response)
+            Object value = field.get(responseItem);
+            return value != null ? value.toString() : null;
+        }
+        
+        return null;
     }
 }

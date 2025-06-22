@@ -92,7 +92,6 @@ public class ImportOrderController {
 				"Successfully deleted import order");
 	}
 
-	@TransactionLoggable(type = "IMPORT_ORDER", action = "ASSIGN_STAFF", objectIdSource = "importOrderId")
 	@Operation(summary = "Assign staff to an import order")
 	@PostMapping("/assign-staff")
 	public ResponseEntity<?> assignStaff(@RequestBody AssignStaffRequest request) {
@@ -143,7 +142,6 @@ public class ImportOrderController {
 						page));
 	}
 
-	@TransactionLoggable(type = "IMPORT_ORDER", action = "CANCEL", objectIdSource = "importOrderId")
 	@Operation(summary = "Cancel an import order")
 	@PostMapping("/cancel/{importOrderId}")
 	public ResponseEntity<?> cancelImportOrder(@PathVariable String importOrderId) {
@@ -155,7 +153,6 @@ public class ImportOrderController {
 				"Successfully cancelled import order");
 	}
 
-	@TransactionLoggable(type = "IMPORT_ORDER", action = "COMPLETE", objectIdSource = "importOrderId")
 	@Operation(summary = "complete an import order")
 	@PostMapping("/complete/{importOrderId}")
 	public ResponseEntity<?> completeImportOrder(@PathVariable String importOrderId) {
@@ -167,7 +164,6 @@ public class ImportOrderController {
 				"Successfully completed import order");
 	}
 
-	@TransactionLoggable(type = "IMPORT_ORDER", action = "EXTEND", objectIdSource = "importOrderId")
 	@Operation(summary = "extend an import order")
 	@PostMapping("/extend")
 	public ResponseEntity<?> extendImportOrder(@RequestBody ExtendImportOrderRequest request) {

@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
@@ -52,6 +53,7 @@ public class ImportOrderDetailService {
         return Mapper.mapToImportOrderDetailResponse(importOrderDetail);
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "CREATE", objectIdSource = "importOrderId")
     public ImportOrderResponse create(ImportOrderDetailRequest request, String importOrderId) {
         LOGGER.info("Creating import order detail for import order id: {}", importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)

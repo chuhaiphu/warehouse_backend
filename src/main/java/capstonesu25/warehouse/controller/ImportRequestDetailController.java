@@ -61,7 +61,6 @@ public class ImportRequestDetailController {
     }
 
     @Operation(summary = "Create import requests with details")
-    @TransactionLoggable(type = "IMPORT_REQUEST", action = "CREATE", objectIdSource = "importRequestId")
     @PostMapping("/import-requests-with-import-request-details")
     public ResponseEntity<?> createImportRequestsWithDetails(@RequestBody List<ImportRequestCreateWithDetailRequest> request) {
         LOGGER.info("Creating import requests with details");
