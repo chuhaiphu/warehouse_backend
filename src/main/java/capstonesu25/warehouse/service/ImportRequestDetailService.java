@@ -191,20 +191,6 @@ public class ImportRequestDetailService {
         }
     }
 
-    private String createImportRequestDetailId() {
-        String prefix = "PN";
-        LocalDate today = LocalDate.now();
-
-        int todayCount = (int) importRequestRepository.findAll().stream()
-                .filter(req -> req.getId().startsWith(prefix + "-" + today.format(DateTimeFormatter.BASIC_ISO_DATE)))
-                .count();
-
-        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
-        String sequence = String.format("%03d", todayCount + 1);
-
-        return String.format("%s-%s-%s", prefix, datePart, sequence);
-    }
-
     private String createImportRequestId() {
         String prefix = "PN";
         LocalDate today = LocalDate.now();

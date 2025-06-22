@@ -1,6 +1,5 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;

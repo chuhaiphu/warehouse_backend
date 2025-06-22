@@ -42,6 +42,7 @@ public class ImportOrderService {
     private final ItemRepository itemRepository;
     private final NotificationService notificationService;
     private final AccountService accountService;
+    private final ImportOrderDetailService importOrderDetailService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
@@ -97,7 +98,6 @@ public class ImportOrderService {
             importOrder.setDateReceived(request.getDateReceived());
             importOrder.setTimeReceived(request.getTimeReceived());
         }
-        importOrder.setStatus(RequestStatus.IN_PROGRESS);
 
         if (request.getAccountId() != null) {
             Account account = accountRepository.findById(request.getAccountId())
@@ -111,7 +111,6 @@ public class ImportOrderService {
                     importOrder.getId(),
                     "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
                     List.of(account));
-            importOrder.setStatus(RequestStatus.IN_PROGRESS);
         }
 
         if (request.getNote() != null) {
@@ -124,16 +123,16 @@ public class ImportOrderService {
         }
         importRequest.setStatus(RequestStatus.IN_PROGRESS);
         importRequestRepository.save(importRequest);
-        ImportOrder order = importOrderRepository.save(importOrder);
+        ImportOrder savedImportOrder = importOrderRepository.save(importOrder);
 
         notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
                 NotificationUtil.IMPORT_ORDER_CREATED_EVENT,
-                order.getId(),
-                "Đơn nhập mã #" + order.getId() + " đã được tạo",
+                savedImportOrder.getId(),
+                "Đơn nhập mã #" + savedImportOrder.getId() + " đã được tạo",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
 
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(order));
+        return Mapper.mapToImportOrderResponse(savedImportOrder);
     }
 
     public ImportOrderResponse update(ImportOrderUpdateRequest request) {
@@ -213,41 +212,10 @@ public class ImportOrderService {
         importOrderRepository.delete(importOrder);
     }
 
-    @TransactionLoggable(type = "IMPORT_ORDER", action = "ASSIGN_STAFF", objectIdSource = "importOrderId")
+    
     public ImportOrderResponse assignStaff(String importOrderId, Long accountId) {
-        LOGGER.info("Assigning staff to import order: " + importOrderId);
-
-        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
-                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
-        if (importOrder.getAssignedStaff() != null) {
-            LOGGER.info("Return working for pre staff: {}", importOrder.getAssignedStaff().getEmail());
-            StaffPerformance staffPerformance = staffPerformanceRepository
-                    .findByImportOrderIdAndAssignedStaff_Id(importOrderId, importOrder.getAssignedStaff().getId());
-            if (staffPerformance != null) {
-                LOGGER.info("Delete working time for pre staff: {}", importOrder.getAssignedStaff().getEmail());
-                staffPerformanceRepository.delete(staffPerformance);
-                notificationService.handleNotification(
-                        NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
-                        NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
-                        importOrder.getId(),
-                        "Bạn đã được hủy phân công cho đơn nhập mã #" + importOrder.getId(),
-                        List.of(importOrder.getAssignedStaff()));
-            }
-        }
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
-        validateAccountForAssignment(account);
-        setTimeForStaffPerformance(account, importOrder);
-        importOrder.setAssignedStaff(account);
-        notificationService.handleNotification(
-                NotificationUtil.STAFF_CHANNEL + account.getId(),
-                NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
-                importOrder.getId(),
-                "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
-                List.of(account));
-        importOrder.setStatus(RequestStatus.IN_PROGRESS);
-
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        LOGGER.info("Delegating staff assignment to ImportOrderDetailService");
+        return importOrderDetailService.assignStaff(importOrderId, accountId);
     }
 
     public Page<ImportOrderResponse> getImportOrdersByStaffId(Long staffId, int page, int limit) {
@@ -264,6 +232,7 @@ public class ImportOrderService {
         return importOrders.map(Mapper::mapToImportOrderResponse);
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "CANCEL", objectIdSource = "importOrderId")
     public ImportOrderResponse cancelImportOrder(String importOrderId) {
         LOGGER.info("Cancelling import order with ID: " + importOrderId);
 
@@ -318,6 +287,7 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "COMPLETE", objectIdSource = "importOrderId")
     public ImportOrderResponse completeImportOrder(String importOrderId) {
         LOGGER.info("Completing import order with ID: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -336,6 +306,7 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "EXTEND", objectIdSource = "importOrderId")
     public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime,
             String extendedReason) {
         LOGGER.info("Extending import order with ID: " + importOrderId);
@@ -428,7 +399,6 @@ public class ImportOrderService {
         }
     }
 
-    // Update import Order
     private void updateImportOrder(ImportOrder importOrder) {
         LOGGER.info("Updating import order after completed");
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();

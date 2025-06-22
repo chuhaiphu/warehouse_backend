@@ -2,7 +2,10 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.AccountRole;
+import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
@@ -11,12 +14,14 @@ import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDet
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.Mapper;
+import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -36,6 +41,7 @@ public class ImportOrderDetailService {
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final StaffPerformanceRepository staffPerformanceRepository;
+    private final NotificationService notificationService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
@@ -53,16 +59,47 @@ public class ImportOrderDetailService {
         return Mapper.mapToImportOrderDetailResponse(importOrderDetail);
     }
 
-    @TransactionLoggable(type = "IMPORT_ORDER", action = "CREATE", objectIdSource = "importOrderId")
     public ImportOrderResponse create(ImportOrderDetailRequest request, String importOrderId) {
         LOGGER.info("Creating import order detail for import order id: {}", importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
         checkSameProvider(request);
-        ImportOrderResponse response = createImportOrderDetails(importOrder, request);
+        ImportOrderResponse importOrderResponse = ((ImportOrderDetailService) AopContext.currentProxy())
+        .createImportOrderDetails(importOrder, request);
+
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(importOrder.getDateReceived());
+        activeAccountRequest.setImportOrderId(importOrder.getId());
+        
+        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        if (!accountResponse.isEmpty()) {
+            importOrderResponse = ((ImportOrderDetailService) AopContext.currentProxy())
+                .assignStaff(importOrder.getId(), accountResponse.get(0).getId());
+        }
+        
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
-        return response;
+        return importOrderResponse;
+    }
+
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "CREATE", objectIdSource = "importOrderId")
+    public ImportOrderResponse createImportOrderDetails(ImportOrder importOrder, ImportOrderDetailRequest request) {
+        return createImportOrderDetailsInternal(importOrder, request);
+    }
+
+    private ImportOrderResponse createImportOrderDetailsInternal(ImportOrder importOrder, ImportOrderDetailRequest request) {
+        LOGGER.info("Setting date, time and note for import order");
+
+        for (ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
+            Item item = itemRepository.findById(importOrderItem.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + importOrderItem.getItemId()));
+            ImportOrderDetail detail = getDetail(importOrder, importOrderItem, item);
+            if(detail != null) {
+                importOrderDetailRepository.save(detail);
+            }
+        }
+
+        return Mapper.mapToImportOrderResponse(importOrder);
     }
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
@@ -108,31 +145,53 @@ public class ImportOrderDetailService {
 
     }
 
-    private ImportOrderResponse createImportOrderDetails(ImportOrder importOrder, ImportOrderDetailRequest request) {
-        // Set date/time/note from the request
-        LOGGER.info("Setting date, time and note for import order");
-        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
-        activeAccountRequest.setDate(importOrder.getDateReceived());
-        activeAccountRequest.setImportOrderId(importOrder.getId());
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "ASSIGN_STAFF", objectIdSource = "importOrderId")
+    public ImportOrderResponse assignStaff(String importOrderId, Long accountId) {
+        LOGGER.info("Assigning staff to import order: " + importOrderId);
 
-        for (ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
-            Item item = itemRepository.findById(importOrderItem.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + importOrderItem.getItemId()));
-            ImportOrderDetail detail = getDetail(importOrder, importOrderItem, item);
-            if(detail != null) {
-                importOrderDetailRepository.save(detail);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
+        
+        if (importOrder.getAssignedStaff() != null) {
+            LOGGER.info("Return working for pre staff: {}", importOrder.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository
+                    .findByImportOrderIdAndAssignedStaff_Id(importOrderId, importOrder.getAssignedStaff().getId());
+            if (staffPerformance != null) {
+                LOGGER.info("Delete working time for pre staff: {}", importOrder.getAssignedStaff().getEmail());
+                staffPerformanceRepository.delete(staffPerformance);
+                notificationService.handleNotification(
+                        NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
+                        NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                        importOrder.getId(),
+                        "Bạn đã được hủy phân công cho đơn nhập mã #" + importOrder.getId(),
+                        List.of(importOrder.getAssignedStaff()));
             }
         }
-
-        // Assign staff
-        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
-        Account account = accountRepository.findById(accountResponse.get(0).getId())
-                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountResponse.get(0).getId()));
-
-        importOrder.setAssignedStaff(account);
+        
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
+        validateAccountForAssignment(account);
         setTimeForStaffPerformance(account, importOrder);
-        ImportOrder newImportOrder = importOrderRepository.save(importOrder);
-        return Mapper.mapToImportOrderResponse(importOrderRepository.findById(newImportOrder.getId()).orElseThrow());
+        importOrder.setAssignedStaff(account);
+        notificationService.handleNotification(
+                NotificationUtil.STAFF_CHANNEL + account.getId(),
+                NotificationUtil.IMPORT_ORDER_ASSIGNED_EVENT,
+                importOrder.getId(),
+                "Bạn được phân công cho đơn nhập mã #" + importOrder.getId(),
+                List.of(account));
+        importOrder.setStatus(RequestStatus.IN_PROGRESS);
+        ImportOrder savedImportOrder = importOrderRepository.save(importOrder);
+        return Mapper.mapToImportOrderResponse(savedImportOrder);
+    }
+
+    private void validateAccountForAssignment(Account account) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot assign staff: Account is not active");
+        }
+
+        if (account.getRole() != AccountRole.STAFF) {
+            throw new IllegalStateException("Cannot assign staff: Account is not a staff member");
+        }
     }
 
     private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ImportOrderItem importOrderItem, Item item) {
