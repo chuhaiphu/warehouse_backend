@@ -20,7 +20,6 @@ public class ImportRequestResponse {
     private ImportType importType;
     private RequestStatus status;
     private Long providerId;
-    private String exportRequestId;
     private List<ImportRequestDetailResponse> importRequestDetails;
     private List<String> importOrdersId;
     private String createdBy;

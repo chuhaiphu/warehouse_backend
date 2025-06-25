@@ -103,11 +103,6 @@ public class ImportRequestService {
         importRequest.setStartDate(startDate);
         importRequest.setEndDate(endDate);
 
-        if (request.getExportRequestId() != null) {
-            importRequest.setExportRequest(exportRequestRepository.findById(request.getExportRequestId())
-                    .orElseThrow(() -> new NoSuchElementException("ExportRequest not found with ID: " + request.getExportRequestId())));
-        }
-        
         return Mapper.mapToImportRequestResponse(importRequestRepository.save(importRequest));
     }
 

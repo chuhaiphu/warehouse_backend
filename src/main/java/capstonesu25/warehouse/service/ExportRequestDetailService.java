@@ -57,7 +57,20 @@ public class ExportRequestDetailService {
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
                 .orElseThrow(() -> new RuntimeException("Export request not found"));
 
-        List<ExportRequestDetail> exportRequestDetails = new ArrayList<>();
+        List<ExportRequestDetail> existingDetails = exportRequest.getExportRequestDetails();
+
+        for (ExportRequestDetailRequest requestDetail : exportRequestDetailRequests) {
+            ExportRequestDetail matchedDetail = existingDetails.stream()
+                    .filter(detail -> detail.getItem().getId().equals(requestDetail.getItemId()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Item ID " + requestDetail.getItemId() + " not found in export request"));
+
+            if (requestDetail.getQuantity() > matchedDetail.getQuantity()) {
+                throw new IllegalArgumentException("Requested quantity for item " + requestDetail.getItemId() +
+                        " (" + requestDetail.getQuantity() + ") exceeds available quantity in export request (" +
+                        matchedDetail.getQuantity() + ")");
+            }
+        }
 
         // Create export request details from the request data
         for (ExportRequestDetailRequest request : exportRequestDetailRequests) {
@@ -182,25 +195,26 @@ public class ExportRequestDetailService {
         LOGGER.info("Auto choosing inventory items for Return");
         int quantity = exportRequestDetail.getQuantity();
 
-        // Fetch and sort inventory items
-        List<InventoryItem> sortedInventoryItems = inventoryItemRepository
-                .findByItem_IdAndParentNullAndStatusAndNeedReturnToProvider
-                        (exportRequestDetail.getItem().getId(), ItemStatus.AVAILABLE, true)
-                .stream()
-                .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
+        ImportOrder importOrder = exportRequestDetail.getExportRequest().getImportOrder();
+
+        List<InventoryItem> inventoryItems = importOrder.getImportOrderDetails().stream()
+                .filter(detail -> exportRequestDetail.getItem().getId().equals(detail.getItem().getId()))
+                .flatMap(detail -> detail.getInventoryItems().stream())
+                .filter(item -> item.getExportRequestDetail() == null)
                 .limit(quantity)
                 .toList();
 
-        if(sortedInventoryItems.isEmpty()) {
+        if (inventoryItems.isEmpty()) {
             throw new IllegalArgumentException("No inventory items available for return for item ID: " + exportRequestDetail.getItem().getId());
         }
-        if(sortedInventoryItems.size() < quantity) {
-            throw new IllegalArgumentException("Not enough inventory items of items: "+exportRequestDetail.getItem().getId()+" available for return. Required: " + quantity + ", Available: " + sortedInventoryItems.size());
+        if (inventoryItems.size() < quantity) {
+            throw new IllegalArgumentException("Not enough inventory items of item: " + exportRequestDetail.getItem().getId() +
+                    " available for return. Required: " + quantity + ", Available: " + inventoryItems.size());
         }
 
-        for(InventoryItem inventoryItem : sortedInventoryItems) {
+        for (InventoryItem inventoryItem : inventoryItems) {
             inventoryItem.setExportRequestDetail(exportRequestDetail);
-            inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+            inventoryItem.setStatus(ItemStatus.RETURN);
             inventoryItemRepository.save(inventoryItem);
         }
     }

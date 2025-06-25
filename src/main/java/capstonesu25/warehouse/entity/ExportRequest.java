@@ -100,8 +100,8 @@ public class ExportRequest {
     @OneToOne(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private Paper paper;
 
-    @OneToMany(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
-    private List<ImportRequest> importRequests;
+    @OneToOne(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private ImportOrder importOrder;
 
     @OneToMany(mappedBy = "exportRequest", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<ExportRequestDetail> exportRequestDetails;

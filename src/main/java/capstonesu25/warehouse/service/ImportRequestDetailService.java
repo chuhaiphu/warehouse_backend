@@ -109,10 +109,6 @@ public class ImportRequestDetailService {
             importRequest.setEndDate(endDate);
 
             // Set export request if provided
-            if (exportRequestId != null) {
-                importRequest.setExportRequest(exportRequestRepository.findById(exportRequestId)
-                        .orElseThrow(() -> new RuntimeException("Export request not found with ID: " + exportRequestId)));
-            }
 
             // Set provider
             Provider provider = providerRepository.findById(providerId)

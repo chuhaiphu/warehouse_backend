@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 public class ExportRequestService {
     private final ExportRequestRepository exportRequestRepository;
     private final AccountRepository accountRepository;
-    private final ImportRequestRepository importRequestRepository;
+    private final ImportOrderRepository importOrderRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final ConfigurationRepository configurationRepository;
     private final InventoryItemRepository inventoryItemRepository;
@@ -220,27 +220,21 @@ public class ExportRequestService {
             LOGGER.error("Invalid export type: " + request.getType());
             throw new IllegalArgumentException("Invalid export type: " + request.getType());
         }
+        ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("The import order with ID: " + request.getImportOrderId() + " is not presented")
+                );
+
+        if(importOrder.getStatus() != RequestStatus.COMPLETED) {
+            throw new IllegalArgumentException("The import order is not valid for return");
+        }
+
         ExportRequest exportRequest = new ExportRequest();
-//        if(request.getImportRequestIds() == null || request.getImportRequestIds().isEmpty()) {
-//            List<ImportRequest> list = request.getImportRequestIds().stream()
-//                    .map(importRequestId -> importRequestRepository.findById(importRequestId).orElseThrow())
-//                    .toList();
-//
-//            LOGGER.info("Check if any import request in request is invalid");
-//            for(ImportRequest importRequest : list ) {
-//                if(!Objects.equals(importRequest.getProvider().getId(), request.getProviderId())) {
-//                    LOGGER.error("Invalid import request: " + importRequest.getId());
-//                    throw new IllegalArgumentException("Invalid import request: " + importRequest.getId());
-//                }
-//            }
-//            exportRequest.setImportRequests(list);
-//        }
-
-
         exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
         exportRequest.setProviderId(request.getProviderId());
         exportRequest.setType(request.getType());
+        exportRequest.setImportOrder(importOrder);
 
         LOGGER.info("Check counting date and counting time is valid?");
         validateForTimeDate(request.getCountingDate(), request.getCountingTime());
@@ -260,6 +254,7 @@ public class ExportRequestService {
             "Đơn xuất mã #" + export.getId() + " đã được tạo",
             accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
         );
+
         return mapToResponse(export);
     }
 
@@ -709,9 +704,8 @@ public class ExportRequestService {
             exportRequest.getCountingTime(),
             exportRequest.getCountingStaffId(),
             exportRequest.getPaper() != null ? exportRequest.getPaper().getId() : null,
-            exportRequest.getImportRequests() != null ?
-                exportRequest.getImportRequests().stream().map(ImportRequest::getId).toList() :
-                List.of(),
+            exportRequest.getImportOrder() != null ?
+                exportRequest.getImportOrder().getId() : null,
                 exportRequest.getExportRequestDetails().isEmpty()
                         ? List.of()
                         : exportRequest.getExportRequestDetails().stream()

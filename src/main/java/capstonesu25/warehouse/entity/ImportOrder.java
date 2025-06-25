@@ -80,6 +80,10 @@ public class ImportOrder {
     @JoinColumn(name = "import_request_id")
     private ImportRequest importRequest;
 
+    @OneToOne
+    @JoinColumn(name = "export_request_id")
+    private ExportRequest exportRequest;
+
     @ManyToOne
     @JoinColumn(name = "assigned_staff_id")
     private Account assignedStaff;

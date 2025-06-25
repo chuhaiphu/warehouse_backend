@@ -65,10 +65,6 @@ public class ImportRequest {
     private List<ImportOrder> importOrders;
 
     @ManyToOne
-    @JoinColumn(name = "export_request_id")
-    private ExportRequest exportRequest;
-
-    @ManyToOne
     @JoinColumn(name = "provider_id")
     private Provider provider;
 }

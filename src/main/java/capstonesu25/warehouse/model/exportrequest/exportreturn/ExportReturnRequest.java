@@ -23,7 +23,7 @@ public class ExportReturnRequest {
     @NotNull(message = "cannot be null")
     private LocalDate exportDate;
 
-    private List<String> importRequestIds;
+    private String importOrderId;
 
     @NotNull(message = "cannot be null")
     private String exportReason;

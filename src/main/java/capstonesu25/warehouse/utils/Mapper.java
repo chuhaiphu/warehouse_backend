@@ -42,7 +42,6 @@ public class Mapper {
                 importRequest.getType(),
                 importRequest.getStatus(),
                 importRequest.getProvider() != null ? importRequest.getProvider().getId() : null,
-                importRequest.getExportRequest() != null ? importRequest.getExportRequest().getId() : null,
                 details,
                 importRequest.getImportOrders() != null ?
                         importRequest.getImportOrders().stream().map(ImportOrder::getId).toList() :

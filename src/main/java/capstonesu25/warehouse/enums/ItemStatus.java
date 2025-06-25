@@ -5,5 +5,6 @@ public enum ItemStatus {
     UNAVAILABLE,
     DISPOSED,
     SAFE,
-    ALMOST_OUT_OF_DATE
+    ALMOST_OUT_OF_DATE,
+    RETURN
 }

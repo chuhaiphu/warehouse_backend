@@ -34,7 +34,7 @@ public class ExportRequestResponse {
     private LocalTime countingTime;
     private Long countingStaffId;
     private Long paperId;
-    private List<String> importRequestIds;
+    private String importOrderId;
     private List<Long> exportRequestDetailIds;
     private String createdBy;
     private String updatedBy;
