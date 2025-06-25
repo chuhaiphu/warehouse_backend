@@ -232,7 +232,7 @@ public class ExportRequestService {
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
-        exportRequest.setProviderId(request.getProviderId());
+        exportRequest.setProviderId(importOrder.getImportRequest().getProvider().getId());
         exportRequest.setType(request.getType());
         exportRequest.setImportOrder(importOrder);
 
@@ -244,9 +244,16 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(),null);
         exportRequest.setExportDate(request.getExportDate());
 
-        exportRequest.setStatus(RequestStatus.IN_PROGRESS);
+        exportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
+        exportRequest.setCountingStaffId(importOrder.getAssignedStaff().getId());
+        if(exportRequest.getExportDate().equals(importOrder.getActualDateReceived())) {
+            exportRequest.setAssignedStaff(importOrder.getAssignedStaff());
+        }
         exportRequest.setExportRequestDetails(new ArrayList<>());
         ExportRequest export = exportRequestRepository.save(exportRequest);
+
+        importOrder.setExportRequest(exportRequest);
+        importOrderRepository.save(importOrder);
         notificationService.handleNotification(
             NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
             NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,

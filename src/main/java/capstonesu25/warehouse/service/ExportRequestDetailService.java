@@ -56,22 +56,23 @@ public class ExportRequestDetailService {
 
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
                 .orElseThrow(() -> new RuntimeException("Export request not found"));
+        if (exportRequest.getType().equals(ExportType.RETURN)) {
+            List<ImportOrderDetail> importOrderDetails = exportRequest.getImportOrder().getImportOrderDetails();
 
-        List<ExportRequestDetail> existingDetails = exportRequest.getExportRequestDetails();
+            for (ExportRequestDetailRequest requestDetail : exportRequestDetailRequests) {
+                ImportOrderDetail importDetail = importOrderDetails.stream()
+                        .filter(detail -> detail.getItem().getId().equals(requestDetail.getItemId()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Item ID " + requestDetail.getItemId() + " not found in the import order"));
 
-        for (ExportRequestDetailRequest requestDetail : exportRequestDetailRequests) {
-            ExportRequestDetail matchedDetail = existingDetails.stream()
-                    .filter(detail -> detail.getItem().getId().equals(requestDetail.getItemId()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Item ID " + requestDetail.getItemId() + " not found in export request"));
-
-            if (requestDetail.getQuantity() > matchedDetail.getQuantity()) {
-                throw new IllegalArgumentException("Requested quantity for item " + requestDetail.getItemId() +
-                        " (" + requestDetail.getQuantity() + ") exceeds available quantity in export request (" +
-                        matchedDetail.getQuantity() + ")");
+                if (requestDetail.getQuantity() > importDetail.getActualQuantity()) {
+                    throw new IllegalArgumentException("Requested quantity for item " + requestDetail.getItemId() +
+                            " (" + requestDetail.getQuantity() + ") exceeds quantity in import order (" +
+                            importDetail.getActualQuantity() + ")");
+                }
             }
         }
-
         // Create export request details from the request data
         for (ExportRequestDetailRequest request : exportRequestDetailRequests) {
             ExportRequestDetail exportRequestDetail = new ExportRequestDetail();
@@ -84,18 +85,10 @@ public class ExportRequestDetailService {
             exportRequestDetail.setActualQuantity(0);
 
             // Get Item by ID
-            Item item = itemRepository.findById(request.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found with ID: " + request.getItemId()));
+            Item item = itemRepository.findById(request.getItemId()).orElseThrow(
+                    () -> new RuntimeException("Item not found with ID: " + request.getItemId())
+            );
 
-            // Check provider matching for RETURN type export requests
-            if (exportRequest.getType().equals(ExportType.RETURN)) {
-                boolean providerMatch = item.getProviders().stream()
-                        .anyMatch(provider -> Objects.equals(provider.getId(), exportRequest.getProviderId()));
-
-                if (!providerMatch) {
-                    throw new RuntimeException("Item does not belong to the selected provider");
-                }
-            }
 
             // Handling for  BORROWING types
             if(exportRequest.getType().equals(ExportType.BORROWING)) {
@@ -117,8 +110,14 @@ public class ExportRequestDetailService {
         }
 
         // Auto assign counting staff for the export request
-        LOGGER.info("Auto assigning counting staff for export request with ID: {}", exportRequestId);
-        autoAssignCountingStaff(exportRequest);
+        if(!exportRequest.getType().equals(ExportType.RETURN)){
+                LOGGER.info("Auto assigning counting staff for export request with ID: {}", exportRequestId);
+                 autoAssignCountingStaff(exportRequest);
+        }
+        if(exportRequest.getAssignedStaff() == null) {
+            autoAssignConfirmStaff(exportRequest);
+        }
+
     }
 
 
@@ -194,7 +193,10 @@ public class ExportRequestDetailService {
     private void autoChooseInventoryItemsForReturn(ExportRequestDetail exportRequestDetail) {
         LOGGER.info("Auto choosing inventory items for Return");
         int quantity = exportRequestDetail.getQuantity();
-
+        exportRequestDetail.setActualQuantity(exportRequestDetail.getQuantity());
+        exportRequestDetail.setMeasurementValue(exportRequestDetail.getItem().getMeasurementValue()* exportRequestDetail.getQuantity());
+        exportRequestDetail.setActualMeasurementValue(exportRequestDetail.getItem().getMeasurementValue()* exportRequestDetail.getQuantity());
+        exportRequestDetail.setStatus(DetailStatus.MATCH);
         ImportOrder importOrder = exportRequestDetail.getExportRequest().getImportOrder();
 
         List<InventoryItem> inventoryItems = importOrder.getImportOrderDetails().stream()
