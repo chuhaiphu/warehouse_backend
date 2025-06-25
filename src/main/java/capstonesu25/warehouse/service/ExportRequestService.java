@@ -636,7 +636,7 @@ public class ExportRequestService {
                 StoredLocation location = inventoryItem.getStoredLocation();
                 if (location != null) {
                     LOGGER.info("Updating stored location id: {}", location.getId());
-                    location.setCurrentCapacity(location.getCurrentCapacity() - inventoryItem.getMeasurementValue());
+                    location.setCurrentCapacity(location.getCurrentCapacity() - 1);
                     location.setFulled(false);
                     if(location.getCurrentCapacity() == 0) {
                         location.setUsed(false);

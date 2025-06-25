@@ -16,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/stored-location")
 @RequiredArgsConstructor
@@ -57,11 +59,11 @@ public class StoredLocationController {
 
     @Operation(summary = "Create a new stored location", description = "Creates a new stored location in the system")
     @PostMapping
-    
-    public ResponseEntity<?> createStoredLocation(@RequestBody StoredLocationRequest request) {
+    public ResponseEntity<?> createStoredLocation(@RequestBody List<StoredLocationRequest> request) {
         LOGGER.info("Creating stored location");
+        storedLocationService.create(request);
         return ResponseUtil.getObject(
-                storedLocationService.create(request),
+                null,
                 HttpStatus.CREATED,
                 "Successfully created stored location");
     }
@@ -122,16 +124,15 @@ public class StoredLocationController {
                         page));
     }
 
-    @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
-    @PutMapping
-    
-    public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
-        LOGGER.info("Updating stored location");
-        return ResponseUtil.getObject(
-                storedLocationService.update(request),
-                HttpStatus.OK,
-                "Successfully updated stored location");
-    }
+//    @Operation(summary = "Update an existing stored location", description = "Updates an existing stored location's information")
+//    @PutMapping
+//    public ResponseEntity<?> updateStoredLocation(@RequestBody StoredLocationRequest request) {
+//        LOGGER.info("Updating stored location");
+//        return ResponseUtil.getObject(
+//                storedLocationService.update(request),
+//                HttpStatus.OK,
+//                "Successfully updated stored location");
+//    }
 
     @Operation(summary = "Delete a stored location by ID", description = "Removes a stored location from the system")
     @DeleteMapping("/{storedLocationId}")

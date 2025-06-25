@@ -238,7 +238,6 @@ public class ImportOrderDetailService {
             }
         }
         detail.setActualQuantity(0);
-        detail.setStatus(DetailStatus.LACK);
         detail.setItem(item);
         return detail;
     }

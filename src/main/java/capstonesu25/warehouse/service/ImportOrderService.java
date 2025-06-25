@@ -428,20 +428,19 @@ public class ImportOrderService {
             List<InventoryItem> inventoryItemList = importOrderDetail.getItem().getInventoryItems();
             // get the stored location
             List<StoredLocation> storedLocationList = storedLocationRepository
-                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscBatchAsc(
+                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscLineAsc(
                             importOrderDetail.getItem().getId());
             for (InventoryItem inventoryItem : inventoryItemList) {
                 for (StoredLocation storedLocation : storedLocationList) {
-                    if (storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue() <= storedLocation
+                    if (storedLocation.getCurrentCapacity() + 1 <= storedLocation
                             .getMaximumCapacityForItem()) {
                         inventoryItem.setStoredLocation(storedLocation);
-                        double newCapacity = storedLocation.getCurrentCapacity() + inventoryItem.getMeasurementValue();
+                        Integer newCapacity = storedLocation.getCurrentCapacity() + 1;
                         storedLocation.setCurrentCapacity(newCapacity);
 
                         storedLocation.setUsed(true);
 
-                        boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < inventoryItem
-                                .getMeasurementValue();
+                        boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < 1;
                         storedLocation.setFulled(isNowFull);
 
                         storedLocationRepository.save(storedLocation);

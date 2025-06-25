@@ -179,11 +179,11 @@ public class InventoryItemService {
         if (inventoryItem.getStoredLocation() != null) {
             response.setStoredLocationId(inventoryItem.getStoredLocation().getId());
             // Create a formatted location string since StoredLocation doesn't have a name field
-            String locationName = String.format("Zone: %s, Floor: %s, Row: %s, Batch: %s",
+            String locationName = String.format("Zone: %s, Floor: %s, Row: %s, Line: %s",
                     inventoryItem.getStoredLocation().getZone(),
                     inventoryItem.getStoredLocation().getFloor(),
                     inventoryItem.getStoredLocation().getRow(),
-                    inventoryItem.getStoredLocation().getBatch());
+                    inventoryItem.getStoredLocation().getLine());
             response.setStoredLocationName(locationName);
         }
 

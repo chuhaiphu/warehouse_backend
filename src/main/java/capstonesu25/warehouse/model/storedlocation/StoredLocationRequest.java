@@ -1,24 +1,33 @@
 package capstonesu25.warehouse.model.storedlocation;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class StoredLocationRequest {
-    private Long id;
+    @NotNull(message = "cannot be null")
+    @NotEmpty(message = "cannot be empty")
     private String zone;
+    @NotNull(message = "cannot be null")
+    @NotEmpty(message = "cannot be empty")
     private String floor;
+    @NotNull(message = "cannot be null")
+    @NotEmpty(message = "cannot be empty")
     private String row;
-    private String batch;
-    private boolean isUsed;
-    private boolean isFulled;
-    private List<String> inventoryItemIds; // References to inventory items
-    private double maximumCapacityForItem;
-    private double currentCapacity;
+    @NotNull(message = "cannot be null")
+    @NotEmpty(message = "cannot be empty")
+    private String line;
+    @NotNull(message = "cannot be null")
+    private Boolean isRoad;
+    @NotNull(message = "cannot be null")
+    private Boolean isDoor;
+    @NotNull(message = "cannot be null")
+    private Integer maximumCapacityForItem;
     private String itemId; // References to item
 }

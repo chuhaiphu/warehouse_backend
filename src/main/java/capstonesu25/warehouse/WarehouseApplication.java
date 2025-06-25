@@ -184,50 +184,50 @@ public class WarehouseApplication {
 			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
 
 
-			// Stored Locations - Section A (Electronics)
-			StoredLocation locA1 = new StoredLocation(null, "A", "1", "1", "A101", false, false, 500, 0 ,vai1 , null);
-			StoredLocation locA2 = new StoredLocation(null, "A", "1", "2", "A102", false, false, 500, 0 ,vai2  , null);
-			StoredLocation locA3 = new StoredLocation(null, "A", "2", "1", "A201", false, false, 500, 0 ,vai3  , null);
-			StoredLocation locA4 = new StoredLocation(null, "A", "2", "2", "A202", false, false, 500, 0 ,vai4  , null);
-
-			// Stored Locations - Section B (Furniture)
-			StoredLocation locB1 = new StoredLocation(null, "B", "1", "1", "B101", false, false, 500, 0 ,nut1  , null);
-			StoredLocation locB2 = new StoredLocation(null, "B", "1", "2", "B102", false, false, 500, 0 ,nut2  , null);
-			StoredLocation locB3 = new StoredLocation(null, "B", "2", "1", "B201", false, false, 500, 0 ,nut3  , null);
-			StoredLocation locB4 = new StoredLocation(null, "B", "2", "2", "B202", false, false, 500, 0 ,nut4  , null);
-
-			// Stored Locations - Section C (Groceries)
-			StoredLocation locC1 = new StoredLocation(null, "C", "1", "1", "C101", false, false, 500, 0 ,chi1  , null);
-			StoredLocation locC2 = new StoredLocation(null, "C", "1", "2", "C102", false, false, 500, 0 ,chi2  , null);
-			StoredLocation locC3 = new StoredLocation(null, "C", "2", "1", "C201", false, false, 500, 0 ,chi3  , null);
-			StoredLocation locC4 = new StoredLocation(null, "C", "2", "2", "C202", false, false, 500, 0 ,chi4  , null);
-
-			// Stored Locations - Section D (Clothing)
-			StoredLocation locD1 = new StoredLocation(null, "D", "1", "1", "D101", false, false, 500, 0 ,kim1 , null);
-			StoredLocation locD2 = new StoredLocation(null, "D", "1", "2", "D102", false, false, 500, 0 ,kim2  , null);
-			StoredLocation locD3 = new StoredLocation(null, "D", "2", "1", "D201", false, false, 500, 0 ,kim3  , null);
-			StoredLocation locD4 = new StoredLocation(null, "D", "2", "2", "D202", false, false, 500, 0 ,kim4 , null);
-
-			// Stored Locations - Section E (Office Supplies)
-			StoredLocation locE1 = new StoredLocation(null, "E", "1", "1", "E101", false, false, 500, 0 ,khoa1  , null);
-			StoredLocation locE2 = new StoredLocation(null, "E", "1", "2", "E102", false, false, 500, 0 ,khoa2, null);
-			StoredLocation locE3 = new StoredLocation(null, "E", "2", "1", "E201", false, false, 500, 0 ,khoa3 , null);
-			StoredLocation locE4 = new StoredLocation(null, "E", "2", "2", "E202", false, false, 500, 0 ,khoa4 , null);
-
-			// Stored Locations - Section F (Tools)
-			StoredLocation locF1 = new StoredLocation(null, "F", "1", "1", "F101", false, false, 500, 0 ,khoa1  , null);
-			StoredLocation locF2 = new StoredLocation(null, "F", "1", "2", "F102", false, false, 500, 0 ,khoa2 , null);
-			StoredLocation locF3 = new StoredLocation(null, "F", "2", "1", "F201", false, false, 500, 0 ,khoa3 , null);
-			StoredLocation locF4 = new StoredLocation(null, "F", "2", "2", "F202", false, false, 500, 0 ,khoa4, null);
-
-			storedLocationRepo.saveAll(List.of(
-					locA1, locA2, locA3, locA4,
-					locB1, locB2, locB3, locB4,
-					locC1, locC2, locC3, locC4,
-					locD1, locD2, locD3, locD4,
-					locE1, locE2, locE3, locE4,
-					locF1, locF2, locF3, locF4
-			));
+//			// Stored Locations - Section A (Electronics)
+//			StoredLocation locA1 = new StoredLocation(null, "A", "1", "1", "A101", false, false, 500, 0 ,vai1 , null);
+//			StoredLocation locA2 = new StoredLocation(null, "A", "1", "2", "A102", false, false, 500, 0 ,vai2  , null);
+//			StoredLocation locA3 = new StoredLocation(null, "A", "2", "1", "A201", false, false, 500, 0 ,vai3  , null);
+//			StoredLocation locA4 = new StoredLocation(null, "A", "2", "2", "A202", false, false, 500, 0 ,vai4  , null);
+//
+//			// Stored Locations - Section B (Furniture)
+//			StoredLocation locB1 = new StoredLocation(null, "B", "1", "1", "B101", false, false, 500, 0 ,nut1  , null);
+//			StoredLocation locB2 = new StoredLocation(null, "B", "1", "2", "B102", false, false, 500, 0 ,nut2  , null);
+//			StoredLocation locB3 = new StoredLocation(null, "B", "2", "1", "B201", false, false, 500, 0 ,nut3  , null);
+//			StoredLocation locB4 = new StoredLocation(null, "B", "2", "2", "B202", false, false, 500, 0 ,nut4  , null);
+//
+//			// Stored Locations - Section C (Groceries)
+//			StoredLocation locC1 = new StoredLocation(null, "C", "1", "1", "C101", false, false, 500, 0 ,chi1  , null);
+//			StoredLocation locC2 = new StoredLocation(null, "C", "1", "2", "C102", false, false, 500, 0 ,chi2  , null);
+//			StoredLocation locC3 = new StoredLocation(null, "C", "2", "1", "C201", false, false, 500, 0 ,chi3  , null);
+//			StoredLocation locC4 = new StoredLocation(null, "C", "2", "2", "C202", false, false, 500, 0 ,chi4  , null);
+//
+//			// Stored Locations - Section D (Clothing)
+//			StoredLocation locD1 = new StoredLocation(null, "D", "1", "1", "D101", false, false, 500, 0 ,kim1 , null);
+//			StoredLocation locD2 = new StoredLocation(null, "D", "1", "2", "D102", false, false, 500, 0 ,kim2  , null);
+//			StoredLocation locD3 = new StoredLocation(null, "D", "2", "1", "D201", false, false, 500, 0 ,kim3  , null);
+//			StoredLocation locD4 = new StoredLocation(null, "D", "2", "2", "D202", false, false, 500, 0 ,kim4 , null);
+//
+//			// Stored Locations - Section E (Office Supplies)
+//			StoredLocation locE1 = new StoredLocation(null, "E", "1", "1", "E101", false, false, 500, 0 ,khoa1  , null);
+//			StoredLocation locE2 = new StoredLocation(null, "E", "1", "2", "E102", false, false, 500, 0 ,khoa2, null);
+//			StoredLocation locE3 = new StoredLocation(null, "E", "2", "1", "E201", false, false, 500, 0 ,khoa3 , null);
+//			StoredLocation locE4 = new StoredLocation(null, "E", "2", "2", "E202", false, false, 500, 0 ,khoa4 , null);
+//
+//			// Stored Locations - Section F (Tools)
+//			StoredLocation locF1 = new StoredLocation(null, "F", "1", "1", "F101", false, false, 500, 0 ,khoa1  , null);
+//			StoredLocation locF2 = new StoredLocation(null, "F", "1", "2", "F102", false, false, 500, 0 ,khoa2 , null);
+//			StoredLocation locF3 = new StoredLocation(null, "F", "2", "1", "F201", false, false, 500, 0 ,khoa3 , null);
+//			StoredLocation locF4 = new StoredLocation(null, "F", "2", "2", "F202", false, false, 500, 0 ,khoa4, null);
+//
+//			storedLocationRepo.saveAll(List.of(
+//					locA1, locA2, locA3, locA4,
+//					locB1, locB2, locB3, locB4,
+//					locC1, locC2, locC3, locC4,
+//					locD1, locD2, locD3, locD4,
+//					locE1, locE2, locE3, locE4,
+//					locF1, locF2, locF3, locF4
+//			));
 
 			Department department1 = new Department(
 					null,

@@ -1,10 +1,10 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.InventoryItem;
+import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.StoredLocation;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationRequest;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationResponse;
-import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.StoredLocationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StoredLocationService {
     private final StoredLocationRepository storedLocationRepository;
-    private final InventoryItemRepository inventoryItemRepository;
     private final ItemRepository itemRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StoredLocationService.class);
@@ -64,25 +63,45 @@ public class StoredLocationService {
     }
 
     @Transactional
-    public StoredLocationResponse create(StoredLocationRequest request) {
+    public void create(List<StoredLocationRequest> requestList) {
         LOGGER.info("Creating stored location");
-        StoredLocation storedLocation = mapToEntity(request);
-        return mapToResponse(storedLocationRepository.save(storedLocation));
-    }
-
-    @Transactional
-    public StoredLocationResponse update(StoredLocationRequest request) {
-        LOGGER.info("Updating stored location with id: {}", request.getId());
-        if (request.getId() == null) {
-            throw new IllegalArgumentException("Stored location ID cannot be null for update operation");
+        List<StoredLocation> storedLocations = new ArrayList<>();
+        for(StoredLocationRequest request : requestList) {
+            StoredLocation storedLocation = new StoredLocation();
+            if(request.getIsDoor() == true && request.getIsRoad() == true) {
+                throw new IllegalArgumentException("One location cannot being a road and door in same time");
+            }
+            storedLocation.setZone(request.getZone());
+            storedLocation.setFloor(request.getFloor());
+            storedLocation.setLine(request.getLine());
+            storedLocation.setRow(request.getRow());
+            storedLocation.setRoad(request.getIsRoad());
+            storedLocation.setDoor(request.getIsDoor());
+            storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
+            if( request.getIsDoor() == false && request.getIsRoad() == false) {
+                Item item = itemRepository.findById(request.getItemId()).orElseThrow(
+                        () -> new IllegalArgumentException("This item with ID: " + request.getItemId() + " is not presented")
+                );
+                storedLocation.setItem(item);
+            }
+            storedLocations.add(storedLocation);
         }
-
-        StoredLocation existingLocation = storedLocationRepository.findById(request.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getId()));
-
-        updateEntityFromRequest(existingLocation, request);
-        return mapToResponse(storedLocationRepository.save(existingLocation));
+        storedLocationRepository.saveAll(storedLocations);
     }
+
+//    @Transactional
+//    public StoredLocationResponse update(StoredLocationRequest request) {
+//        LOGGER.info("Updating stored location with id: {}", request.getId());
+//        if (request.getId() == null) {
+//            throw new IllegalArgumentException("Stored location ID cannot be null for update operation");
+//        }
+//
+//        StoredLocation existingLocation = storedLocationRepository.findById(request.getId())
+//                .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getId()));
+//
+//        updateEntityFromRequest(existingLocation, request);
+//        return mapToResponse(storedLocationRepository.save(existingLocation));
+//    }
 
     @Transactional
     public void delete(Long id) {
@@ -99,7 +118,9 @@ public class StoredLocationService {
         response.setZone(storedLocation.getZone());
         response.setFloor(storedLocation.getFloor());
         response.setRow(storedLocation.getRow());
-        response.setBatch(storedLocation.getBatch());
+        response.setLine(storedLocation.getLine());
+        response.setRoad(storedLocation.isRoad());
+        response.setDoor(storedLocation.isDoor());
         response.setUsed(storedLocation.isUsed());
         response.setFulled(storedLocation.isFulled());
         response.setMaximumCapacityForItem(storedLocation.getMaximumCapacityForItem());
@@ -121,34 +142,34 @@ public class StoredLocationService {
         return response;
     }
 
-    private StoredLocation mapToEntity(StoredLocationRequest request) {
-        StoredLocation storedLocation = new StoredLocation();
-        updateEntityFromRequest(storedLocation, request);
-        return storedLocation;
-    }
+//    private StoredLocation mapToEntity(StoredLocationRequest request) {
+//        StoredLocation storedLocation = new StoredLocation();
+//        updateEntityFromRequest(storedLocation, request);
+//        return storedLocation;
+//    }
 
-    private void updateEntityFromRequest(StoredLocation storedLocation, StoredLocationRequest request) {
-        storedLocation.setZone(request.getZone());
-        storedLocation.setFloor(request.getFloor());
-        storedLocation.setRow(request.getRow());
-        storedLocation.setBatch(request.getBatch());
-        storedLocation.setUsed(request.isUsed());
-        storedLocation.setFulled(request.isFulled());
-        storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
-        storedLocation.setCurrentCapacity(request.getCurrentCapacity());
-
-        if (request.getInventoryItemIds() != null && !request.getInventoryItemIds().isEmpty()) {
-            List<InventoryItem> inventoryItems = request.getInventoryItemIds().stream()
-                    .map(id -> inventoryItemRepository.findById(id)
-                            .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id)))
-                    .collect(Collectors.toList());
-            storedLocation.setInventoryItems(inventoryItems);
-        } else {
-            storedLocation.setInventoryItems(new ArrayList<>());
-        }
-        if(request.getItemId() != null) {
-            storedLocation.setItem(itemRepository.findById(request.getItemId())
-                    .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId())));
-        }
-    }
+//    private void updateEntityFromRequest(StoredLocation storedLocation, StoredLocationRequest request) {
+//        storedLocation.setZone(request.getZone());
+//        storedLocation.setFloor(request.getFloor());
+//        storedLocation.setRow(request.getRow());
+//        storedLocation.setLine(request.getLine());
+//        storedLocation.setUsed(request.isUsed());
+//        storedLocation.setFulled(request.isFulled());
+//        storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
+//        storedLocation.setCurrentCapacity(request.getCurrentCapacity());
+//
+//        if (request.getInventoryItemIds() != null && !request.getInventoryItemIds().isEmpty()) {
+//            List<InventoryItem> inventoryItems = request.getInventoryItemIds().stream()
+//                    .map(id -> inventoryItemRepository.findById(id)
+//                            .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id)))
+//                    .collect(Collectors.toList());
+//            storedLocation.setInventoryItems(inventoryItems);
+//        } else {
+//            storedLocation.setInventoryItems(new ArrayList<>());
+//        }
+//        if(request.getItemId() != null) {
+//            storedLocation.setItem(itemRepository.findById(request.getItemId())
+//                    .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId())));
+//        }
+//    }
 }

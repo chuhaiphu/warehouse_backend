@@ -24,23 +24,29 @@ public class StoredLocation {
     @Column(name = "row")
     private String row;
 
-    @Column(name = "batch")
-    private String batch;
+    @Column(name = "line")
+    private String line;
+
+    @Column(name = "isRoad")
+    private boolean isRoad = false;
+
+    @Column(name = "isDoor")
+    private boolean isDoor = false;
 
     @Column(name = "is_used")
-    private boolean isUsed;
+    private boolean isUsed = false;
 
     @Column(name = "is_fulled")
-    private boolean isFulled;
+    private boolean isFulled = false;
 
     @Column(name = "maximum_capacity_for_item")
-    private double maximumCapacityForItem;
+    private Integer maximumCapacityForItem;
 
     @Column(name = "current_capacity")
-    private double currentCapacity;
+    private Integer currentCapacity = 0;
 
     @ManyToOne
-    @JoinColumn(name = "item_id", nullable = true)
+    @JoinColumn(name = "item_id")
     private Item item;
 
     @OneToMany(mappedBy = "storedLocation", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})

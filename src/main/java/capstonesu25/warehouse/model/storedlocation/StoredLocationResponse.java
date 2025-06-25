@@ -14,7 +14,9 @@ public class StoredLocationResponse {
     private String zone;
     private String floor;
     private String row;
-    private String batch;
+    private String line;
+    private boolean isRoad;
+    private boolean isDoor;
     private boolean isUsed;
     private boolean isFulled;
     private List<String> inventoryItemIds; // References to inventory items
