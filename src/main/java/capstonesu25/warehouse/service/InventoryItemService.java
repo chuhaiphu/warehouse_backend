@@ -4,8 +4,6 @@ import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
-import capstonesu25.warehouse.model.inventoryitem.QrCodeRequest;
-import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ExportRequestDetailRepository;
@@ -68,12 +66,6 @@ public class InventoryItemService {
         return new PageImpl<>(filteredList, pageable, filteredList.size());
     }
 
-
-    @Transactional
-    public List<QrCodeResponse> createQRCode(QrCodeRequest request) {
-       return null;
-    }
-
     @Transactional
     public InventoryItemResponse update(InventoryItemRequest request) {
         LOGGER.info("Updating inventory item with id: {}", request.getId());
@@ -89,21 +81,21 @@ public class InventoryItemService {
         return mapToResponse(inventoryItemRepository.save(existingItem));
     }
 
-    @Transactional
-    public void delete(String id) {
-        LOGGER.info("Deleting inventory item with id: {}", id);
-        if (!inventoryItemRepository.existsById(id)) {
-            throw new EntityNotFoundException("Inventory item not found with id: " + id);
-        }
-        inventoryItemRepository.deleteById(id);
-    }
-
     public Page<InventoryItemResponse> getByImportOrderDetailId(Long importOrderDetailId, int page, int limit) {
         LOGGER.info("Getting inventory items by import order detail id: {}", importOrderDetailId);
         Pageable pageable = PageRequest.of(page - 1, limit);
         return inventoryItemRepository.findByImportOrderDetailId(importOrderDetailId, pageable)
                 .map(this::mapToResponse);
     }
+
+    public List<InventoryItemResponse> getByListImportOrderDetailIds(List<Long> importOrderDetailIds) {
+        LOGGER.info("Getting inventory items by list import order detail ids: {}", importOrderDetailIds);
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findByImportOrderDetailIdIn(importOrderDetailIds);
+        return inventoryItems.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
 
     public Page<InventoryItemResponse> getByExportRequestDetailId(Long exportRequestDetailId, int page, int limit) {
         LOGGER.info("Getting inventory items by export request detail id: {}", exportRequestDetailId);
@@ -119,18 +111,12 @@ public class InventoryItemService {
                 .map(this::mapToResponse);
     }
 
-    public List<QrCodeResponse> getListQrCodes(List<String> inventoryItemIds) {
+    public List<InventoryItemResponse> getListQrCodes(List<String> inventoryItemIds) {
         LOGGER.info("Getting QR codes by inventory item IDs: {}", inventoryItemIds);
         List<InventoryItem> inventoryItems = inventoryItemRepository.findAllById(inventoryItemIds);
         
         return inventoryItems.stream()
-            .map(inventoryItem -> new QrCodeResponse(
-                inventoryItem.getId(),
-                inventoryItem.getItem().getId(),
-                inventoryItem.getImportOrderDetail() != null ? inventoryItem.getImportOrderDetail().getId() : null,
-                    inventoryItem.getExportRequestDetail() != null ? inventoryItem.getExportRequestDetail().getId() : null,
-                    inventoryItem.getMeasurementValue()
-            ))
+            .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
 

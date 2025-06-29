@@ -2,7 +2,6 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
-import capstonesu25.warehouse.model.inventoryitem.QrCodeResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -96,6 +95,14 @@ public class InventoryItemController {
 						page));
 	}
 
+	@Operation(summary = "Get inventory items by list import order detail IDs")
+	@PostMapping("/import-order-detail")
+	public ResponseEntity<?> getByListImportOrderDetailIds(@RequestBody List<Long> importOrderDetailIds) {
+		LOGGER.info("Getting inventory items by list import order detail ids: {}", importOrderDetailIds);
+		List<InventoryItemResponse> result = inventoryItemService.getByListImportOrderDetailIds(importOrderDetailIds);
+		return ResponseUtil.getCollection(result, HttpStatus.OK, "Successfully get inventory items by list import order detail IDs", null);
+	}
+
 	@Operation(summary = "Get inventory items by export request detail ID")
 	@GetMapping("/export-request-detail/{exportRequestDetailId}")
 	public ResponseEntity<?> getByExportRequestDetailId(@PathVariable Long exportRequestDetailId,
@@ -139,7 +146,7 @@ public class InventoryItemController {
 	@PostMapping("/qr-codes")
 	public ResponseEntity<?> getListQrCodes(@RequestBody List<String> inventoryItemIds) {
 		LOGGER.info("Getting QR codes by inventory item IDs");
-		List<QrCodeResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
+		List<InventoryItemResponse> result = inventoryItemService.getListQrCodes(inventoryItemIds);
 		return ResponseUtil.getCollection(
 				result,
 				HttpStatus.OK,
@@ -156,17 +163,6 @@ public class InventoryItemController {
 				inventoryItemService.update(request),
 				HttpStatus.OK,
 				"Successfully updated inventory item");
-	}
-
-	@Operation(summary = "Delete an inventory item by ID")
-	@DeleteMapping("/{inventoryItemId}")
-	public ResponseEntity<?> deleteInventoryItem(@PathVariable String inventoryItemId) {
-		LOGGER.info("Deleting inventory item");
-		inventoryItemService.delete(inventoryItemId);
-		return ResponseUtil.getObject(
-				null,
-				HttpStatus.OK,
-				"Successfully deleted inventory item");
 	}
 
 }
