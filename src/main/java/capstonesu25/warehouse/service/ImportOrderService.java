@@ -364,6 +364,36 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+
+    public ImportOrderResponse updateImportOrderToReadyToStore (String importOrderId) {
+        LOGGER.info("Updating import order to ready to store with ID: " + importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+
+        if (importOrder.getStatus() != RequestStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot update import order to ready to store with status: "
+                    + importOrder.getStatus());
+        }
+
+        for(ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+            for(InventoryItem inventoryItem : detail.getInventoryItems()) {
+                if (inventoryItem.getStoredLocation() == null) {
+                    throw new IllegalStateException("Cannot update import order to ready to store: "
+                            + "Some inventory items do not have a stored location");
+                }
+            }
+        }
+
+        importOrder.setStatus(RequestStatus.READY_TO_STORE);
+        notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_READY_TO_STORE_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã sẵn sàng để lưu trữ",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+    }
+
     private void updateImportRequest(ImportOrder importOrder) {
         LOGGER.info("Updating import request after paper creation");
 

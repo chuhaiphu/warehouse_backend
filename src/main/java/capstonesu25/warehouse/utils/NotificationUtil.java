@@ -22,6 +22,7 @@ public class NotificationUtil {
     public static final String IMPORT_ORDER_CANCELLED_EVENT = "import-order-cancelled";
     public static final String IMPORT_ORDER_EXTENDED_EVENT = "import-order-extended";
     public static final String IMPORT_ORDER_COMPLETED_EVENT = "import-order-completed";
+    public static final String IMPORT_ORDER_READY_TO_STORE_EVENT = "import-order-ready-to-store";
 
     public static final String EXPORT_REQUEST_CREATED_EVENT = "export-request-created";
     public static final String EXPORT_REQUEST_ASSIGNED_EVENT = "export-request-assigned";

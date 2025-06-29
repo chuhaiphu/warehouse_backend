@@ -176,4 +176,15 @@ public class ImportOrderController {
 				HttpStatus.OK,
 				"Successfully extended import order");
 	}
+
+	@Operation(summary = "Update import order to ready to store")
+	@PostMapping("/update-ready-to-store/{importOrderId}")
+	public ResponseEntity<?> updateImportOrderToReadyToStore(@PathVariable String importOrderId) {
+		LOGGER.info("Updating import order to ready to store");
+		ImportOrderResponse result = importOrderService.updateImportOrderToReadyToStore(importOrderId);
+		return ResponseUtil.getObject(
+				result,
+				HttpStatus.OK,
+				"Successfully updated import order to ready to store");
+	}
 }
