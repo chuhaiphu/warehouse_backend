@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importorder.*;
 
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -187,4 +188,16 @@ public class ImportOrderController {
 				HttpStatus.OK,
 				"Successfully updated import order to ready to store");
 	}
+
+	@Operation(summary = "Update import order status")
+	@PostMapping("/update-status/{importOrderId}")
+	public ResponseEntity<?> updateImportOrderStatus(@PathVariable String importOrderId, @RequestParam RequestStatus status) {
+		LOGGER.info("Updating import order status");
+		ImportOrderResponse result = importOrderService.updateImportOrderStatus(importOrderId, status);
+		return ResponseUtil.getObject(
+				result,
+				HttpStatus.OK,
+				"Successfully updated import order status");
+	}
+
 }

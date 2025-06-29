@@ -157,6 +157,19 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    public ImportOrderResponse updateImportOrderStatus (String importOrderId, RequestStatus status) {
+        LOGGER.info("Update import order status for import order id: " + importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+
+        if (importOrder.getStatus() == RequestStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot update status for cancelled import order");
+        }
+
+        importOrder.setStatus(status);
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+    }
+
     private void validateAccountForAssignment(Account account) {
         if (account.getStatus() != AccountStatus.ACTIVE) {
             throw new IllegalStateException("Cannot assign staff: Account is not active");
