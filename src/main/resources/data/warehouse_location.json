@@ -3,6 +3,16 @@
     "zone": "A",
     "floor": "1",
     "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": true,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "A",
+    "floor": "1",
+    "row": "R1",
     "line": "L2",
     "isRoad": false,
     "isDoor": false,
@@ -60,136 +70,6 @@
     "itemId": "KIM-DA-001"
   },
   {
-    "zone": "A",
-    "floor": "2",
-    "row": "R2",
-    "line": "L4",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "A",
-    "floor": "2",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "A",
-    "floor": "2",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 139,
-    "itemId": "VAI-TH-001"
-  },
-  {
-    "zone": "A",
-    "floor": "3",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 80,
-    "itemId": "VAI-KK-001"
-  },
-  {
-    "zone": "A",
-    "floor": "3",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 36,
-    "itemId": "KIM-JE-001"
-  },
-  {
-    "zone": "A",
-    "floor": "4",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 112,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "A",
-    "floor": "4",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 109,
-    "itemId": "KIM-DA-001"
-  },
-  {
-    "zone": "A",
-    "floor": "4",
-    "row": "R1",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 41,
-    "itemId": "VAI-KT-001"
-  },
-  {
-    "zone": "A",
-    "floor": "4",
-    "row": "R2",
-    "line": "L4",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "A",
-    "floor": "4",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "A",
-    "floor": "5",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 127,
-    "itemId": "CHI-PL-001"
-  },
-  {
-    "zone": "A",
-    "floor": "5",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 146,
-    "itemId": "NUT-KL-001"
-  },
-  {
-    "zone": "A",
-    "floor": "5",
-    "row": "R4",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 55,
-    "itemId": "KIM-JE-001"
-  },
-  {
     "zone": "B",
     "floor": "1",
     "row": "R2",
@@ -228,6 +108,306 @@
     "isDoor": false,
     "maximumCapacityForItem": 31,
     "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "C",
+    "floor": "1",
+    "row": "R1",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 121,
+    "itemId": "NUT-VS-001"
+  },
+  {
+    "zone": "C",
+    "floor": "1",
+    "row": "R2",
+    "line": "L1",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "C",
+    "floor": "1",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 48,
+    "itemId": "CHI-JE-001"
+  },
+  {
+    "zone": "C",
+    "floor": "1",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 95,
+    "itemId": "VAI-KT-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 104,
+    "itemId": "KIM-TH-002"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 122,
+    "itemId": "CHI-TH-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R1",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 123,
+    "itemId": "KIM-JE-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 123,
+    "itemId": "CHI-PL-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 77,
+    "itemId": "NUT-VS-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R4",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 47,
+    "itemId": "KIM-TH-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 112,
+    "itemId": "KIM-TH-001"
+  },
+  {
+    "zone": "D",
+    "floor": "1",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 74,
+    "itemId": "CHI-CT-001"
+  },
+  {
+    "zone": "E",
+    "floor": "1",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 66,
+    "itemId": "CHI-JE-001"
+  },
+  {
+    "zone": "E",
+    "floor": "1",
+    "row": "R2",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 97,
+    "itemId": "VAI-TH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "1",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 150,
+    "itemId": "NUT-NH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "1",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 72,
+    "itemId": "KIM-DA-001"
+  },
+  {
+    "zone": "F",
+    "floor": "1",
+    "row": "R2",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 123,
+    "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "F",
+    "floor": "1",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "F",
+    "floor": "1",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 99,
+    "itemId": "CHI-CT-001"
+  },
+  {
+    "zone": "F",
+    "floor": "1",
+    "row": "R4",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 89,
+    "itemId": "CHI-CT-001"
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 109,
+    "itemId": "VAI-JE-001"
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R3",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 129,
+    "itemId": "NUT-NH-001"
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 95,
+    "itemId": "KIM-TH-002"
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R4",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 127,
+    "itemId": "KIM-JE-001"
+  },
+  {
+    "zone": "G",
+    "floor": "1",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 114,
+    "itemId": "VAI-JE-001"
+  },
+  {
+    "zone": "A",
+    "floor": "2",
+    "row": "R2",
+    "line": "L4",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "A",
+    "floor": "2",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "A",
+    "floor": "2",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 139,
+    "itemId": "VAI-TH-001"
   },
   {
     "zone": "B",
@@ -290,166 +470,6 @@
     "itemId": null
   },
   {
-    "zone": "B",
-    "floor": "3",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 119,
-    "itemId": "KHO-JE-001"
-  },
-  {
-    "zone": "B",
-    "floor": "3",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 78,
-    "itemId": "CHI-TH-001"
-  },
-  {
-    "zone": "B",
-    "floor": "3",
-    "row": "R4",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 148,
-    "itemId": "KIM-TH-002"
-  },
-  {
-    "zone": "B",
-    "floor": "4",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 143,
-    "itemId": "NUT-GO-001"
-  },
-  {
-    "zone": "B",
-    "floor": "4",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 33,
-    "itemId": "CHI-JE-001"
-  },
-  {
-    "zone": "B",
-    "floor": "4",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 54,
-    "itemId": "KHO-AK-001"
-  },
-  {
-    "zone": "B",
-    "floor": "4",
-    "row": "R4",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 144,
-    "itemId": "KIM-JE-001"
-  },
-  {
-    "zone": "B",
-    "floor": "5",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 93,
-    "itemId": "CHI-JE-001"
-  },
-  {
-    "zone": "B",
-    "floor": "5",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 38,
-    "itemId": "NUT-VS-001"
-  },
-  {
-    "zone": "B",
-    "floor": "5",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 90,
-    "itemId": "CHI-PL-001"
-  },
-  {
-    "zone": "B",
-    "floor": "5",
-    "row": "R2",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 72,
-    "itemId": "VAI-TH-001"
-  },
-  {
-    "zone": "B",
-    "floor": "5",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 77,
-    "itemId": "CHI-CT-001"
-  },
-  {
-    "zone": "C",
-    "floor": "1",
-    "row": "R1",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 121,
-    "itemId": "NUT-VS-001"
-  },
-  {
-    "zone": "C",
-    "floor": "1",
-    "row": "R2",
-    "line": "L1",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "C",
-    "floor": "1",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 48,
-    "itemId": "CHI-JE-001"
-  },
-  {
-    "zone": "C",
-    "floor": "1",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 95,
-    "itemId": "VAI-KT-001"
-  },
-  {
     "zone": "C",
     "floor": "2",
     "row": "R1",
@@ -510,6 +530,296 @@
     "itemId": "VAI-KK-001"
   },
   {
+    "zone": "D",
+    "floor": "2",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 61,
+    "itemId": "NUT-VS-001"
+  },
+  {
+    "zone": "D",
+    "floor": "2",
+    "row": "R3",
+    "line": "L1",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "D",
+    "floor": "2",
+    "row": "R3",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 95,
+    "itemId": "VAI-TH-001"
+  },
+  {
+    "zone": "D",
+    "floor": "2",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 141,
+    "itemId": "NUT-KL-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 73,
+    "itemId": "KHO-NH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 54,
+    "itemId": "KIM-TH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 32,
+    "itemId": "VAI-JE-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R3",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 68,
+    "itemId": "KHO-AK-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R3",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 114,
+    "itemId": "KHO-KL-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 124,
+    "itemId": "KIM-TH-002"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R4",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 136,
+    "itemId": "NUT-NH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "2",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 36,
+    "itemId": "CHI-CT-001"
+  },
+  {
+    "zone": "F",
+    "floor": "2",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 37,
+    "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "F",
+    "floor": "2",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 74,
+    "itemId": "CHI-CT-001"
+  },
+  {
+    "zone": "F",
+    "floor": "2",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 49,
+    "itemId": "KHO-NH-001"
+  },
+  {
+    "zone": "F",
+    "floor": "2",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 60,
+    "itemId": "KHO-KL-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R2",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 131,
+    "itemId": "CHI-PL-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R3",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 54,
+    "itemId": "VAI-TH-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R3",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 76,
+    "itemId": "CHI-PL-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 83,
+    "itemId": "VAI-KK-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R4",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 60,
+    "itemId": "VAI-KT-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 94,
+    "itemId": "KIM-TH-001"
+  },
+  {
+    "zone": "G",
+    "floor": "2",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": true,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "A",
+    "floor": "3",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 80,
+    "itemId": "VAI-KK-001"
+  },
+  {
+    "zone": "A",
+    "floor": "3",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 36,
+    "itemId": "KIM-JE-001"
+  },
+  {
+    "zone": "B",
+    "floor": "3",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 119,
+    "itemId": "KHO-JE-001"
+  },
+  {
+    "zone": "B",
+    "floor": "3",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 78,
+    "itemId": "CHI-TH-001"
+  },
+  {
+    "zone": "B",
+    "floor": "3",
+    "row": "R4",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 148,
+    "itemId": "KIM-TH-002"
+  },
+  {
+    "zone": "C",
+    "floor": "3",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": true,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
     "zone": "C",
     "floor": "3",
     "row": "R1",
@@ -526,8 +836,8 @@
     "line": "L3",
     "isRoad": false,
     "isDoor": false,
-    "maximumCapacityForItem": 104,
-    "itemId": "KHO-JE-001"
+    "maximumCapacityForItem": 37,
+    "itemId": "CHI-TH-001"
   },
   {
     "zone": "C",
@@ -560,6 +870,276 @@
     "itemId": "NUT-KL-001"
   },
   {
+    "zone": "D",
+    "floor": "3",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "D",
+    "floor": "3",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 146,
+    "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "D",
+    "floor": "3",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 54,
+    "itemId": "CHI-TH-001"
+  },
+  {
+    "zone": "D",
+    "floor": "3",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 35,
+    "itemId": "KHO-NH-001"
+  },
+  {
+    "zone": "D",
+    "floor": "3",
+    "row": "R2",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 106,
+    "itemId": "KHO-KL-001"
+  },
+  {
+    "zone": "D",
+    "floor": "3",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 34,
+    "itemId": "CHI-JE-001"
+  },
+  {
+    "zone": "E",
+    "floor": "3",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 89,
+    "itemId": "NUT-NH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "3",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 59,
+    "itemId": "NUT-NH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "3",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "E",
+    "floor": "3",
+    "row": "R3",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 84,
+    "itemId": "KHO-NH-001"
+  },
+  {
+    "zone": "F",
+    "floor": "3",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 84,
+    "itemId": "VAI-JE-001"
+  },
+  {
+    "zone": "F",
+    "floor": "3",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 126,
+    "itemId": "NUT-NH-001"
+  },
+  {
+    "zone": "F",
+    "floor": "3",
+    "row": "R3",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 135,
+    "itemId": "VAI-JE-001"
+  },
+  {
+    "zone": "G",
+    "floor": "3",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "G",
+    "floor": "3",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 98,
+    "itemId": "KHO-NH-001"
+  },
+  {
+    "zone": "G",
+    "floor": "3",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 54,
+    "itemId": "KIM-DA-001"
+  },
+  {
+    "zone": "G",
+    "floor": "3",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 79,
+    "itemId": "VAI-KK-001"
+  },
+  {
+    "zone": "G",
+    "floor": "3",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 92,
+    "itemId": "KHO-KL-001"
+  },
+  {
+    "zone": "A",
+    "floor": "4",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 112,
+    "itemId": "KHO-KL-001"
+  },
+  {
+    "zone": "A",
+    "floor": "4",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 109,
+    "itemId": "KIM-DA-001"
+  },
+  {
+    "zone": "A",
+    "floor": "4",
+    "row": "R1",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 41,
+    "itemId": "VAI-KT-001"
+  },
+  {
+    "zone": "A",
+    "floor": "4",
+    "row": "R2",
+    "line": "L4",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "A",
+    "floor": "4",
+    "row": "R4",
+    "line": "L3",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "B",
+    "floor": "4",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 143,
+    "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "B",
+    "floor": "4",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 33,
+    "itemId": "CHI-JE-001"
+  },
+  {
+    "zone": "B",
+    "floor": "4",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 54,
+    "itemId": "KHO-AK-001"
+  },
+  {
+    "zone": "B",
+    "floor": "4",
+    "row": "R4",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 144,
+    "itemId": "KIM-JE-001"
+  },
+  {
     "zone": "C",
     "floor": "4",
     "row": "R1",
@@ -576,7 +1156,7 @@
     "line": "L2",
     "isRoad": false,
     "isDoor": false,
-    "maximumCapacityForItem": 118,
+    "maximumCapacityForItem": 119,
     "itemId": "NUT-VS-001"
   },
   {
@@ -628,6 +1208,266 @@
     "isDoor": false,
     "maximumCapacityForItem": 97,
     "itemId": "KHO-JE-001"
+  },
+  {
+    "zone": "D",
+    "floor": "4",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 114,
+    "itemId": "CHI-PL-001"
+  },
+  {
+    "zone": "D",
+    "floor": "4",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 133,
+    "itemId": "CHI-CT-001"
+  },
+  {
+    "zone": "D",
+    "floor": "4",
+    "row": "R4",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 32,
+    "itemId": "KHO-AK-001"
+  },
+  {
+    "zone": "E",
+    "floor": "4",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 79,
+    "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "E",
+    "floor": "4",
+    "row": "R1",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 110,
+    "itemId": "KIM-TH-002"
+  },
+  {
+    "zone": "E",
+    "floor": "4",
+    "row": "R2",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 56,
+    "itemId": "NUT-GO-001"
+  },
+  {
+    "zone": "E",
+    "floor": "4",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 148,
+    "itemId": "CHI-TH-001"
+  },
+  {
+    "zone": "E",
+    "floor": "4",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 128,
+    "itemId": "KIM-JE-001"
+  },
+  {
+    "zone": "E",
+    "floor": "4",
+    "row": "R4",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": true,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "F",
+    "floor": "4",
+    "row": "R1",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 90,
+    "itemId": "KIM-JE-001"
+  },
+  {
+    "zone": "F",
+    "floor": "4",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 141,
+    "itemId": "KHO-JE-001"
+  },
+  {
+    "zone": "F",
+    "floor": "4",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": true,
+    "isDoor": false,
+    "maximumCapacityForItem": 0,
+    "itemId": null
+  },
+  {
+    "zone": "F",
+    "floor": "4",
+    "row": "R4",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 64,
+    "itemId": "VAI-KT-001"
+  },
+  {
+    "zone": "G",
+    "floor": "4",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 66,
+    "itemId": "KHO-KL-001"
+  },
+  {
+    "zone": "G",
+    "floor": "4",
+    "row": "R2",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 54,
+    "itemId": "CHI-JE-001"
+  },
+  {
+    "zone": "G",
+    "floor": "4",
+    "row": "R3",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 127,
+    "itemId": "VAI-KT-001"
+  },
+  {
+    "zone": "G",
+    "floor": "4",
+    "row": "R3",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 72,
+    "itemId": "KHO-NH-001"
+  },
+  {
+    "zone": "G",
+    "floor": "4",
+    "row": "R4",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 36,
+    "itemId": "KIM-TH-001"
+  },
+  {
+    "zone": "A",
+    "floor": "5",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 127,
+    "itemId": "CHI-PL-001"
+  },
+  {
+    "zone": "A",
+    "floor": "5",
+    "row": "R3",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 146,
+    "itemId": "NUT-KL-001"
+  },
+  {
+    "zone": "A",
+    "floor": "5",
+    "row": "R4",
+    "line": "L2",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 55,
+    "itemId": "KIM-JE-001"
+  },
+  {
+    "zone": "B",
+    "floor": "5",
+    "row": "R1",
+    "line": "L1",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 93,
+    "itemId": "CHI-JE-001"
+  },
+  {
+    "zone": "B",
+    "floor": "5",
+    "row": "R1",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 38,
+    "itemId": "NUT-VS-001"
+  },
+  {
+    "zone": "B",
+    "floor": "5",
+    "row": "R2",
+    "line": "L3",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 90,
+    "itemId": "CHI-PL-001"
+  },
+  {
+    "zone": "B",
+    "floor": "5",
+    "row": "R2",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 72,
+    "itemId": "VAI-TH-001"
+  },
+  {
+    "zone": "B",
+    "floor": "5",
+    "row": "R3",
+    "line": "L4",
+    "isRoad": false,
+    "isDoor": false,
+    "maximumCapacityForItem": 77,
+    "itemId": "CHI-CT-001"
   },
   {
     "zone": "C",
@@ -711,216 +1551,6 @@
   },
   {
     "zone": "D",
-    "floor": "1",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 104,
-    "itemId": "KIM-TH-002"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 122,
-    "itemId": "CHI-TH-001"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R1",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 123,
-    "itemId": "KIM-JE-001"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 123,
-    "itemId": "CHI-PL-001"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 77,
-    "itemId": "NUT-VS-001"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R4",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 47,
-    "itemId": "KIM-TH-001"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 112,
-    "itemId": "KIM-TH-001"
-  },
-  {
-    "zone": "D",
-    "floor": "1",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 74,
-    "itemId": "CHI-CT-001"
-  },
-  {
-    "zone": "D",
-    "floor": "2",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 61,
-    "itemId": "NUT-VS-001"
-  },
-  {
-    "zone": "D",
-    "floor": "2",
-    "row": "R3",
-    "line": "L1",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "D",
-    "floor": "2",
-    "row": "R3",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 95,
-    "itemId": "VAI-TH-001"
-  },
-  {
-    "zone": "D",
-    "floor": "2",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 141,
-    "itemId": "NUT-KL-001"
-  },
-  {
-    "zone": "D",
-    "floor": "3",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "D",
-    "floor": "3",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 146,
-    "itemId": "NUT-GO-001"
-  },
-  {
-    "zone": "D",
-    "floor": "3",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 54,
-    "itemId": "CHI-TH-001"
-  },
-  {
-    "zone": "D",
-    "floor": "3",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 35,
-    "itemId": "KHO-NH-001"
-  },
-  {
-    "zone": "D",
-    "floor": "3",
-    "row": "R2",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 106,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "D",
-    "floor": "3",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 34,
-    "itemId": "CHI-JE-001"
-  },
-  {
-    "zone": "D",
-    "floor": "4",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 114,
-    "itemId": "CHI-PL-001"
-  },
-  {
-    "zone": "D",
-    "floor": "4",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 133,
-    "itemId": "CHI-CT-001"
-  },
-  {
-    "zone": "D",
-    "floor": "4",
-    "row": "R4",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 32,
-    "itemId": "KHO-AK-001"
-  },
-  {
-    "zone": "D",
     "floor": "5",
     "row": "R1",
     "line": "L2",
@@ -950,226 +1580,6 @@
     "itemId": "KIM-TH-002"
   },
   {
-    "zone": "D",
-    "floor": "5",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 114,
-    "itemId": "VAI-KT-001"
-  },
-  {
-    "zone": "E",
-    "floor": "1",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 66,
-    "itemId": "CHI-JE-001"
-  },
-  {
-    "zone": "E",
-    "floor": "1",
-    "row": "R2",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 97,
-    "itemId": "VAI-TH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "1",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 150,
-    "itemId": "NUT-NH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "1",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 72,
-    "itemId": "KIM-DA-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 73,
-    "itemId": "KHO-NH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 54,
-    "itemId": "KIM-TH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 32,
-    "itemId": "VAI-JE-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R3",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 68,
-    "itemId": "KHO-AK-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R3",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 114,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 124,
-    "itemId": "KIM-TH-002"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R4",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 136,
-    "itemId": "NUT-NH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "2",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 105,
-    "itemId": "NUT-VS-001"
-  },
-  {
-    "zone": "E",
-    "floor": "3",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 138,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "E",
-    "floor": "3",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 59,
-    "itemId": "NUT-NH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "3",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "E",
-    "floor": "3",
-    "row": "R3",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 84,
-    "itemId": "KHO-NH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "4",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 79,
-    "itemId": "NUT-GO-001"
-  },
-  {
-    "zone": "E",
-    "floor": "4",
-    "row": "R1",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 110,
-    "itemId": "KIM-TH-002"
-  },
-  {
-    "zone": "E",
-    "floor": "4",
-    "row": "R2",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 56,
-    "itemId": "NUT-GO-001"
-  },
-  {
-    "zone": "E",
-    "floor": "4",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 148,
-    "itemId": "CHI-TH-001"
-  },
-  {
-    "zone": "E",
-    "floor": "4",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 128,
-    "itemId": "KIM-JE-001"
-  },
-  {
     "zone": "E",
     "floor": "5",
     "row": "R1",
@@ -1196,8 +1606,8 @@
     "line": "L1",
     "isRoad": false,
     "isDoor": false,
-    "maximumCapacityForItem": 80,
-    "itemId": "KHO-JE-001"
+    "maximumCapacityForItem": 106,
+    "itemId": "VAI-TH-001"
   },
   {
     "zone": "E",
@@ -1231,156 +1641,6 @@
   },
   {
     "zone": "F",
-    "floor": "1",
-    "row": "R2",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 123,
-    "itemId": "NUT-GO-001"
-  },
-  {
-    "zone": "F",
-    "floor": "1",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "F",
-    "floor": "1",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 99,
-    "itemId": "CHI-CT-001"
-  },
-  {
-    "zone": "F",
-    "floor": "1",
-    "row": "R4",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 89,
-    "itemId": "CHI-CT-001"
-  },
-  {
-    "zone": "F",
-    "floor": "2",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 37,
-    "itemId": "NUT-GO-001"
-  },
-  {
-    "zone": "F",
-    "floor": "2",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 74,
-    "itemId": "CHI-CT-001"
-  },
-  {
-    "zone": "F",
-    "floor": "2",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 49,
-    "itemId": "KHO-NH-001"
-  },
-  {
-    "zone": "F",
-    "floor": "2",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 60,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "F",
-    "floor": "3",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 84,
-    "itemId": "VAI-JE-001"
-  },
-  {
-    "zone": "F",
-    "floor": "3",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 120,
-    "itemId": "KHO-AK-001"
-  },
-  {
-    "zone": "F",
-    "floor": "3",
-    "row": "R3",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 135,
-    "itemId": "VAI-JE-001"
-  },
-  {
-    "zone": "F",
-    "floor": "4",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 90,
-    "itemId": "KIM-JE-001"
-  },
-  {
-    "zone": "F",
-    "floor": "4",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 141,
-    "itemId": "KHO-JE-001"
-  },
-  {
-    "zone": "F",
-    "floor": "4",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "F",
-    "floor": "4",
-    "row": "R4",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 64,
-    "itemId": "VAI-KT-001"
-  },
-  {
-    "zone": "F",
     "floor": "5",
     "row": "R4",
     "line": "L4",
@@ -1388,246 +1648,6 @@
     "isDoor": false,
     "maximumCapacityForItem": 114,
     "itemId": "VAI-KT-001"
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R2",
-    "line": "L3",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R3",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 109,
-    "itemId": "VAI-JE-001"
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R3",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 35,
-    "itemId": "KHO-AK-001"
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 95,
-    "itemId": "KIM-TH-002"
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R4",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 127,
-    "itemId": "KIM-JE-001"
-  },
-  {
-    "zone": "G",
-    "floor": "1",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 114,
-    "itemId": "VAI-JE-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R2",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 131,
-    "itemId": "CHI-PL-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R3",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 54,
-    "itemId": "VAI-TH-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R3",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 76,
-    "itemId": "CHI-PL-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R3",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 79,
-    "itemId": "NUT-KL-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R4",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 60,
-    "itemId": "VAI-KT-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 94,
-    "itemId": "KIM-TH-001"
-  },
-  {
-    "zone": "G",
-    "floor": "2",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 37,
-    "itemId": "VAI-JE-001"
-  },
-  {
-    "zone": "G",
-    "floor": "3",
-    "row": "R1",
-    "line": "L1",
-    "isRoad": true,
-    "isDoor": false,
-    "maximumCapacityForItem": 0,
-    "itemId": null
-  },
-  {
-    "zone": "G",
-    "floor": "3",
-    "row": "R1",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 98,
-    "itemId": "KHO-NH-001"
-  },
-  {
-    "zone": "G",
-    "floor": "3",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 54,
-    "itemId": "KIM-DA-001"
-  },
-  {
-    "zone": "G",
-    "floor": "3",
-    "row": "R4",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 79,
-    "itemId": "VAI-KK-001"
-  },
-  {
-    "zone": "G",
-    "floor": "3",
-    "row": "R4",
-    "line": "L4",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 92,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "G",
-    "floor": "4",
-    "row": "R1",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 66,
-    "itemId": "KHO-KL-001"
-  },
-  {
-    "zone": "G",
-    "floor": "4",
-    "row": "R2",
-    "line": "L2",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 54,
-    "itemId": "CHI-JE-001"
-  },
-  {
-    "zone": "G",
-    "floor": "4",
-    "row": "R3",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 127,
-    "itemId": "VAI-KT-001"
-  },
-  {
-    "zone": "G",
-    "floor": "4",
-    "row": "R3",
-    "line": "L3",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 72,
-    "itemId": "KHO-NH-001"
-  },
-  {
-    "zone": "G",
-    "floor": "4",
-    "row": "R4",
-    "line": "L1",
-    "isRoad": false,
-    "isDoor": false,
-    "maximumCapacityForItem": 36,
-    "itemId": "KIM-TH-001"
   },
   {
     "zone": "G",
