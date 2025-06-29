@@ -73,25 +73,24 @@ public class StoredLocationService {
         LOGGER.info("Creating {} stored locations", requestList.size());
         List<StoredLocation> storedLocations = new ArrayList<>();
         for (StoredLocationRequest request : requestList) {
-            if (!storedLocationRepository.existsByZoneAndFloorAndRowAndLine(request.getZone(), request.getFloor(),
-                    request.getRow(), request.getLine())) {
-                StoredLocation storedLocation = new StoredLocation();
-                storedLocation.setZone(request.getZone());
-                storedLocation.setFloor(request.getFloor());
-                storedLocation.setLine(request.getLine());
-                storedLocation.setRow(request.getRow());
-                storedLocation.setRoad(request.getIsRoad());
-                storedLocation.setDoor(request.getIsDoor());
-                storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
-                if (request.getIsDoor() == false && request.getIsRoad() == false) {
-                    Item item = itemRepository.findById(request.getItemId()).orElseThrow(
-                            () -> new IllegalArgumentException(
-                                    "This item with ID: " + request.getItemId() + " is not presented"));
-                    storedLocation.setItem(item);
-                }
-                storedLocations.add(storedLocation);
-                storedLocationRepository.save(storedLocation);
+
+            StoredLocation storedLocation = new StoredLocation();
+            storedLocation.setZone(request.getZone());
+            storedLocation.setFloor(request.getFloor());
+            storedLocation.setLine(request.getLine());
+            storedLocation.setRow(request.getRow());
+            storedLocation.setRoad(request.getIsRoad());
+            storedLocation.setDoor(request.getIsDoor());
+            storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
+            if (request.getIsDoor() == false && request.getIsRoad() == false) {
+                Item item = itemRepository.findById(request.getItemId()).orElseThrow(
+                        () -> new IllegalArgumentException(
+                                "This item with ID: " + request.getItemId() + " is not presented"));
+                storedLocation.setItem(item);
             }
+            storedLocations.add(storedLocation);
+            storedLocationRepository.save(storedLocation);
+
         }
     }
 
