@@ -29,20 +29,14 @@ public class StoredLocationController {
     @Operation(summary = "Get all stored locations with pagination", description = "Returns a list of all stored locations")
     @GetMapping
     
-    public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit) {
+    public ResponseEntity<?> getAll() {
         LOGGER.info("Getting all stored locations");
-        Page<StoredLocationResponse> result = storedLocationService.getAllStoredLocations(page, limit);
+        List<StoredLocationResponse> result = storedLocationService.getAllStoredLocations();
         return ResponseUtil.getCollection(
-                result.getContent(),
+                result,
                 HttpStatus.OK,
                 "Successfully get all stored locations with pagination",
-                new MetaDataDTO(
-                        result.hasNext(),
-                        result.hasPrevious(),
-                        limit,
-                        (int) result.getTotalElements(),
-                        page));
+                null);
     }
 
     @Operation(summary = "Get stored location by ID", description = "Returns a stored location by its ID")

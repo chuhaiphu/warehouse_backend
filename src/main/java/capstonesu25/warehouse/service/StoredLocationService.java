@@ -29,11 +29,11 @@ public class StoredLocationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StoredLocationService.class);
 
-    public Page<StoredLocationResponse> getAllStoredLocations(int page, int limit) {
-        LOGGER.info("Getting all stored locations with page: {} and limit: {}", page, limit);
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        return storedLocationRepository.findAll(pageable)
-                .map(this::mapToResponse);
+    public List<StoredLocationResponse> getAllStoredLocations() {
+        LOGGER.info("Getting all stored locations");
+        return storedLocationRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     public StoredLocationResponse getStoredLocationById(Long id) {
@@ -62,9 +62,15 @@ public class StoredLocationService {
         return storedLocationRepository.findByFloor(floor, pageable).map(this::mapToResponse);
     }
 
+    public Boolean hasExistingData() {
+        long count = storedLocationRepository.count();
+        LOGGER.info("Found {} stored locations in database", count);
+        return count > 0;
+    }
+
     @Transactional
     public void create(List<StoredLocationRequest> requestList) {
-        LOGGER.info("Creating stored location");
+        LOGGER.info("Creating {} stored locations", requestList.size());
         List<StoredLocation> storedLocations = new ArrayList<>();
         for(StoredLocationRequest request : requestList) {
             StoredLocation storedLocation = new StoredLocation();
@@ -87,6 +93,7 @@ public class StoredLocationService {
             storedLocations.add(storedLocation);
         }
         storedLocationRepository.saveAll(storedLocations);
+        LOGGER.info("Successfully created {} stored locations", storedLocations.size());
     }
 
 //    @Transactional
