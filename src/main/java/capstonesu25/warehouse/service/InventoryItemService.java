@@ -4,6 +4,7 @@ import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
+import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ExportRequestDetailRepository;
@@ -22,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -119,6 +122,61 @@ public class InventoryItemService {
             .map(this::mapToResponse)
             .collect(Collectors.toList());
     }
+
+    @Transactional
+    public List<InventoryItemResponse> updateStoredLocation(List<UpdateInventoryLocationRequest> requests) {
+        LOGGER.info("Updating stored location of inventory items");
+
+        Map<String, InventoryItem> inventoryItemMap = new HashMap<>();
+        Map<Long, StoredLocation> storedLocationMap = new HashMap<>();
+        Map<Long, Integer> locationDelta = new HashMap<>(); // Track capacity changes
+
+        // Validation phase
+        for (UpdateInventoryLocationRequest request : requests) {
+            InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
+                    .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + request.getInventoryItemId()));
+            inventoryItemMap.put(request.getInventoryItemId(), inventoryItem);
+
+            StoredLocation storedLocation = storedLocationRepository.findById(request.getStoredLocationId())
+                    .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getStoredLocationId()));
+            storedLocationMap.put(request.getStoredLocationId(), storedLocation);
+
+            locationDelta.put(request.getStoredLocationId(), locationDelta.getOrDefault(request.getStoredLocationId(), 0) + 1);
+        }
+
+        //validate that new locations won’t exceed max capacity
+        for (Map.Entry<Long, Integer> entry : locationDelta.entrySet()) {
+            StoredLocation loc = storedLocationMap.get(entry.getKey());
+            int newCapacity = loc.getCurrentCapacity() + entry.getValue();
+            if (loc.getMaximumCapacityForItem() != null && newCapacity > loc.getMaximumCapacityForItem()) {
+                throw new IllegalStateException("Stored location ID " + loc.getId() + " exceeds its max capacity");
+            }
+        }
+
+        List<InventoryItemResponse> updatedItems = new ArrayList<>();
+
+        for (UpdateInventoryLocationRequest request : requests) {
+            InventoryItem inventoryItem = inventoryItemMap.get(request.getInventoryItemId());
+            StoredLocation newLocation = storedLocationMap.get(request.getStoredLocationId());
+
+            StoredLocation oldLocation = inventoryItem.getStoredLocation();
+            if (oldLocation != null && !oldLocation.getId().equals(newLocation.getId())) {
+                oldLocation.setCurrentCapacity(oldLocation.getCurrentCapacity() - 1);
+                storedLocationRepository.save(oldLocation);
+            }
+
+            inventoryItem.setStoredLocation(newLocation);
+            newLocation.setCurrentCapacity(newLocation.getCurrentCapacity() + 1);
+
+            InventoryItem savedItem = inventoryItemRepository.save(inventoryItem);
+            updatedItems.add(mapToResponse(savedItem));
+        }
+
+        storedLocationRepository.saveAll(storedLocationMap.values());
+
+        return updatedItems;
+    }
+
 
     private InventoryItemResponse mapToResponse(InventoryItem inventoryItem) {
         InventoryItemResponse response = new InventoryItemResponse();

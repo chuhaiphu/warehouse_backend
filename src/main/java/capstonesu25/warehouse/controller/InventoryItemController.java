@@ -2,6 +2,7 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
+import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -154,9 +155,20 @@ public class InventoryItemController {
 				null);
 	}
 
+	@Operation(summary = "Update stored location of inventory items")
+	@PutMapping("/update-location")
+	public ResponseEntity<?> updateStoreLocationOfInventoryItem(@RequestBody List<UpdateInventoryLocationRequest> requests) {
+		LOGGER.info("Updating stored location of inventory items");
+		List<InventoryItemResponse> result = inventoryItemService.updateStoredLocation(requests);
+		return ResponseUtil.getCollection(
+				result,
+				HttpStatus.OK,
+				"Successfully updated stored location of inventory items",
+				null);
+	}
+
 	@Operation(summary = "Update an existing inventory item")
 	@PutMapping
-	
 	public ResponseEntity<?> updateInventoryItem(@RequestBody InventoryItemRequest request) {
 		LOGGER.info("Updating inventory item");
 		return ResponseUtil.getObject(

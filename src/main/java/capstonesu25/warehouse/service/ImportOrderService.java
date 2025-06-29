@@ -532,7 +532,6 @@ public class ImportOrderService {
     }
 
     private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
-        return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" +
-                +(index + 1);
+        return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" + (index + 1);
     }
 }
