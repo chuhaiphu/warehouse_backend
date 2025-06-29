@@ -7,12 +7,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StoredLocationRepository extends JpaRepository<StoredLocation, Long> {
     Page<StoredLocation> findByIsUsedFalseAndIsFulledFalse(Pageable pageable);
     Page<StoredLocation> findByZone(String zone, Pageable pageable);
     Page<StoredLocation> findByFloor(String floor, Pageable pageable);
+
+    List<StoredLocation> findByZoneAndFloorAndLineAndRow(
+            String zone, String floor, String line, String row);
 
     List<StoredLocation> findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscLineAsc(String itemId);
 }

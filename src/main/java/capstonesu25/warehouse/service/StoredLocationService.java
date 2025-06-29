@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,9 +74,38 @@ public class StoredLocationService {
     public void create(List<StoredLocationRequest> requestList) {
         LOGGER.info("Creating {} stored locations", requestList.size());
         List<StoredLocation> storedLocations = new ArrayList<>();
+        Set<String> uniqueLocations = new HashSet<>();
+        LOGGER.info("Checking for duplicates in stored locations requests");
+        for (StoredLocationRequest request : requestList) {
+            // Combine all fields into a unique key
+            String key = String.format("%s-%s-%s-%s",
+                    request.getZone(),
+                    request.getFloor(),
+                    request.getRow(),
+                    request.getLine());
+
+            if (!uniqueLocations.add(key)) {
+                throw new IllegalArgumentException("Duplicate location found: " + key);
+            }
+        }
+        LOGGER.info("Checking for duplicates in stored locations database");
+        for(StoredLocationRequest storedLocation :requestList) {
+            List<StoredLocation> checkedLocation = storedLocationRepository.findByZoneAndFloorAndLineAndRow(
+                    storedLocation.getZone(),
+                    storedLocation.getFloor(),
+                    storedLocation.getLine(),
+                    storedLocation.getRow()
+            );
+            if(checkedLocation != null && !checkedLocation.isEmpty()) {
+                throw new IllegalArgumentException("Stored location with zone: " + storedLocation.getZone() +
+                        ", floor: " + storedLocation.getFloor() +
+                        ", line: " + storedLocation.getLine() +
+                        ", row: " + storedLocation.getRow() + " already exists");
+            }
+        }
         for(StoredLocationRequest request : requestList) {
             StoredLocation storedLocation = new StoredLocation();
-            if(request.getIsDoor() == true && request.getIsRoad() == true) {
+            if(request.getIsDoor() && request.getIsRoad()) {
                 throw new IllegalArgumentException("One location cannot being a road and door in same time");
             }
             storedLocation.setZone(request.getZone());
@@ -84,7 +115,7 @@ public class StoredLocationService {
             storedLocation.setRoad(request.getIsRoad());
             storedLocation.setDoor(request.getIsDoor());
             storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
-            if( request.getIsDoor() == false && request.getIsRoad() == false) {
+            if( !request.getIsDoor() && !request.getIsRoad()) {
                 Item item = itemRepository.findById(request.getItemId()).orElseThrow(
                         () -> new IllegalArgumentException("This item with ID: " + request.getItemId() + " is not presented")
                 );
