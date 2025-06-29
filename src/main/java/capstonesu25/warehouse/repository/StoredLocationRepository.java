@@ -19,4 +19,6 @@ public interface StoredLocationRepository extends JpaRepository<StoredLocation, 
             String zone, String floor, String line, String row);
 
     List<StoredLocation> findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscLineAsc(String itemId);
+
+    boolean existsByZoneAndFloorAndRowAndLine(String zone, String floor, String row, String line);
 }

@@ -224,14 +224,7 @@ public class WarehouseApplication {
 						new TypeReference<List<StoredLocationRequest>>() {
 						});
 
-				// Create stored locations in batches to avoid memory issues
-				int batchSize = 100;
-				for (int i = 0; i < locationRequests.size(); i += batchSize) {
-					int endIndex = Math.min(i + batchSize, locationRequests.size());
-					List<StoredLocationRequest> batch = locationRequests.subList(i, endIndex);
-
-					storedLocationService.create(batch);
-				}
+				storedLocationService.create(locationRequests);
 			}
 
 			// Initialize Departments
