@@ -190,10 +190,10 @@ public class ImportOrderController {
 	}
 
 	@Operation(summary = "Update import order status")
-	@PostMapping("/update-status/{importOrderId}")
-	public ResponseEntity<?> updateImportOrderStatus(@PathVariable String importOrderId, @RequestParam RequestStatus status) {
+	@PostMapping("/update-stored/{importOrderId}")
+	public ResponseEntity<?> updateImportOrderStatus(@PathVariable String importOrderId) {
 		LOGGER.info("Updating import order status");
-		ImportOrderResponse result = importOrderService.updateImportOrderStatus(importOrderId, status);
+		ImportOrderResponse result = importOrderService.updateImportOrderStatus(importOrderId);
 		return ResponseUtil.getObject(
 				result,
 				HttpStatus.OK,

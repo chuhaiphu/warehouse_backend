@@ -157,16 +157,16 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
-    public ImportOrderResponse updateImportOrderStatus (String importOrderId, RequestStatus status) {
+    public ImportOrderResponse updateImportOrderStatus (String importOrderId) {
         LOGGER.info("Update import order status for import order id: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
 
-        if (importOrder.getStatus() == RequestStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot update status for cancelled import order");
+        if(importOrder.getStatus() != RequestStatus.READY_TO_STORE) {
+            throw new IllegalStateException("Cannot update status for import order that is not ready to store");
         }
 
-        importOrder.setStatus(status);
+        importOrder.setStatus(RequestStatus.STORED);
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
