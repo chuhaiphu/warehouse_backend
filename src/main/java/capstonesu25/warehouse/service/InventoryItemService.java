@@ -2,7 +2,7 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
-import capstonesu25.warehouse.model.inventoryitem.ChangeExportRequestDetailOfInventoryItemRequest;
+import capstonesu25.warehouse.model.inventoryitem.ChangeInventoryItemOfExportDetailRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
 import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
@@ -177,26 +177,37 @@ public class InventoryItemService {
 
         return updatedItems;
     }
+    @Transactional
+    public InventoryItemResponse changeInventoryItemOfExportDetail(ChangeInventoryItemOfExportDetailRequest request) {
+        InventoryItem oldItem = inventoryItemRepository.findById(request.getOldInventoryItemId())
+                .orElseThrow(() -> new EntityNotFoundException("Old inventory item not found with id: " + request.getOldInventoryItemId()));
+        InventoryItem newItem = inventoryItemRepository.findById(request.getNewInventoryItemId())
+                .orElseThrow(() -> new EntityNotFoundException("New inventory item not found with id: " + request.getNewInventoryItemId()));
 
-    public List<InventoryItemResponse> changeExportRequestDetailOfInventoryItem(ChangeExportRequestDetailOfInventoryItemRequest request) {
-        LOGGER.info("Changing export request detail of inventory item ");
-        List<InventoryItem> inventoryItems = new ArrayList<>();
-        ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(request.getNewExportRequestDetailId())
-                .orElseThrow(() -> new EntityNotFoundException("Export request detail not found with id: " + request.getNewExportRequestDetailId()));
-        for(String inventoryItemId : request.getInventoryItemIds()) {
-            InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryItemId)
-                    .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + inventoryItemId));
-
-            // Update the export request detail reference
-            inventoryItem.setExportRequestDetail(exportRequestDetail);
-            inventoryItems.add(inventoryItem);
+        if(oldItem.getExportRequestDetail() == null) {
+            throw new IllegalArgumentException("Old inventory item does not have an export request detail");
         }
-        // Save all updated inventory items
-        List<InventoryItem> savedItems = inventoryItemRepository.saveAll(inventoryItems);
-        return savedItems.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        if (newItem.getExportRequestDetail() != null) {
+            throw new IllegalArgumentException("New inventory item already has an export request detail");
+        }
 
+        if (!oldItem.getItem().getId().equals(newItem.getItem().getId())) {
+            throw new IllegalArgumentException("Old and new inventory items are not of the same item type");
+        }
+
+        newItem.setExportRequestDetail(oldItem.getExportRequestDetail());
+        newItem.setStatus(oldItem.getStatus());
+
+        oldItem.setExportRequestDetail(null);
+        oldItem.setStatus(ItemStatus.AVAILABLE);
+
+        inventoryItemRepository.save(oldItem);
+        InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
+
+        LOGGER.info("Reassigning exportRequestDetail {} from inventoryItem {} to inventoryItem {}",
+                oldItem.getExportRequestDetail().getId(), oldItem.getId(), newItem.getId());
+
+        return mapToResponse(savedNewItem);
     }
 
     private InventoryItemResponse mapToResponse(InventoryItem inventoryItem) {

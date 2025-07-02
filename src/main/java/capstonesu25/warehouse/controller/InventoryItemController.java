@@ -1,6 +1,6 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.inventoryitem.ChangeExportRequestDetailOfInventoryItemRequest;
+import capstonesu25.warehouse.model.inventoryitem.ChangeInventoryItemOfExportDetailRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
 import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
@@ -177,16 +177,16 @@ public class InventoryItemController {
 				HttpStatus.OK,
 				"Successfully updated inventory item");
 	}
-	@Operation(summary = "Change export request detail of inventory item")
-	@PostMapping("/change-export-request-detail")
-	public ResponseEntity<?> changeExportRequestDetailOfInventoryItem(@RequestBody ChangeExportRequestDetailOfInventoryItemRequest request) {
+	@Operation(summary = "Change inventory item of export request detail")
+	@PostMapping("/change-inventory-item-export-detail")
+	public ResponseEntity<?> changeInventoryItemOfExportDetail(@RequestBody ChangeInventoryItemOfExportDetailRequest request) {
 		LOGGER.info("Changing export request detail of inventory item");
-		List<InventoryItemResponse> updatedItems = inventoryItemService.changeExportRequestDetailOfInventoryItem(request);
-		return ResponseUtil.getCollection(
-				updatedItems,
+		InventoryItemResponse updatedItem = inventoryItemService.changeInventoryItemOfExportDetail(request);
+		return ResponseUtil.getObject(
+				updatedItem,
 				HttpStatus.OK,
-				"Successfully changed export request detail of inventory item",
-				null);
+				"Successfully changed export request detail of inventory item");
+
 	}
 
 }
