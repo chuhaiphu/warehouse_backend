@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,40 +72,9 @@ public class StoredLocationService {
     public void create(List<StoredLocationRequest> requestList) {
         LOGGER.info("Creating {} stored locations", requestList.size());
         List<StoredLocation> storedLocations = new ArrayList<>();
-        Set<String> uniqueLocations = new HashSet<>();
-        LOGGER.info("Checking for duplicates in stored locations requests");
         for (StoredLocationRequest request : requestList) {
-            // Combine all fields into a unique key
-            String key = String.format("%s-%s-%s-%s",
-                    request.getZone(),
-                    request.getFloor(),
-                    request.getRow(),
-                    request.getLine());
 
-            if (!uniqueLocations.add(key)) {
-                throw new IllegalArgumentException("Duplicate location found: " + key);
-            }
-        }
-        LOGGER.info("Checking for duplicates in stored locations database");
-        for(StoredLocationRequest storedLocation :requestList) {
-            List<StoredLocation> checkedLocation = storedLocationRepository.findByZoneAndFloorAndLineAndRow(
-                    storedLocation.getZone(),
-                    storedLocation.getFloor(),
-                    storedLocation.getLine(),
-                    storedLocation.getRow()
-            );
-            if(checkedLocation != null && !checkedLocation.isEmpty()) {
-                throw new IllegalArgumentException("Stored location with zone: " + storedLocation.getZone() +
-                        ", floor: " + storedLocation.getFloor() +
-                        ", line: " + storedLocation.getLine() +
-                        ", row: " + storedLocation.getRow() + " already exists");
-            }
-        }
-        for(StoredLocationRequest request : requestList) {
             StoredLocation storedLocation = new StoredLocation();
-            if(request.getIsDoor() && request.getIsRoad()) {
-                throw new IllegalArgumentException("One location cannot being a road and door in same time");
-            }
             storedLocation.setZone(request.getZone());
             storedLocation.setFloor(request.getFloor());
             storedLocation.setLine(request.getLine());
@@ -115,31 +82,34 @@ public class StoredLocationService {
             storedLocation.setRoad(request.getIsRoad());
             storedLocation.setDoor(request.getIsDoor());
             storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
-            if( !request.getIsDoor() && !request.getIsRoad()) {
+            if (request.getIsDoor() == false && request.getIsRoad() == false) {
                 Item item = itemRepository.findById(request.getItemId()).orElseThrow(
-                        () -> new IllegalArgumentException("This item with ID: " + request.getItemId() + " is not presented")
-                );
+                        () -> new IllegalArgumentException(
+                                "This item with ID: " + request.getItemId() + " is not presented"));
                 storedLocation.setItem(item);
             }
             storedLocations.add(storedLocation);
+            storedLocationRepository.save(storedLocation);
+
         }
-        storedLocationRepository.saveAll(storedLocations);
-        LOGGER.info("Successfully created {} stored locations", storedLocations.size());
     }
 
-//    @Transactional
-//    public StoredLocationResponse update(StoredLocationRequest request) {
-//        LOGGER.info("Updating stored location with id: {}", request.getId());
-//        if (request.getId() == null) {
-//            throw new IllegalArgumentException("Stored location ID cannot be null for update operation");
-//        }
-//
-//        StoredLocation existingLocation = storedLocationRepository.findById(request.getId())
-//                .orElseThrow(() -> new EntityNotFoundException("Stored location not found with id: " + request.getId()));
-//
-//        updateEntityFromRequest(existingLocation, request);
-//        return mapToResponse(storedLocationRepository.save(existingLocation));
-//    }
+    // @Transactional
+    // public StoredLocationResponse update(StoredLocationRequest request) {
+    // LOGGER.info("Updating stored location with id: {}", request.getId());
+    // if (request.getId() == null) {
+    // throw new IllegalArgumentException("Stored location ID cannot be null for
+    // update operation");
+    // }
+    //
+    // StoredLocation existingLocation =
+    // storedLocationRepository.findById(request.getId())
+    // .orElseThrow(() -> new EntityNotFoundException("Stored location not found
+    // with id: " + request.getId()));
+    //
+    // updateEntityFromRequest(existingLocation, request);
+    // return mapToResponse(storedLocationRepository.save(existingLocation));
+    // }
 
     @Transactional
     public void delete(Long id) {
@@ -173,41 +143,45 @@ public class StoredLocationService {
             response.setInventoryItemIds(new ArrayList<>());
         }
 
-        if(storedLocation.getItem() != null) {
+        if (storedLocation.getItem() != null) {
             response.setItemId(storedLocation.getItem().getId());
         }
 
         return response;
     }
 
-//    private StoredLocation mapToEntity(StoredLocationRequest request) {
-//        StoredLocation storedLocation = new StoredLocation();
-//        updateEntityFromRequest(storedLocation, request);
-//        return storedLocation;
-//    }
+    // private StoredLocation mapToEntity(StoredLocationRequest request) {
+    // StoredLocation storedLocation = new StoredLocation();
+    // updateEntityFromRequest(storedLocation, request);
+    // return storedLocation;
+    // }
 
-//    private void updateEntityFromRequest(StoredLocation storedLocation, StoredLocationRequest request) {
-//        storedLocation.setZone(request.getZone());
-//        storedLocation.setFloor(request.getFloor());
-//        storedLocation.setRow(request.getRow());
-//        storedLocation.setLine(request.getLine());
-//        storedLocation.setUsed(request.isUsed());
-//        storedLocation.setFulled(request.isFulled());
-//        storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
-//        storedLocation.setCurrentCapacity(request.getCurrentCapacity());
-//
-//        if (request.getInventoryItemIds() != null && !request.getInventoryItemIds().isEmpty()) {
-//            List<InventoryItem> inventoryItems = request.getInventoryItemIds().stream()
-//                    .map(id -> inventoryItemRepository.findById(id)
-//                            .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id)))
-//                    .collect(Collectors.toList());
-//            storedLocation.setInventoryItems(inventoryItems);
-//        } else {
-//            storedLocation.setInventoryItems(new ArrayList<>());
-//        }
-//        if(request.getItemId() != null) {
-//            storedLocation.setItem(itemRepository.findById(request.getItemId())
-//                    .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " + request.getItemId())));
-//        }
-//    }
+    // private void updateEntityFromRequest(StoredLocation storedLocation,
+    // StoredLocationRequest request) {
+    // storedLocation.setZone(request.getZone());
+    // storedLocation.setFloor(request.getFloor());
+    // storedLocation.setRow(request.getRow());
+    // storedLocation.setLine(request.getLine());
+    // storedLocation.setUsed(request.isUsed());
+    // storedLocation.setFulled(request.isFulled());
+    // storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
+    // storedLocation.setCurrentCapacity(request.getCurrentCapacity());
+    //
+    // if (request.getInventoryItemIds() != null &&
+    // !request.getInventoryItemIds().isEmpty()) {
+    // List<InventoryItem> inventoryItems = request.getInventoryItemIds().stream()
+    // .map(id -> inventoryItemRepository.findById(id)
+    // .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with
+    // id: " + id)))
+    // .collect(Collectors.toList());
+    // storedLocation.setInventoryItems(inventoryItems);
+    // } else {
+    // storedLocation.setInventoryItems(new ArrayList<>());
+    // }
+    // if(request.getItemId() != null) {
+    // storedLocation.setItem(itemRepository.findById(request.getItemId())
+    // .orElseThrow(() -> new EntityNotFoundException("Item not found with id: " +
+    // request.getItemId())));
+    // }
+    // }
 }
