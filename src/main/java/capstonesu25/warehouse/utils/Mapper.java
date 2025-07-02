@@ -94,6 +94,8 @@ public class Mapper {
                 importOrder.getCreatedDate(),
                 importOrder.getUpdatedDate(),
                 importOrder.getPaper() != null ? importOrder.getPaper().getId() : null,
-                importOrder.getAssignedStaff() != null ? importOrder.getAssignedStaff().getId() : null);
+                importOrder.getAssignedStaff() != null ? importOrder.getAssignedStaff().getId() : null,
+                importOrder.getExportRequest() != null ? importOrder.getExportRequest().getId() : null
+        );
     }
 }

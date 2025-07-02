@@ -244,7 +244,7 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(),null);
         exportRequest.setExportDate(request.getExportDate());
 
-        exportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
+        exportRequest.setStatus(RequestStatus.WAITING_EXPORT);
         exportRequest.setCountingStaffId(importOrder.getAssignedStaff().getId());
         if(exportRequest.getExportDate().equals(importOrder.getActualDateReceived())) {
             exportRequest.setAssignedStaff(importOrder.getAssignedStaff());

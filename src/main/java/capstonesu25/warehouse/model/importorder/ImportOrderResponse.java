@@ -33,4 +33,5 @@ public class ImportOrderResponse {
     private LocalDateTime updatedDate;
     private Long paperIds;
     private Long assignedStaffId;
+    private String exportRequestId;
 }
