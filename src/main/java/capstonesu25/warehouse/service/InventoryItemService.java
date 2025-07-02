@@ -2,6 +2,7 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
+import capstonesu25.warehouse.model.inventoryitem.ChangeExportRequestDetailOfInventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
 import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
 import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
@@ -177,6 +178,26 @@ public class InventoryItemService {
         return updatedItems;
     }
 
+    public List<InventoryItemResponse> changeExportRequestDetailOfInventoryItem(ChangeExportRequestDetailOfInventoryItemRequest request) {
+        LOGGER.info("Changing export request detail of inventory item ");
+        List<InventoryItem> inventoryItems = new ArrayList<>();
+        ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(request.getNewExportRequestDetailId())
+                .orElseThrow(() -> new EntityNotFoundException("Export request detail not found with id: " + request.getNewExportRequestDetailId()));
+        for(String inventoryItemId : request.getInventoryItemIds()) {
+            InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryItemId)
+                    .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + inventoryItemId));
+
+            // Update the export request detail reference
+            inventoryItem.setExportRequestDetail(exportRequestDetail);
+            inventoryItems.add(inventoryItem);
+        }
+        // Save all updated inventory items
+        List<InventoryItem> savedItems = inventoryItemRepository.saveAll(inventoryItems);
+        return savedItems.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+
+    }
 
     private InventoryItemResponse mapToResponse(InventoryItem inventoryItem) {
         InventoryItemResponse response = new InventoryItemResponse();
