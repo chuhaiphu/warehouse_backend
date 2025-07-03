@@ -195,17 +195,15 @@ public class InventoryItemService {
             throw new IllegalArgumentException("Old and new inventory items are not of the same item type");
         }
 
+
         newItem.setExportRequestDetail(oldItem.getExportRequestDetail());
         newItem.setStatus(oldItem.getStatus());
-
+        InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
+        LOGGER.info("check step");
         oldItem.setExportRequestDetail(null);
         oldItem.setStatus(ItemStatus.AVAILABLE);
 
         inventoryItemRepository.save(oldItem);
-        InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
-
-        LOGGER.info("Reassigning exportRequestDetail {} from inventoryItem {} to inventoryItem {}",
-                oldItem.getExportRequestDetail().getId(), oldItem.getId(), newItem.getId());
 
         return mapToResponse(savedNewItem);
     }
