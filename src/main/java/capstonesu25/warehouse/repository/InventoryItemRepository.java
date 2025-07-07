@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, String> {
@@ -24,4 +25,6 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     List<InventoryItem> findByImportOrderDetailIdIn(List<Long> importOrderDetailIds);
 
     List<InventoryItem> findByExportRequestDetail_Id(Long exportRequestDetailId);
+
+
 }
