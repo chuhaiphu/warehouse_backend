@@ -15,6 +15,7 @@ import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
@@ -43,6 +44,11 @@ public class ExportRequestService {
     private final DepartmentRepository departmentRepository;
     private final ExportRequestDetailRepository exportRequestDetailRepository;
     private final NotificationService notificationService;
+    private final ImportRequestRepository importRequestRepository;
+    private final ImportRequestDetailRepository importRequestDetailRepository;
+    private final ImportOrderDetailRepository importOrderDetailRepository;
+
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestService.class);
 
     public List<ExportRequestResponse> getAllExportRequests() {
@@ -305,8 +311,9 @@ public class ExportRequestService {
         validateForTimeDate(request.getExportDate(), request.getExportTime());
         exportRequest.setExportDate(request.getExportDate());
         exportRequest.setStatus(RequestStatus.IN_PROGRESS);
-
+        exportRequest.setExportRequestDetails(new ArrayList<>());
         ExportRequest export = exportRequestRepository.save(exportRequest);
+
         notificationService.handleNotification(
             NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
             NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
@@ -414,7 +421,177 @@ public class ExportRequestService {
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
         exportRequest.setStatus(RequestStatus.COUNTED);
+        if(exportRequest.getType().equals(ExportType.PRODUCTION)) {
+            createImportForInternalExport(exportRequest);
+        }
         return mapToResponse(exportRequestRepository.save(exportRequest));
+    }
+
+
+    private void createImportForInternalExport(ExportRequest exportRequest) {
+        LOGGER.info("Creating import request for internal export with ID: " + exportRequest.getId());
+        Configuration config = configurationRepository.findAll().getFirst();
+
+        // Cách 2: Lưu chính xác InventoryItem nào bị dư và dư bao nhiêu
+        Map<Item, List<Pair<InventoryItem, Double>>> excessMap = new HashMap<>();
+
+        for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
+            List<InventoryItem> selectedItems = inventoryItemRepository.findByExportRequestDetail_Id(detail.getId());
+
+            if (selectedItems.isEmpty()) continue;
+
+            double requestedMeasurement = detail.getMeasurementValue();
+            double totalMeasurement = selectedItems.stream()
+                    .mapToDouble(InventoryItem::getMeasurementValue)
+                    .sum();
+
+            double maxAllowed = requestedMeasurement + requestedMeasurement * config.getMaxDispatchErrorPercent() / 100;
+
+            if (totalMeasurement > requestedMeasurement) {
+                double excess = totalMeasurement - requestedMeasurement;
+                InventoryItem lastItem = selectedItems.get(selectedItems.size() - 1);
+                lastItem.setReasonForDisposal("Dư thừa trong quá trình xuất sản xuất, tự động tạo ImportRequest để xử lý.");
+                inventoryItemRepository.save(lastItem);
+                excessMap.computeIfAbsent(detail.getItem(), k -> new ArrayList<>())
+                        .add(Pair.of(lastItem, excess));
+
+                LOGGER.info("Detail {}, requested = {}, total = {}, excess = {}", detail.getId(), requestedMeasurement, totalMeasurement, excess);
+
+                if (totalMeasurement > maxAllowed) {
+                    LOGGER.warn("TotalMeasurement ({}) > maxAllowed ({}), vẫn xử lý nhập lại", totalMeasurement, maxAllowed);
+                }
+            } else {
+                LOGGER.info("No excess: requested = {}, total = {}", requestedMeasurement, totalMeasurement);
+            }
+        }
+
+        if (excessMap.isEmpty()) {
+            LOGGER.info("No excess to process for export request {}", exportRequest.getId());
+            return;
+        }
+
+        // Create ImportRequest
+        OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
+        int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setId(createImportRequestId());
+        importRequest.setImportReason("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
+        importRequest.setStatus(RequestStatus.IN_PROGRESS);
+        importRequest.setType(ImportType.RETURN);
+        importRequest.setCreatedDate(LocalDateTime.now());
+        importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
+        importRequest.setCreatedBy("system");
+        importRequest.setImportOrders(new ArrayList<>());
+        importRequest = importRequestRepository.save(importRequest);
+
+        // Tạo ImportRequestDetail
+        Map<Item, ImportRequestDetail> importRequestDetails = new HashMap<>();
+        for (Map.Entry<Item, List<Pair<InventoryItem, Double>>> entry : excessMap.entrySet()) {
+            int quantity = entry.getValue().size();
+            double totalExcess = entry.getValue().stream().mapToDouble(Pair::getRight).sum();
+
+            ImportRequestDetail detail = new ImportRequestDetail();
+            detail.setImportRequest(importRequest);
+            detail.setItem(entry.getKey());
+            detail.setExpectQuantity(quantity);
+            detail.setActualQuantity(quantity);
+            detail.setOrderedQuantity(quantity);
+            detail.setExpectMeasurementValue(totalExcess);
+            detail.setActualMeasurementValue(totalExcess);
+            detail = importRequestDetailRepository.save(detail);
+
+            importRequestDetails.put(entry.getKey(), detail);
+        }
+
+        // Tạo ImportOrder
+        ImportOrder importOrder = new ImportOrder();
+        importOrder.setExportRequest(exportRequest);
+        importOrder.setId(createImportOrderId(importRequest));
+        importOrder.setImportRequest(importRequest);
+        importOrder.setStatus(RequestStatus.COUNT_CONFIRMED);
+        importOrder.setCreatedDate(LocalDateTime.now());
+        importOrder.setCreatedBy("system");
+        importOrder.setDateReceived(LocalDate.now());
+        importOrder.setActualDateReceived(LocalDate.now());
+        importOrder.setNote("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
+        importOrder.setAssignedStaff(accountRepository.findById(exportRequest.getCountingStaffId())
+                .orElseThrow(() -> new NoSuchElementException("Assigned staff not found with ID: " + exportRequest.getCountingStaffId())));
+        importOrder.setActualTimeReceived(LocalTime.now());
+        importOrder.setTimeReceived(LocalTime.now());
+        importOrder = importOrderRepository.save(importOrder);
+
+        // Tạo ImportOrderDetail và InventoryItem mới cho từng phần dư
+        for (Map.Entry<Item, List<Pair<InventoryItem, Double>>> entry : excessMap.entrySet()) {
+            Item item = entry.getKey();
+            List<Pair<InventoryItem, Double>> excessList = entry.getValue();
+
+            ImportRequestDetail requestDetail = importRequestDetails.get(item);
+
+            ImportOrderDetail orderDetail = new ImportOrderDetail();
+            orderDetail.setImportOrder(importOrder);
+            orderDetail.setItem(item);
+            orderDetail.setStatus(DetailStatus.MATCH);
+            orderDetail.setActualQuantity(excessList.size());
+            orderDetail.setExpectQuantity(excessList.size());
+            double totalMeasurement = excessList.stream().mapToDouble(Pair::getRight).sum();
+            orderDetail.setExpectMeasurementValue(totalMeasurement);
+            orderDetail.setActualMeasurementValue(totalMeasurement);
+            orderDetail = importOrderDetailRepository.save(orderDetail);
+
+            // Tạo inventory item mới
+            for (Pair<InventoryItem, Double> pair : excessList) {
+                InventoryItem oldItem = pair.getLeft();
+                double excessValue = pair.getRight();
+
+                InventoryItem newItem = new InventoryItem();
+                newItem.setId(createInventoryItemId(orderDetail, excessList.indexOf(pair)));
+                newItem.setParent(oldItem);
+                newItem.setItem(oldItem.getItem());
+                newItem.setMeasurementValue(excessValue);
+                newItem.setStatus(ItemStatus.AVAILABLE);
+                newItem.setImportOrderDetail(orderDetail);
+                newItem.setStoredLocation(oldItem.getStoredLocation());
+                newItem.setImportedDate(LocalDateTime.now());
+
+                inventoryItemRepository.save(newItem);
+            }
+        }
+    }
+
+    private OptionalInt findLatestBatchSuffixForToday() {
+        LOGGER.info("Finding latest batch suffix for today");
+        List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(getTodayPrefix());
+
+        return requests.stream()
+                .map(ImportRequest::getBatchCode)
+                .map(code -> code.substring(getTodayPrefix().length()))
+                .mapToInt(Integer::parseInt)
+                .max(); // returns OptionalInt
+    }
+    private String getTodayPrefix() {
+        return LocalDate.now() + "_";
+    }
+    private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
+        return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" + (index + 1);
+    }
+
+    private String createImportOrderId(ImportRequest importRequest) {
+        int size = importRequest.getImportOrders().size();
+        return "DN-" + importRequest.getId() + "-" + (size + 1);
+    }
+    private String createImportRequestId() {
+        String prefix = "PN";
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String sequence = String.format("%03d", todayCount + 1);
+
+        return String.format("%s-%s-%s", prefix, datePart, sequence);
     }
 
     public ExportRequestResponse completeExportRequest(String exportRequestId) {

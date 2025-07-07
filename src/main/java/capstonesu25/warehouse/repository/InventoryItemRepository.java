@@ -22,4 +22,6 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     List<InventoryItem> findByItem_Id(String itemId);
     List<InventoryItem> findByItem_IdAndExpiredDateLessThanEqual(String itemId, LocalDateTime expiredDate);
     List<InventoryItem> findByImportOrderDetailIdIn(List<Long> importOrderDetailIds);
+
+    List<InventoryItem> findByExportRequestDetail_Id(Long exportRequestDetailId);
 }

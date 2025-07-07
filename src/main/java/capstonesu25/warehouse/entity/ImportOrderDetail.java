@@ -27,6 +27,12 @@ public class ImportOrderDetail {
     @Column(name = "actual_quantity")
     private int actualQuantity;
 
+    @Column(name = "expect_measurement_value")
+    private Double expectMeasurementValue;
+
+    @Column(name = "actual_measurement_value")
+    private Double actualMeasurementValue;
+
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;

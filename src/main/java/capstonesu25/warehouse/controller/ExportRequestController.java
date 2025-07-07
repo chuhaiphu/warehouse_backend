@@ -103,7 +103,7 @@ public class ExportRequestController {
 
     @Operation(summary = "Create a new export request for production")
     @PostMapping()
-    public ResponseEntity<?> createExportRequest(@RequestBody ExportRequestRequest request) {
+    public ResponseEntity<?> createExportRequestForProduction(@RequestBody ExportRequestRequest request) {
         LOGGER.info("Creating export request");
         return ResponseUtil.getObject(
             exportRequestService.createExportProductionRequest(request),
