@@ -59,7 +59,9 @@ public class ConfigurationService {
                 configuration.getTimeToAllowCancel(),
                 configuration.getDaysToAllowExtend(),
                 configuration.getMaxAllowedDaysForExtend(),
-                configuration.getMaxAllowedDaysForImportRequestProcess()
+                configuration.getMaxAllowedDaysForImportRequestProcess(),
+                configuration.getMaxDispatchErrorPercent(),
+                configuration.getMaxPercentOfItemForExport()
         );
     }
 

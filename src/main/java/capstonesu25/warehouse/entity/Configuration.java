@@ -53,5 +53,8 @@ public class Configuration {
     @Column(name = "max_dispatch_error_percent")
     private Integer maxDispatchErrorPercent;
 
+    @Column(name = "max_percent_of_item_for_export")
+    private Integer maxPercentOfItemForExport;
+
 
 }
