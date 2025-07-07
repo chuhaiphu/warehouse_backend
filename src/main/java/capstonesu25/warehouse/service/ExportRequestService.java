@@ -790,6 +790,13 @@ public class ExportRequestService {
         exportRequest.setCountingStaffId(account.getId());
         setTimeForCountingStaffPerformance(account, exportRequest);
         autoAssignConfirmStaff(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.STAFF_CHANNEL + account.getId(),
+            NotificationUtil.EXPORT_REQUEST_ASSIGNED_EVENT,
+            exportRequest.getId(),
+            "Bạn được phân công cho đơn xuất mã #" + exportRequest.getId(),
+            List.of(account)
+        );
         return exportRequestRepository.save(exportRequest);
 
     }
@@ -832,6 +839,13 @@ public class ExportRequestService {
         staffPerformance.setExportRequestId(exportRequest.getId());
         staffPerformanceRepository.save(staffPerformance);
         exportRequestRepository.save(exportRequest);
+        notificationService.handleNotification(
+            NotificationUtil.STAFF_CHANNEL + account.getId(),
+            NotificationUtil.EXPORT_REQUEST_ASSIGNED_EVENT,
+            exportRequest.getId(),
+            "Bạn được phân công cho đơn xuất mã #" + exportRequest.getId() + " để xác nhận số lượng",
+            List.of(account)
+        );
     }
 
     private String createExportRequestId() {
