@@ -221,7 +221,7 @@ public class InventoryItemService {
         InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
 
         oldItem.setExportRequestDetail(null);
-        oldItem.setStatus(ItemStatus.AVAILABLE);
+        oldItem.setStatus(ItemStatus.NEED_LIQUID);
 
         inventoryItemRepository.save(oldItem);
 
