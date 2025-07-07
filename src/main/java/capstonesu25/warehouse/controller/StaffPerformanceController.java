@@ -48,4 +48,15 @@ public class StaffPerformanceController {
         );
     }
 
+    @Operation(summary = "Get import and export records of a staff member for a specific date")
+    @GetMapping("/import-export/{accountId}/{date}")
+    public ResponseEntity<?> getListImportAndExportOfStaffInDate(@PathVariable Long accountId, @PathVariable LocalDate date) {
+        LOGGER.info("Fetching import and export records for account ID: {} and date: {}", accountId, date);
+        return ResponseUtil.getObject(
+                staffPerformanceService.getListImportAndExportOfStaffInDate(accountId, date),
+                HttpStatus.OK,
+                "Import and export records retrieved successfully"
+        );
+    }
+
 }

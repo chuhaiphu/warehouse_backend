@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 public class PaperResponse {
     private Long id;
     private String signProviderUrl;
-    private String signWarehouseUrl;
+    private String signProviderName;
+    private String signReceiverUrl;
+    private String signReceiverName;
     private String description;
     private String importOrderId;
     private String exportRequestId;

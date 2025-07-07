@@ -10,8 +10,10 @@ public class PaperRequest {
     private Long id;
     @NotNull(message = "can not be null")
     private MultipartFile signProviderUrl;
+    private String signProviderName;
     @NotNull(message = "can not be null")
-    private MultipartFile signWarehouseUrl;
+    private MultipartFile signReceiverUrl;
+    private String signReceiverName;
     private String description;
     private String importOrderId;
     private String exportRequestId;
