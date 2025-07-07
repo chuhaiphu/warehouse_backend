@@ -92,7 +92,6 @@ public class PaperController {
 
     @Operation(summary = "Create a new paper with file upload")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    
     public ResponseEntity<?> createPaper(@ModelAttribute PaperRequest request) {
         LOGGER.info("Creating paper");
         try {
@@ -107,5 +106,21 @@ public class PaperController {
                 null,
                 HttpStatus.CREATED,
                 "Successfully created paper");
+    }
+
+    public ResponseEntity<?> resetPaper(@PathVariable Long paperId) {
+        LOGGER.info("Resetting paper with id: {}", paperId);
+        try {
+            paperService.resetPaper(paperId);
+        } catch (Exception e) {
+            return ResponseUtil.error(
+                    "Error",
+                    "Failed to reset paper",
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully reset paper");
     }
 }

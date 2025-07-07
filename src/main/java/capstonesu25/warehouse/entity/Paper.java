@@ -17,8 +17,14 @@ public class Paper {
     @Column(name = "sign_provider_url")
     private String signProviderUrl;
 
-    @Column(name = "sign_warehouse_url")
-    private String signWarehouseUrl;
+    @Column(name = "sign_provider_name")
+    private String signProviderName;
+
+    @Column(name = "sign_receiver_url")
+    private String signReceiverUrl;
+
+    @Column(name = "sign_receiver_name")
+    private String signReceiverName;
 
     @Column(name = "description")
     private String description;

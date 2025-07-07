@@ -31,6 +31,12 @@ public interface ExportRequestRepository extends JpaRepository<ExportRequest, St
     List<ExportRequest> findByStatusAndExtendedDateLessThanEqual(
             RequestStatus status, LocalDate extendedDate);
 
+    List<ExportRequest> findByCountingDateAndCountingStaffId(
+            LocalDate countingDate, Long countingStaffId);
+
+    List<ExportRequest> findByExportDateAndExportDate(
+            LocalDate exportDate, LocalDate exportDate2);
+
     @Query("SELECT COUNT(er) FROM ExportRequest er WHERE er.createdDate BETWEEN :start AND :end")
     int countByCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

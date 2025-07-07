@@ -59,13 +59,17 @@ public class PaperService {
     public void createPaper(PaperRequest request) throws IOException {
         LOGGER.info("Creating paper");
         String signProviderUrl = cloudinaryUtil.uploadImage(request.getSignProviderUrl());
-        String signWarehouseUrl = cloudinaryUtil.uploadImage(request.getSignWarehouseUrl());
+        String signReceiverName = cloudinaryUtil.uploadImage(request.getSignReceiverUrl());
         Paper paper = convertToEntity(request);
         paper.setSignProviderUrl(signProviderUrl);
-        paper.setSignWarehouseUrl(signWarehouseUrl);
+        paper.setSignReceiverUrl(signReceiverName);
 
         if(request.getImportOrderId() != null) {
             //update status
+            if(request.getSignProviderName() == null) {
+                throw new IllegalArgumentException("Sign provider name cannot be null");
+            }
+
             LOGGER.info("Updating import order status at creating paper");
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
             importOrder.setStatus(RequestStatus.COUNTED);
@@ -73,7 +77,8 @@ public class PaperService {
             importOrder.setActualTimeReceived(LocalTime.now());
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
-
+            paper.setSignProviderName(request.getSignProviderName());
+            paper.setSignReceiverName(importOrder.getAssignedStaff().getFullName());
             paperRepository.save(paper);
             // * Notification
             notificationService.handleNotification(
@@ -86,12 +91,16 @@ public class PaperService {
         }
         if(request.getExportRequestId() != null) {
             //update status
+            if(request.getSignReceiverUrl() == null) {
+                throw new IllegalArgumentException("Sign receiver url cannot be null");
+            }
             LOGGER.info("Updating export request status at creating paper");
             ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
             exportRequest.setStatus(RequestStatus.COUNTED);
             exportRequestRepository.save(exportRequest);
             paper.setExportRequest(exportRequest);
-
+            paper.setSignProviderName(exportRequest.getAssignedStaff().getFullName());
+            paper.setSignReceiverName(request.getSignReceiverName());
             paperRepository.save(paper);
             // * Notification
             notificationService.handleNotification(
@@ -105,6 +114,23 @@ public class PaperService {
 
     }
 
+    public void resetPaper (Long paperId) {
+        LOGGER.info("Resetting paper with id: {}", paperId);
+        Paper paper = paperRepository.findById(paperId).orElseThrow();
+        if(paper.getImportOrder() != null) {
+            ImportOrder importOrder = paper.getImportOrder();
+            importOrder.setStatus(RequestStatus.IN_PROGRESS);
+            importOrder.setActualDateReceived(null);
+            importOrder.setActualTimeReceived(null);
+            importOrderRepository.save(importOrder);
+        }
+        if(paper.getExportRequest() != null) {
+            ExportRequest exportRequest = paper.getExportRequest();
+            exportRequest.setStatus(RequestStatus.IN_PROGRESS);
+            exportRequestRepository.save(exportRequest);
+        }
+        paperRepository.delete(paper);
+    }
 
 
     private Paper convertToEntity(PaperRequest request) {
@@ -133,7 +159,9 @@ public class PaperService {
             response.setExportRequestId(paper.getExportRequest().getId());
         }
         response.setSignProviderUrl(paper.getSignProviderUrl());
-        response.setSignWarehouseUrl(paper.getSignWarehouseUrl());
+        response.setSignProviderName(paper.getSignProviderName());
+        response.setSignReceiverUrl(paper.getSignReceiverUrl());
+        response.setSignReceiverName(paper.getSignReceiverName());
         return response;
     }
 

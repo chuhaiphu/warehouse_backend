@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -202,6 +199,29 @@ public class InventoryItemService {
         LOGGER.info("check step");
         oldItem.setExportRequestDetail(null);
         oldItem.setStatus(ItemStatus.AVAILABLE);
+
+        inventoryItemRepository.save(oldItem);
+
+        return mapToResponse(savedNewItem);
+    }
+
+    public InventoryItemResponse autoChangeInventoryItem(String inventoryItemId) {
+        InventoryItem oldItem = inventoryItemRepository.findById(inventoryItemId)
+                .orElseThrow(() -> new EntityNotFoundException("Old inventory item not found with id: " + inventoryItemId));
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findByItem_Id(oldItem.getItem().getId());
+        InventoryItem newItem = inventoryItems.stream()
+                .filter(i -> !i.getId().equals(oldItem.getId())) // không trùng với old
+                .filter(i -> Double.compare(i.getMeasurementValue(), oldItem.getMeasurementValue()) == 0)
+                .filter(i -> i.getExportRequestDetail() == null)
+                .filter(i -> i.getStatus() == ItemStatus.AVAILABLE)
+                .max(Comparator.comparing(i -> i.getImportOrderDetail().getImportOrder().getDateReceived()))
+                .orElseThrow(() -> new NoSuchElementException("No matching inventory item found"));
+        newItem.setExportRequestDetail(oldItem.getExportRequestDetail());
+        newItem.setStatus(ItemStatus.UNAVAILABLE);
+        InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
+
+        oldItem.setExportRequestDetail(null);
+        oldItem.setStatus(ItemStatus.NEED_LIQUID);
 
         inventoryItemRepository.save(oldItem);
 

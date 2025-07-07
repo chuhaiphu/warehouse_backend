@@ -22,4 +22,7 @@ public class ConfigurationDto {
     private Integer daysToAllowExtend;
     private Integer maxAllowedDaysForExtend;
     private Integer maxAllowedDaysForImportRequestProcess;
+    private Integer maxDispatchErrorPercent;
+    private Integer maxPercentOfItemForExport;
+
 }
