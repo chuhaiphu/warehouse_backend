@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.item.ItemRequest;
 import capstonesu25.warehouse.model.item.ItemResponse;
 import capstonesu25.warehouse.repository.CategoryRepository;
@@ -137,6 +138,11 @@ public class ItemService {
                 list.add(id);
             }
             response.setInventoryItemIds(list);
+            int availableCount = (int) item.getInventoryItems().stream()
+                    .filter(i -> i.getStatus() == ItemStatus.AVAILABLE)
+                    .count();
+
+            response.setNumberOfAvailableItems(availableCount);
         }
 
         return response;

@@ -28,4 +28,5 @@ public class ItemResponse {
     private List<Long> importRequestDetailIds;
     private List<Long> exportRequestDetailIds;
     private List<String> inventoryItemIds;
+    private Integer numberOfAvailableItems;
 }

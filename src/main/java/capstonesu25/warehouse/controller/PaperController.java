@@ -108,6 +108,8 @@ public class PaperController {
                 "Successfully created paper");
     }
 
+    @Operation(summary = "Reset a paper by ID")
+    @PutMapping("/reset/{paperId}")
     public ResponseEntity<?> resetPaper(@PathVariable Long paperId) {
         LOGGER.info("Resetting paper with id: {}", paperId);
         try {
