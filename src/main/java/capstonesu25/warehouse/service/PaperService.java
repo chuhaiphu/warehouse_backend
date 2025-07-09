@@ -122,11 +122,13 @@ public class PaperService {
             importOrder.setStatus(RequestStatus.IN_PROGRESS);
             importOrder.setActualDateReceived(null);
             importOrder.setActualTimeReceived(null);
+            importOrder.setPaper(null);
             importOrderRepository.save(importOrder);
         }
         if(paper.getExportRequest() != null) {
             ExportRequest exportRequest = paper.getExportRequest();
             exportRequest.setStatus(RequestStatus.IN_PROGRESS);
+            exportRequest.setPaper(null);
             exportRequestRepository.save(exportRequest);
         }
         paperRepository.delete(paper);
