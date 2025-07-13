@@ -506,7 +506,10 @@ public class ExportRequestService {
         // Tạo ImportOrder
         ImportOrder importOrder = new ImportOrder();
         importOrder.setExportRequest(exportRequest);
+        LOGGER.info("Creating ImportOrder for ExportRequest with ID: {}", exportRequest.getId());
         importOrder.setId(createImportOrderId(importRequest));
+
+
         importOrder.setImportRequest(importRequest);
         importOrder.setStatus(RequestStatus.COUNT_CONFIRMED);
         importOrder.setCreatedDate(LocalDateTime.now());

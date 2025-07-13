@@ -249,7 +249,10 @@ public class ExportRequestDetailService {
         for (ExportRequestDetail detail : details) {
             List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_Id(detail.getItem().getId());
 
-            List<InventoryItem> sortedInventoryItems = inventoryItemList.stream()
+            List<InventoryItem> sortedInventoryItems = inventoryItemList.stream().
+                    filter(inventoryItem -> inventoryItem.getExportRequestDetail() == null &&
+                            inventoryItem.getStatus() == ItemStatus.AVAILABLE &&
+                            inventoryItem.getMeasurementValue() > 0)
                     .sorted(Comparator.comparing(InventoryItem::getMeasurementValue))
                     .toList();
 
