@@ -426,10 +426,10 @@ public class ImportOrderService {
         }
 
         // Reset the status of the import order
-        importOrder.setStatus(RequestStatus.IN_PROGRESS);
+        importOrder.setStatus(RequestStatus.COUNT_AGAIN_REQUESTED);
         notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_COUNT_AGAIN_EVENT,
+                NotificationUtil.IMPORT_ORDER_COUNT_AGAIN_REQUESTED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được yêu cầu đếm lại",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));

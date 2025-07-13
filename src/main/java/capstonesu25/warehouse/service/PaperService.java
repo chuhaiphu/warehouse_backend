@@ -83,7 +83,7 @@ public class PaperService {
             // * Notification
             notificationService.handleNotification(
                     NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT,
+                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT + "-" + request.getImportOrderId(),
                     request.getImportOrderId(),
                     "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
                     accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
@@ -105,7 +105,7 @@ public class PaperService {
             // * Notification
             notificationService.handleNotification(
                     NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT,
+                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT + "-" + request.getImportOrderId(),
                     request.getExportRequestId(),
                     "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
                     accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
