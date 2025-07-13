@@ -48,8 +48,8 @@ public class ImportOrderDetailService {
     public Page<ImportOrderDetailResponse> getAllByImportOrderId(String importOrderId, int page, int limit) {
         LOGGER.info("Getting all import order detail by import order id: {}", importOrderId);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
-        Page<ImportOrderDetail> importOrderDetailPage = importOrderDetailRepository.
-                findImportOrderDetailByImportOrder_Id(importOrderId, pageable);
+        Page<ImportOrderDetail> importOrderDetailPage = importOrderDetailRepository
+                .findImportOrderDetailByImportOrder_Id(importOrderId, pageable);
         return importOrderDetailPage.map(Mapper::mapToImportOrderDetailResponse);
     }
 
@@ -66,18 +66,18 @@ public class ImportOrderDetailService {
 
         checkSameProvider(request);
         ImportOrderResponse importOrderResponse = ((ImportOrderDetailService) AopContext.currentProxy())
-        .createImportOrderDetails(importOrder, request);
+                .createImportOrderDetails(importOrder, request);
 
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
         activeAccountRequest.setDate(importOrder.getDateReceived());
         activeAccountRequest.setImportOrderId(importOrder.getId());
-        
+
         List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
         if (!accountResponse.isEmpty()) {
             importOrderResponse = ((ImportOrderDetailService) AopContext.currentProxy())
-                .assignStaff(importOrder.getId(), accountResponse.get(0).getId());
+                    .assignStaff(importOrder.getId(), accountResponse.get(0).getId());
         }
-        
+
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
         return importOrderResponse;
     }
@@ -87,14 +87,15 @@ public class ImportOrderDetailService {
         return createImportOrderDetailsInternal(importOrder, request);
     }
 
-    private ImportOrderResponse createImportOrderDetailsInternal(ImportOrder importOrder, ImportOrderDetailRequest request) {
+    private ImportOrderResponse createImportOrderDetailsInternal(ImportOrder importOrder,
+            ImportOrderDetailRequest request) {
         LOGGER.info("Setting date, time and note for import order");
 
         for (ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
             Item item = itemRepository.findById(importOrderItem.getItemId())
                     .orElseThrow(() -> new RuntimeException("Item not found with ID: " + importOrderItem.getItemId()));
             ImportOrderDetail detail = getDetail(importOrder, importOrderItem, item);
-            if(detail != null) {
+            if (detail != null) {
                 importOrderDetailRepository.save(detail);
             }
         }
@@ -104,9 +105,10 @@ public class ImportOrderDetailService {
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
         LOGGER.info("Checking if all items belong to the same provider");
-        for(ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
+        for (ImportOrderDetailRequest.ImportOrderItem importOrderItem : request.getImportOrderItems()) {
             Item item = itemRepository.findById(importOrderItem.getItemId())
-                    .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + importOrderItem.getItemId()));
+                    .orElseThrow(
+                            () -> new NoSuchElementException("Item not found with ID: " + importOrderItem.getItemId()));
             boolean providerMatch = item.getProviders().stream()
                     .anyMatch(provider -> Objects.equals(provider.getId(), request.getProviderId()));
 
@@ -116,7 +118,6 @@ public class ImportOrderDetailService {
             }
         }
     }
-
 
     private void validateForTimeDate(LocalDate date, LocalTime time) {
         LOGGER.info("Validating time and date for import order");
@@ -128,11 +129,11 @@ public class ImportOrderDetailService {
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
         LOGGER.info("Check if date is in the past");
-        if(date.isBefore(LocalDate.now())) {
+        if (date.isBefore(LocalDate.now())) {
             throw new IllegalStateException("Cannot set time for import order: Date is in the past");
         }
 
-        if(date.isEqual(LocalDate.now()) && time.isBefore(LocalTime.now())) {
+        if (date.isEqual(LocalDate.now()) && time.isBefore(LocalTime.now())) {
             throw new IllegalStateException("Cannot set time for import order: Time is in the past");
         }
         LOGGER.info("Check if time set is too early");
@@ -151,7 +152,7 @@ public class ImportOrderDetailService {
 
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
-        
+
         if (importOrder.getAssignedStaff() != null) {
             LOGGER.info("Return working for pre staff: {}", importOrder.getAssignedStaff().getEmail());
             StaffPerformance staffPerformance = staffPerformanceRepository
@@ -167,7 +168,7 @@ public class ImportOrderDetailService {
                         List.of(importOrder.getAssignedStaff()));
             }
         }
-        
+
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + accountId));
         validateAccountForAssignment(account);
@@ -194,54 +195,61 @@ public class ImportOrderDetailService {
         }
     }
 
-    private ImportOrderDetail getDetail(ImportOrder importOrder, ImportOrderDetailRequest.ImportOrderItem importOrderItem, Item item) {
+    private ImportOrderDetail getDetail(ImportOrder importOrder,
+            ImportOrderDetailRequest.ImportOrderItem importOrderItem, Item item) {
         LOGGER.info("Creating import order detail for item: " + item.getName());
         ImportOrderDetail detail = new ImportOrderDetail();
         detail.setImportOrder(importOrder);
-        for(ImportRequestDetail importRequestDetail : item.getImportRequestDetails()) {
-            LOGGER.info("Checking import request detail for item: " + item.getName());
-            if (importRequestDetail.getItem().getId().equals(importOrderItem.getItemId())) {
-                if (importRequestDetail.getActualQuantity() == 0) {
-                    // If no actual imports yet, check against ordered quantity
-                    if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getOrderedQuantity()
-                        || (importOrderItem.getQuantity() + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()){
-                            LOGGER.info("Item quantity exceeds expected quantity (ordered quantity check)");
-                            return null;
-                    }
-                    if(importOrderItem.getQuantity()>=
-                            (importRequestDetail.getExpectQuantity()) - importRequestDetail.getOrderedQuantity()){
-                            LOGGER.info("Item quantity is more than expected quantity (ordered quantity check)");
-                            int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getOrderedQuantity();
-                            detail.setExpectQuantity(remainingQuantity);
-                    } else {
-                            LOGGER.info("Item quantity is less than expected quantity");
-                            detail.setExpectQuantity(importOrderItem.getQuantity());
-                    }
-                } else {
-                    // If there are actual imports, check against actual quantity
-                    if(importRequestDetail.getExpectQuantity() <= importRequestDetail.getActualQuantity()
-                        || (importOrderItem.getQuantity() + importRequestDetail.getActualQuantity()) > importRequestDetail.getExpectQuantity()){
-                            LOGGER.info("Item quantity exceeds expected quantity (actual quantity check)");
-                            return null;
-                    }
-                    if(importOrderItem.getQuantity()>=
-                            (importRequestDetail.getExpectQuantity()) - importRequestDetail.getActualQuantity()){
-                            LOGGER.info("Item quantity is more than expected quantity (actual quantity check)");
-                            int remainingQuantity = importRequestDetail.getExpectQuantity() - importRequestDetail.getActualQuantity();
-                            detail.setExpectQuantity(remainingQuantity);
-                    } else {
-                            LOGGER.info("Item quantity is less than expected quantity");
-                            detail.setExpectQuantity(importOrderItem.getQuantity());
-                    }
+
+        ImportRequestDetail importRequestDetail = item.getImportRequestDetails().stream()
+                .filter(ird -> ird.getImportRequest().getId().equals(importOrder.getImportRequest().getId()))
+                .filter(ird -> ird.getItem().getId().equals(importOrderItem.getItemId()))
+                .findFirst()
+                .orElse(null);
+
+        if (importRequestDetail != null) {
+            if (importRequestDetail.getActualQuantity() == 0) {
+                // If no actual imports yet, check against ordered quantity
+                if (importRequestDetail.getExpectQuantity() <= importRequestDetail.getOrderedQuantity()
+                        || (importOrderItem.getQuantity()
+                                + importRequestDetail.getOrderedQuantity()) > importRequestDetail.getExpectQuantity()) {
+                    LOGGER.info("Item quantity exceeds expected quantity (ordered quantity check)");
+                    return null;
                 }
-                break;
+                if (importOrderItem.getQuantity() >= (importRequestDetail.getExpectQuantity())
+                        - importRequestDetail.getOrderedQuantity()) {
+                    LOGGER.info("Item quantity is more than expected quantity (ordered quantity check)");
+                    int remainingQuantity = importRequestDetail.getExpectQuantity()
+                            - importRequestDetail.getOrderedQuantity();
+                    detail.setExpectQuantity(remainingQuantity);
+                } else {
+                    LOGGER.info("Item quantity is less than expected quantity");
+                    detail.setExpectQuantity(importOrderItem.getQuantity());
+                }
+            } else {
+                // If there are actual imports, check against actual quantity
+                if (importRequestDetail.getExpectQuantity() <= importRequestDetail.getActualQuantity()
+                        || (importOrderItem.getQuantity()
+                                + importRequestDetail.getActualQuantity()) > importRequestDetail.getExpectQuantity()) {
+                    LOGGER.info("Item quantity exceeds expected quantity (actual quantity check)");
+                    return null;
+                }
+                if (importOrderItem.getQuantity() >= (importRequestDetail.getExpectQuantity())
+                        - importRequestDetail.getActualQuantity()) {
+                    LOGGER.info("Item quantity is more than expected quantity (actual quantity check)");
+                    int remainingQuantity = importRequestDetail.getExpectQuantity()
+                            - importRequestDetail.getActualQuantity();
+                    detail.setExpectQuantity(remainingQuantity);
+                } else {
+                    LOGGER.info("Item quantity is less than expected quantity");
+                    detail.setExpectQuantity(importOrderItem.getQuantity());
+                }
             }
         }
         detail.setActualQuantity(0);
         detail.setItem(item);
         return detail;
     }
-
 
     private void setTimeForStaffPerformance(Account account, ImportOrder importOrder) {
         LOGGER.info("Setting expected working time for staff performance");
@@ -260,14 +268,14 @@ public class ImportOrderDetailService {
         staffPerformanceRepository.save(staffPerformance);
     }
 
-
     public void updateActualQuantities(List<ImportOrderDetailUpdateRequest> requests, String importOrderId) {
         LOGGER.info("Updating actual quantities for ImportOrder ID: {}", importOrderId);
 
         importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
 
-        List<ImportOrderDetail> details = importOrderDetailRepository.findImportOrderDetailByImportOrder_Id(importOrderId);
+        List<ImportOrderDetail> details = importOrderDetailRepository
+                .findImportOrderDetailByImportOrder_Id(importOrderId);
         if (details.isEmpty()) {
             throw new NoSuchElementException("No ImportOrderDetails found for ImportOrder ID: " + importOrderId);
         }
@@ -299,7 +307,7 @@ public class ImportOrderDetailService {
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
         ImportRequest importRequest = importOrder.getImportRequest();
-        
+
         for (ImportRequestDetail detail : importRequest.getDetails()) {
             importOrder.getImportOrderDetails().stream()
                     .filter(orderDetail -> orderDetail.getItem().getId().equals(detail.getItem().getId()))
@@ -315,6 +323,5 @@ public class ImportOrderDetailService {
         LOGGER.info("Deleting import order detail by id: {}", importOrderDetailId);
         importOrderDetailRepository.deleteById(importOrderDetailId);
     }
-
 
 }
