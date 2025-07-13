@@ -1,6 +1,5 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importorder.*;
 
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -198,6 +197,17 @@ public class ImportOrderController {
 				result,
 				HttpStatus.OK,
 				"Successfully updated import order status");
+	}
+
+	@Operation(summary = "Request count again for import order")
+	@PostMapping("/request-count-again/{importOrderId}")
+	public ResponseEntity<?> requestCountAgain(@PathVariable String importOrderId) {
+		LOGGER.info("Requesting count again for import order");
+		ImportOrderResponse result = importOrderService.requestCountAgain(importOrderId);
+		return ResponseUtil.getObject(
+				result,
+				HttpStatus.OK,
+				"Successfully requested count again for import order");
 	}
 
 }

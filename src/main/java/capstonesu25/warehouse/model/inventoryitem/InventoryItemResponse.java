@@ -37,4 +37,6 @@ public class InventoryItemResponse {
     // Basic stored location information
     private Long storedLocationId;
     private String storedLocationName;
+    private Boolean isTrackingForExport;
+
 }

@@ -44,7 +44,7 @@ public class Item {
     private Integer maximumStockQuantity;
 
     @Column(name = "counting_minutes")
-    private Integer countingMinutes;
+    private Integer countingMinutes = 0;
 
     @ManyToOne
     @JoinColumn(name = "configuration_id")

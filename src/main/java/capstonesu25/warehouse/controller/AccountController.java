@@ -153,4 +153,18 @@ public class AccountController {
         );
     }
 
+    @Operation(summary = "Check if any keepers are available in date")
+    @PostMapping("/check-keepers-available-in-date")
+    public ResponseEntity<?> checkAnyKeepersIsAvailableInDate(
+            @RequestBody @Valid CheckAnyKeepersIsAvailableInDateRequest request) {
+        LOGGER.info("Checking if any keepers are available in date: {}", request.getDate());
+        List<AccountResponse> availableStaffs = accountService.checkAnyKeepersIsAvailableInDate(request);
+        return ResponseUtil.getCollection(
+                availableStaffs,
+                HttpStatus.OK,
+                "Successfully checked if any keepers are available in date",
+                null
+        );
+    }
+
 }

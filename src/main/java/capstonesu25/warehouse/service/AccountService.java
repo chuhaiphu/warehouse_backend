@@ -5,9 +5,7 @@ import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.TokenType;
 import capstonesu25.warehouse.model.account.*;
-import capstonesu25.warehouse.repository.AccountRepository;
-import capstonesu25.warehouse.repository.ExportRequestRepository;
-import capstonesu25.warehouse.repository.ImportOrderRepository;
+import capstonesu25.warehouse.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +24,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -41,6 +40,8 @@ public class AccountService implements LogoutHandler {
     private final PasswordEncoder passwordEncoder;
     private final ImportOrderRepository importOrderRepository;
     private final ExportRequestRepository exportRequestRepository;
+    private final ItemRepository itemRepository;
+    private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -97,6 +98,106 @@ public class AccountService implements LogoutHandler {
                 .isBlocked(savedAccount.getIsBlocked())
                 .build();
     }
+
+    public List<AccountResponse> checkAnyKeepersIsAvailableInDate(CheckAnyKeepersIsAvailableInDateRequest request) {
+        LOGGER.info("Checking available staff on date: {}", request.getDate());
+        LocalDate date = request.getDate();
+        int totalMinutes = 0;
+
+        // Tính tổng thời gian cần thiết để thực hiện tất cả task
+        for (CheckAnyKeepersIsAvailableInDateRequest.ListItems itemRq : request.getListItems()) {
+            Item item = itemRepository.findById(itemRq.getItemId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Item not found"));
+
+            int taskCount;
+            if (itemRq.getQuantity() == null || itemRq.getQuantity() == 0) {
+                if (item.getMeasurementValue() == null || item.getMeasurementValue() == 0) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid item measurement value");
+                }
+                taskCount = (int) Math.ceil(itemRq.getMeasurementValue() / item.getMeasurementValue());
+            } else {
+                taskCount = itemRq.getQuantity();
+            }
+
+            totalMinutes += taskCount * item.getCountingMinutes();
+        }
+
+        LOGGER.info("Total required working time for task: {} minutes", totalMinutes);
+
+        // Lấy danh sách nhân viên có vai trò STAFF và đang ACTIVE
+        List<Account> accounts = accountRepository.findByRoleAndStatus(AccountRole.STAFF, AccountStatus.ACTIVE);
+        Configuration config = configurationRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Configuration not found"));
+
+        long expectedWorkingMinutesPerDay = Duration.between(config.getWorkingTimeStart(), config.getWorkingTimeEnd()).toMinutes();
+        LOGGER.info("Expected working time per day: {} minutes", expectedWorkingMinutesPerDay);
+        List<AccountResponse> availableStaffs = new ArrayList<>();
+
+        for (Account account : accounts) {
+            List<StaffPerformance> performancesOnDate = account.getStaffPerformances().stream()
+                    .filter(p -> p.getDate().equals(date))
+                    .toList();
+
+            if (performancesOnDate.isEmpty()) {
+                LOGGER.info("Account {} has no performance record on {}", account.getEmail(), date);
+                availableStaffs.add(new AccountResponse(
+                        account.getId(),
+                        account.getEmail(),
+                        account.getPhone(),
+                        account.getFullName(),
+                        account.getStatus(),
+                        account.getIsEnable(),
+                        account.getIsBlocked(),
+                        account.getRole(),
+                        LocalTime.of(0, 0),
+                        LocalTime.ofSecondOfDay(expectedWorkingMinutesPerDay * 60),
+                        account.getImportOrders() != null ?
+                                account.getImportOrders().stream().map(ImportOrder::getId).toList() :
+                                List.of(),
+                        account.getExportRequests() != null ?
+                                account.getExportRequests().stream().map(ExportRequest::getId).toList() :
+                                List.of()
+                ));
+                continue;
+            }
+
+            // Total actual working time trong ngày
+            long actualMinutes = performancesOnDate.stream()
+                    .filter(p -> p.getExpectedWorkingTime() != null)
+                    .mapToLong(p -> p.getExpectedWorkingTime().toSecondOfDay() / 60)
+                    .sum();
+
+            long freeTime = expectedWorkingMinutesPerDay - actualMinutes;
+
+            if (freeTime >= totalMinutes) {
+                LOGGER.info("Account {} has enough free time: {} minutes", account.getEmail(), freeTime);
+                availableStaffs.add(new AccountResponse(
+                        account.getId(),
+                        account.getEmail(),
+                        account.getPhone(),
+                        account.getFullName(),
+                        account.getStatus(),
+                        account.getIsEnable(),
+                        account.getIsBlocked(),
+                        account.getRole(),
+                        LocalTime.ofSecondOfDay(actualMinutes * 60),
+                        LocalTime.ofSecondOfDay(expectedWorkingMinutesPerDay * 60),
+                        account.getImportOrders() != null ?
+                                account.getImportOrders().stream().map(ImportOrder::getId).toList() :
+                                List.of(),
+                        account.getExportRequests() != null ?
+                                account.getExportRequests().stream().map(ExportRequest::getId).toList() :
+                                List.of()
+                ));
+            }
+        }
+
+
+        LOGGER.info("Total available staff: {}", availableStaffs.size());
+        return availableStaffs;
+    }
+
 
     public AuthenticationResponse refreshToken(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");

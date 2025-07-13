@@ -237,6 +237,7 @@ public class InventoryItemService {
         response.setExpiredDate(inventoryItem.getExpiredDate());
         response.setImportedDate(inventoryItem.getImportedDate());
         response.setUpdatedDate(inventoryItem.getUpdatedDate());
+        response.setIsTrackingForExport(inventoryItem.getIsTrackingForExport());
 
         // Parent reference
         if (inventoryItem.getParent() != null) {

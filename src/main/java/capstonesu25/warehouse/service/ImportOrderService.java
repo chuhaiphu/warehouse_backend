@@ -407,6 +407,35 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    public ImportOrderResponse requestCountAgain (String importOrderId) {
+        LOGGER.info("Requesting count again for import order with ID: " + importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+
+       if(!importOrder.getStatus().equals(RequestStatus.COUNTED)) {
+           throw new IllegalStateException("Cannot request count again for import order with status: "
+                   + importOrder.getStatus());
+       }
+
+
+        // Reset all actual quantities to 0
+        for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+            detail.setActualQuantity(0);
+            detail.setStatus(null);
+            importOrderDetailRepository.save(detail);
+        }
+
+        // Reset the status of the import order
+        importOrder.setStatus(RequestStatus.IN_PROGRESS);
+        notificationService.handleNotification(
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_COUNT_AGAIN_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã được yêu cầu đếm lại",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+    }
+
     private void updateImportRequest(ImportOrder importOrder) {
         LOGGER.info("Updating import request after paper creation");
 
