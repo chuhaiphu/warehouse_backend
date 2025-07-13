@@ -478,6 +478,8 @@ public class ExportRequestService {
         importRequest.setImportReason("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
         importRequest.setStatus(RequestStatus.IN_PROGRESS);
         importRequest.setType(ImportType.RETURN);
+        importRequest.setStartDate(LocalDate.now());
+        importRequest.setEndDate(LocalDate.now());
         importRequest.setCreatedDate(LocalDateTime.now());
         importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
         importRequest.setCreatedBy("system");
@@ -511,7 +513,7 @@ public class ExportRequestService {
 
 
         importOrder.setImportRequest(importRequest);
-        importOrder.setStatus(RequestStatus.COUNT_CONFIRMED);
+        importOrder.setStatus(RequestStatus.COUNTED);
         importOrder.setCreatedDate(LocalDateTime.now());
         importOrder.setCreatedBy("system");
         importOrder.setDateReceived(LocalDate.now());
