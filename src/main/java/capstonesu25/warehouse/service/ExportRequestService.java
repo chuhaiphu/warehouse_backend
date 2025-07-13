@@ -420,7 +420,7 @@ public class ExportRequestService {
         LOGGER.info("Confirming counted export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
-        exportRequest.setStatus(RequestStatus.COUNTED);
+        exportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
         if(exportRequest.getType().equals(ExportType.PRODUCTION)) {
             createImportForInternalExport(exportRequest);
         }
