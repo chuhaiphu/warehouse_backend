@@ -157,6 +157,7 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "UPDATE_STORED", objectIdSource = "importOrderId")
     public ImportOrderResponse updateImportOrderStatus (String importOrderId) {
         LOGGER.info("Update import order status for import order id: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -407,6 +408,7 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    @TransactionLoggable(type = "IMPORT_ORDER", action = "REQUEST_COUNT_AGAIN", objectIdSource = "importOrderId")
     public ImportOrderResponse requestCountAgain (String importOrderId) {
         LOGGER.info("Requesting count again for import order with ID: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
