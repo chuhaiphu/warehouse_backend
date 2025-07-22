@@ -25,8 +25,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ImportRequestDetailService {
     private final ImportRequestRepository importRequestRepository;
-    private final ImportRequestDetailRepository importRequestDetailRepository;
-    private final ExportRequestRepository exportRequestRepository;
+    private final ImportRequestDetailRepository importRequestDetailRepository;  
     private final ItemRepository itemRepository;
     private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
@@ -43,7 +42,6 @@ public class ImportRequestDetailService {
         ImportRequestCreateWithDetailRequest firstRequest = detailRequests.get(0);
         String importReason = firstRequest.getImportReason();
         ImportType importType = firstRequest.getImportType();
-        String exportRequestId = firstRequest.getExportRequestId();
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;

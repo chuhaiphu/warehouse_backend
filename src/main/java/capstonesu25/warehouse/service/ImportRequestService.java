@@ -7,7 +7,6 @@ import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
-import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
 import capstonesu25.warehouse.utils.Mapper;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,6 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
-    private final ExportRequestRepository exportRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
     private final ConfigurationRepository configurationRepository;  
 

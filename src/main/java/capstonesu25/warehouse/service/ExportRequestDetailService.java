@@ -16,10 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,10 +31,7 @@ public class ExportRequestDetailService {
     private final AccountRepository accountRepository;
     private final ConfigurationRepository configurationRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
-    private final ImportRequestRepository importRequestRepository;
-    private final ImportRequestDetailRepository importRequestDetailRepository;
-    private final ImportOrderRepository importOrderRepository;
-    private final ImportOrderDetailRepository importOrderDetailRepository;
+
     private static final Integer LIQUIDATION = 30;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExportRequestDetailService.class);
 
