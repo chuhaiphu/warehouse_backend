@@ -429,6 +429,7 @@ public class ExportRequestService {
                     .anyMatch(detail -> detail.getStatus() == DetailStatus.LACK);
             if(!hasLackStatus) {
                 exportRequest.setExportDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(1));
+                exportRequest.setStatus(RequestStatus.WAITING_EXPORT);
             }
         }
 
@@ -439,6 +440,7 @@ public class ExportRequestService {
                 exportRequest.setStatus(RequestStatus.CANCELLED);
             } else {
                 createImportForInternalExport(exportRequest);
+                exportRequest.setStatus(RequestStatus.WAITING_EXPORT);
             }
         }
 
