@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -420,10 +421,27 @@ public class ExportRequestService {
         LOGGER.info("Confirming counted export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
+        exportRequest.setExportDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(1));
         exportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
-        if(exportRequest.getType().equals(ExportType.PRODUCTION)) {
-            createImportForInternalExport(exportRequest);
+
+        if(exportRequest.getType().equals(ExportType.SELLING)) {
+            boolean hasLackStatus = exportRequest.getExportRequestDetails().stream()
+                    .anyMatch(detail -> detail.getStatus() == DetailStatus.LACK);
+            if(!hasLackStatus) {
+                exportRequest.setExportDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(1));
+            }
         }
+
+        if (exportRequest.getType().equals(ExportType.PRODUCTION)) {
+            boolean hasLackStatus = exportRequest.getExportRequestDetails().stream()
+                    .anyMatch(detail -> detail.getStatus() == DetailStatus.LACK);
+            if (hasLackStatus) {
+                exportRequest.setStatus(RequestStatus.CANCELLED);
+            } else {
+                createImportForInternalExport(exportRequest);
+            }
+        }
+
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
@@ -478,9 +496,9 @@ public class ExportRequestService {
         importRequest.setImportReason("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
         importRequest.setStatus(RequestStatus.IN_PROGRESS);
         importRequest.setType(ImportType.RETURN);
-        importRequest.setStartDate(LocalDate.now());
-        importRequest.setEndDate(LocalDate.now());
-        importRequest.setCreatedDate(LocalDateTime.now());
+        importRequest.setStartDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        importRequest.setEndDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        importRequest.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
         importRequest.setCreatedBy("system");
         importRequest.setImportOrders(new ArrayList<>());
@@ -516,13 +534,13 @@ public class ExportRequestService {
         importOrder.setStatus(RequestStatus.COUNTED);
         importOrder.setCreatedDate(LocalDateTime.now());
         importOrder.setCreatedBy("system");
-        importOrder.setDateReceived(LocalDate.now());
-        importOrder.setActualDateReceived(LocalDate.now());
+        importOrder.setDateReceived(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        importOrder.setActualDateReceived(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         importOrder.setNote("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
         importOrder.setAssignedStaff(accountRepository.findById(exportRequest.getCountingStaffId())
                 .orElseThrow(() -> new NoSuchElementException("Assigned staff not found with ID: " + exportRequest.getCountingStaffId())));
-        importOrder.setActualTimeReceived(LocalTime.now());
-        importOrder.setTimeReceived(LocalTime.now());
+        importOrder.setActualTimeReceived(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        importOrder.setTimeReceived(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         importOrder = importOrderRepository.save(importOrder);
 
         // Tạo ImportOrderDetail và InventoryItem mới cho từng phần dư
@@ -574,7 +592,7 @@ public class ExportRequestService {
                 .max(); // returns OptionalInt
     }
     private String getTodayPrefix() {
-        return LocalDate.now() + "_";
+        return LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")) + "_";
     }
     private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
         return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" + (index + 1);
@@ -586,7 +604,7 @@ public class ExportRequestService {
     }
     private String createImportRequestId() {
         String prefix = "PN";
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
@@ -744,6 +762,7 @@ public class ExportRequestService {
         newExportRequest.setCountingTime(oldExportRequest.getCountingTime());
         newExportRequest.setExportDate(oldExportRequest.getExportDate());
         newExportRequest.setExpectedReturnDate(oldExportRequest.getExpectedReturnDate());
+        newExportRequest.setExportDate(oldExportRequest.getExportDate().plusDays(1));
         newExportRequest.setProviderId(oldExportRequest.getProviderId());
         newExportRequest.setDepartmentId(oldExportRequest.getDepartmentId());
         newExportRequest.setCountingStaffId(oldExportRequest.getCountingStaffId());
@@ -940,13 +959,13 @@ public class ExportRequestService {
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
         LOGGER.info("Check if date is in the past");
-        if (date.isBefore(LocalDate.now())) {
+        if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
             throw new IllegalStateException("Cannot set time for  export request: Date is in the past");
         }
 
         if (time != null) {
             LOGGER.info("Check if time set is too early");
-            if (date.isEqual(LocalDate.now()) &&
+            if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) &&
                     LocalTime.now()
                             .plusMinutes(minutesToAdd)
                             .isAfter(time)) {
@@ -1032,7 +1051,7 @@ public class ExportRequestService {
 
     private String createExportRequestId() {
         String prefix = "PX";
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);

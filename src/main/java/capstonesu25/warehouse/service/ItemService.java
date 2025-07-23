@@ -142,7 +142,14 @@ public class ItemService {
                     .filter(i -> i.getStatus() == ItemStatus.AVAILABLE)
                     .count();
 
+            double availableMeasurementValues = item.getInventoryItems().stream()
+                    .filter(i -> i.getStatus() == ItemStatus.AVAILABLE)
+                    .mapToDouble(InventoryItem::getMeasurementValue)
+                    .sum();
+
+            response.setNumberOfAvailableMeasurementValues(availableMeasurementValues);
             response.setNumberOfAvailableItems(availableCount);
+
         }
 
         return response;

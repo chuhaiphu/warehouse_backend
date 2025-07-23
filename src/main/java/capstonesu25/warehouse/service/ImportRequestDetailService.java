@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -74,7 +75,7 @@ public class ImportRequestDetailService {
                     .findFirst()
                     .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
 
-            LocalDate startDate = LocalDate.now();
+            LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             LocalDate endDate = startDate.plusDays(configuration.getMaxAllowedDaysForImportRequestProcess());
 
             if(firstRequest.getEndDate() != null) {
@@ -96,7 +97,7 @@ public class ImportRequestDetailService {
                     throw new IllegalArgumentException("Start date cannot be after end date.");
                 }
 
-                if(firstRequest.getStartDate().isBefore(LocalDate.now())) {
+                if(firstRequest.getStartDate().isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
                     throw new IllegalArgumentException("Start date cannot be in the past.");
                 }
 
@@ -187,7 +188,7 @@ public class ImportRequestDetailService {
 
     private String createImportRequestId() {
         String prefix = "PN";
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
@@ -201,6 +202,6 @@ public class ImportRequestDetailService {
     }
 
     private String getTodayPrefix() {
-        return LocalDate.now() + "_";
+        return LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")) + "_";
     }
 }

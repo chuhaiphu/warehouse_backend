@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -73,8 +74,8 @@ public class PaperService {
             LOGGER.info("Updating import order status at creating paper");
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
             importOrder.setStatus(RequestStatus.COUNTED);
-            importOrder.setActualDateReceived(LocalDate.now());
-            importOrder.setActualTimeReceived(LocalTime.now());
+            importOrder.setActualDateReceived(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importOrder.setActualTimeReceived(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
             paper.setSignProviderName(request.getSignProviderName());

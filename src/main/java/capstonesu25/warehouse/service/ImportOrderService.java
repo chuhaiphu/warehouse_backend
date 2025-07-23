@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,12 +207,12 @@ public class ImportOrderService {
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
         LOGGER.info("Check if date is in the past");
-        if (date.isBefore(LocalDate.now())) {
+        if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
             throw new IllegalStateException("Cannot set time for import order: Date is in the past");
         }
 
         LOGGER.info("Check if time set is too early");
-        if (date.isEqual(LocalDate.now()) &&
+        if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) &&
                 LocalTime.now()
                         .plusMinutes(minutesToAdd)
                         .isAfter(time)) {

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -28,8 +29,8 @@ public class ExportRequestJob {
     public void cancelExportRequestJob() {
         Configuration config = configurationRepository.findAll().get(0);
         LocalTime cancelTime = config.getTimeToAllowCancel();
-        LocalTime now = LocalTime.now();
-        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
         if (now.isBefore(cancelTime) || today.equals(lastRunDate)) {
             return;
@@ -60,7 +61,7 @@ public class ExportRequestJob {
         Configuration config = configurationRepository.findAll().get(0);
         int daysAllowed = config.getDaysToAllowExtend();
 
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalDate cancelThreshold = today.minusDays(daysAllowed);
 
         // Find orders in EXTENDED status where extendedAt ≤ cancelThreshold
