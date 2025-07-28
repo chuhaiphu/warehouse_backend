@@ -52,7 +52,8 @@ public class Mapper {
                 importRequest.getUpdatedDate(),
                 importRequest.getBatchCode(),
                 importRequest.getStartDate(),
-                importRequest.getEndDate()
+                importRequest.getEndDate(),
+                importRequest.getExportRequestId()
         );
     }
 

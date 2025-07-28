@@ -81,6 +81,19 @@ public class ImportOrderDetailController {
                 "Successfully updated actual quantities");
     }
 
+    @Operation(summary = "Update actual measurement of import order detail")
+    @PutMapping("/measurement/{importOrderDetailId}")
+    public ResponseEntity<?> updateActualMeasurement(
+            @RequestBody ImportOrderDetailUpdateRequest request,
+            @PathVariable Long importOrderDetailId) {
+        LOGGER.info("Updating actual measurement of import order detail");
+        service.updateActualMeasurement(request, importOrderDetailId);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully updated actual measurement of import order detail");
+    }
+
     @Operation(summary = "Delete import order detail by ID")
     @DeleteMapping("/{importOrderDetailId}")
     public ResponseEntity<?> deleteImportOrderDetail(@PathVariable Long importOrderDetailId) {

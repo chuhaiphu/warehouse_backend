@@ -295,6 +295,31 @@ public class ImportOrderDetailService {
         }
     }
 
+    public void updateActualMeasurement (ImportOrderDetailUpdateRequest request,  Long importOrderDetailID) {
+        //TODO
+        LOGGER.info("Updating actual measurement for ImportOrderDetail ID: {}", importOrderDetailID);
+        if(request.getInventoryItemId() == null || request.getActualMeasurement() == null) {
+            throw new IllegalArgumentException("Inventory Item ID and Actual Measurement must not be null");
+        }
+
+        ImportOrderDetail detail = importOrderDetailRepository.findById(importOrderDetailID)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrderDetail not found with ID: " + importOrderDetailID));
+
+        ExportRequest exportRequest = detail.getImportOrder().getExportRequest();
+
+        for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
+           for(InventoryItem inventoryItem : exportRequestDetail.getInventoryItems()) {
+                if (inventoryItem.getId().equals(request.getInventoryItemId())) {
+                    LOGGER.info("Updating actual measurement for inventory item: {}", inventoryItem.getId());
+                    detail.setActualQuantity(detail.getActualQuantity() + 1 );
+                    return;
+                }
+            }
+            throw new NoSuchElementException("Inventory Item not found with ID: " + request.getInventoryItemId());
+           }
+    }
+
+
     private void updateDetailStatus(ImportOrderDetail detail) {
         if (detail.getActualQuantity() < detail.getExpectQuantity()) {
             detail.setStatus(DetailStatus.LACK);

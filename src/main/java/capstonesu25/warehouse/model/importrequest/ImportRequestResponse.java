@@ -29,6 +29,7 @@ public class ImportRequestResponse {
     private String batchCode;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String exportRequestId;
 
 
 }

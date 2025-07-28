@@ -9,11 +9,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ImportOrderDetailUpdateRequest {
-    @NotNull(message = "Item ID cannot be null")
     private String itemId;
 
-    @NotNull(message = "Actual quantity cannot be null")
     private int actualQuantity;
 
     private Double actualMeasurement;
+
+    private String InventoryItemId;
+
 } 
