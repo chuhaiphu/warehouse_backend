@@ -73,22 +73,44 @@ public class ImportOrderService {
                 .orElseThrow(() -> new NoSuchElementException(
                         "ImportRequest not found with ID: " + request.getImportRequestId()));
         boolean canBeContinued = false;
-        for (ImportRequestDetail detail : importRequest.getDetails()) {
-            if (detail.getActualQuantity() == 0) {
-                // If no actual imports yet, check against ordered quantity
-                if (detail.getOrderedQuantity() < detail.getExpectQuantity()) {
-                    canBeContinued = true;
-                }
-            } else {
-                // If there are actual imports, check against actual quantity
-                if (detail.getActualQuantity() < detail.getExpectQuantity()) {
-                    canBeContinued = true;
+        if(importRequest.getType().equals(ImportType.ORDER)) {
+            for (ImportRequestDetail detail : importRequest.getDetails()) {
+                if (detail.getActualQuantity() == 0) {
+                    // If no actual imports yet, check against ordered quantity
+                    if (detail.getOrderedQuantity() < detail.getExpectQuantity()) {
+                        canBeContinued = true;
+                    }
+                } else {
+                    // If there are actual imports, check against actual quantity
+                    if (detail.getActualQuantity() < detail.getExpectQuantity()) {
+                        canBeContinued = true;
+                    }
                 }
             }
+            if (!canBeContinued) {
+                throw new IllegalStateException(
+                        "Cannot create import order: All items have been fully imported or planned");
+            }
         }
-        if (!canBeContinued) {
-            throw new IllegalStateException(
-                    "Cannot create import order: All items have been fully imported or planned");
+
+        if(importRequest.getType().equals(ImportType.RETURN)) {
+            for (ImportRequestDetail detail : importRequest.getDetails()) {
+                if (detail.getActualMeasurementValue() == 0.0) {
+                    // If no actual imports yet, check against ordered quantity
+                    if (detail.getOrderedMeasurementValue() < detail.getExpectMeasurementValue()) {
+                        canBeContinued = true;
+                    }
+                } else {
+                    // If there are actual imports, check against actual quantity
+                    if (detail.getActualMeasurementValue() < detail.getExpectMeasurementValue()) {
+                        canBeContinued = true;
+                    }
+                }
+            }
+            if (!canBeContinued) {
+                throw new IllegalStateException(
+                        "Cannot create import order: All items have been fully imported or planned");
+            }
         }
 
         ImportOrder importOrder = new ImportOrder();

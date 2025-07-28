@@ -1,15 +1,37 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.Configuration;
+import capstonesu25.warehouse.entity.ExportRequest;
+import capstonesu25.warehouse.entity.ExportRequestDetail;
+import capstonesu25.warehouse.entity.ImportOrder;
+import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.entity.ImportRequestDetail;
+import capstonesu25.warehouse.entity.InventoryItem;
+import capstonesu25.warehouse.entity.Item;
+import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.enums.ImportType;
+import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
+import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
+import capstonesu25.warehouse.repository.ExportRequestRepository;
+import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
+import capstonesu25.warehouse.repository.ImportOrderRepository;
+import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
+import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.utils.Mapper;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.OptionalInt;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -31,7 +53,13 @@ import java.util.NoSuchElementException;
 public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
-    private final ConfigurationRepository configurationRepository;  
+    private final ConfigurationRepository configurationRepository;
+    private final ExportRequestRepository exportRequestRepository;
+    private final InventoryItemRepository inventoryItemRepository;
+    private final ImportRequestDetailRepository importRequestDetailRepository;
+    private final AccountRepository accountRepository;
+    private final ImportOrderRepository importOrderRepository;
+    private final ImportOrderDetailRepository importOrderDetailRepository;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
@@ -54,55 +82,202 @@ public class ImportRequestService {
         return Mapper.mapToImportRequestResponse(importRequest);
     }
 
-    public ImportRequestResponse createImportRequest(ImportRequestCreateRequest request) {
-        LOGGER.info("Create new import request");
-
-
+    public ImportRequestResponse createReturnImport(ImportRequestCreateRequest request) {
+        LOGGER.info("Create new return import request");
         ImportRequest importRequest = new ImportRequest();
-        importRequest.setId(createImportRequestId());
-        importRequest.setImportReason(request.getImportReason());
-        importRequest.setType(request.getImportType());
-        importRequest.setStatus(RequestStatus.NOT_STARTED);
-
-        Configuration configuration = configurationRepository.findAll()
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Configuration not found"));
-
-        LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-        LocalDate endDate = startDate.plusDays(configuration.getMaxAllowedDaysForImportRequestProcess());
-
-        if(request.getEndDate() != null) {
-
-            if(request.getEndDate().isBefore(request.getStartDate())) {
-                throw new IllegalArgumentException("End date cannot be before start date.");
-            }
-
-            long daysBetween = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
-
-            if (daysBetween > configuration.getMaxAllowedDaysForImportRequestProcess()) {
-                throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
-            }
-
-            endDate = request.getEndDate();
+        if(!request.getImportType().equals(ImportType.RETURN)) {
+           throw new RuntimeException("The type of import request must be RETURN");
         }
 
-        if(request.getStartDate() != null) {
-            if(request.getStartDate().isAfter(endDate)) {
-                throw new IllegalArgumentException("Start date cannot be after end date.");
+        Configuration config = configurationRepository.findAll().getFirst();
+        ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId())
+                .orElseThrow(() -> new IllegalArgumentException("Not found export request with ID : " + request.getExportRequestId()));
+        if(exportRequest.getType().equals(ExportType.PRODUCTION)) {
+            Map<Item, List<Pair<InventoryItem, Double>>> excessMap = new HashMap<>();
+
+            for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {
+                List<InventoryItem> selectedItems = inventoryItemRepository.findByExportRequestDetail_Id(detail.getId());
+
+                if (selectedItems.isEmpty())
+                    continue;
+
+                double requestedMeasurement = detail.getMeasurementValue();
+                double totalMeasurement = selectedItems.stream()
+                        .mapToDouble(InventoryItem::getMeasurementValue)
+                        .sum();
+
+                double maxAllowed = requestedMeasurement + requestedMeasurement * config.getMaxDispatchErrorPercent() / 100;
+
+                if (totalMeasurement > requestedMeasurement) {
+                    double excess = totalMeasurement - requestedMeasurement;
+                    InventoryItem lastItem = selectedItems.get(selectedItems.size() - 1);
+                    lastItem.setReasonForDisposal("Dư thừa trong quá trình xuất sản xuất, tự động tạo ImportRequest để xử lý.");
+                    inventoryItemRepository.save(lastItem);
+                    excessMap.computeIfAbsent(detail.getItem(), k -> new ArrayList<>())
+                            .add(Pair.of(lastItem, excess));
+
+                    LOGGER.info("Detail {}, requested = {}, total = {}, excess = {}", detail.getId(), requestedMeasurement, totalMeasurement, excess);
+
+                    if (totalMeasurement > maxAllowed) {
+                        LOGGER.warn("TotalMeasurement ({}) > maxAllowed ({}), vẫn xử lý nhập lại", totalMeasurement, maxAllowed);
+                    }
+                } else {
+                    LOGGER.info("No excess: requested = {}, total = {}", requestedMeasurement, totalMeasurement);
+                }
             }
 
-            if(request.getStartDate().isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
-                throw new IllegalArgumentException("Start date cannot be in the past.");
+            if (excessMap.isEmpty()) {
+                LOGGER.info("No excess to process for export request {}", exportRequest.getId());
             }
 
-            startDate = request.getStartDate();
+            // Create ImportRequest
+            OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
+            int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
+            importRequest.setId(createImportRequestId());
+            importRequest.setImportReason("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
+            importRequest.setStatus(RequestStatus.IN_PROGRESS);
+            importRequest.setType(ImportType.RETURN);
+            importRequest.setStartDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importRequest.setEndDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importRequest.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
+            importRequest.setCreatedBy("system");
+            importRequest.setImportOrders(new ArrayList<>());
+            importRequest = importRequestRepository.save(importRequest);
+
+            // Tạo ImportRequestDetail
+            Map<Item, ImportRequestDetail> importRequestDetails = new HashMap<>();
+            for (Map.Entry<Item, List<Pair<InventoryItem, Double>>> entry : excessMap.entrySet()) {
+                int quantity = entry.getValue().size();
+                double totalExcess = entry.getValue().stream().mapToDouble(Pair::getRight).sum();
+
+                ImportRequestDetail detail = new ImportRequestDetail();
+                detail.setImportRequest(importRequest);
+                detail.setItem(entry.getKey());
+                detail.setExpectQuantity(quantity);
+                detail.setActualQuantity(quantity);
+                detail.setOrderedQuantity(quantity);
+                detail.setExpectMeasurementValue(totalExcess);
+                detail.setActualMeasurementValue(totalExcess);
+                detail = importRequestDetailRepository.save(detail);
+
+                importRequestDetails.put(entry.getKey(), detail);
+            }
+
+            // Tạo ImportOrder
+            ImportOrder importOrder = new ImportOrder();
+            importOrder.setExportRequest(exportRequest);
+            LOGGER.info("Creating ImportOrder for ExportRequest with ID: {}", exportRequest.getId());
+            importOrder.setId(createImportOrderId(importRequest));
+
+
+            importOrder.setImportRequest(importRequest);
+            importOrder.setStatus(RequestStatus.COUNTED);
+            importOrder.setCreatedDate(LocalDateTime.now());
+            importOrder.setCreatedBy("system");
+            importOrder.setDateReceived(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importOrder.setActualDateReceived(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importOrder.setNote("Tự động tạo để bù phần measurement vượt ngưỡng từ nhiều yêu cầu xuất sản xuất.");
+            importOrder.setAssignedStaff(accountRepository.findById(exportRequest.getCountingStaffId())
+                    .orElseThrow(() -> new NoSuchElementException("Assigned staff not found with ID: " + exportRequest.getCountingStaffId())));
+            importOrder.setActualTimeReceived(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importOrder.setTimeReceived(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            importOrder = importOrderRepository.save(importOrder);
+
+            // Tạo ImportOrderDetail và InventoryItem mới cho từng phần dư
+            for (Map.Entry<Item, List<Pair<InventoryItem, Double>>> entry : excessMap.entrySet()) {
+                Item item = entry.getKey();
+                List<Pair<InventoryItem, Double>> excessList = entry.getValue();
+
+                ImportRequestDetail requestDetail = importRequestDetails.get(item);
+
+                ImportOrderDetail orderDetail = new ImportOrderDetail();
+                orderDetail.setImportOrder(importOrder);
+                orderDetail.setItem(item);
+                orderDetail.setStatus(DetailStatus.MATCH);
+                orderDetail.setActualQuantity(excessList.size());
+                orderDetail.setExpectQuantity(excessList.size());
+                double totalMeasurement = excessList.stream().mapToDouble(Pair::getRight).sum();
+                orderDetail.setExpectMeasurementValue(totalMeasurement);
+                orderDetail.setActualMeasurementValue(totalMeasurement);
+                orderDetail = importOrderDetailRepository.save(orderDetail);
+
+                // Tạo inventory item mới
+                for (Pair<InventoryItem, Double> pair : excessList) {
+                    InventoryItem oldItem = pair.getLeft();
+                    double excessValue = pair.getRight();
+
+                    InventoryItem newItem = new InventoryItem();
+                    newItem.setId(createInventoryItemId(orderDetail, excessList.indexOf(pair)));
+                    newItem.setParent(oldItem);
+                    newItem.setItem(oldItem.getItem());
+                    newItem.setMeasurementValue(excessValue);
+                    newItem.setStatus(ItemStatus.AVAILABLE);
+                    newItem.setImportOrderDetail(orderDetail);
+                    newItem.setStoredLocation(oldItem.getStoredLocation());
+                    newItem.setImportedDate(LocalDateTime.now());
+
+                    inventoryItemRepository.save(newItem);
+                }
+            }
+        }
+        if(exportRequest.getType().equals(ExportType.BORROWING)) {
+            importRequest.setId(createImportRequestId());
+            importRequest.setImportReason(request.getImportReason());
+            importRequest.setType(request.getImportType());
+            importRequest.setStatus(RequestStatus.NOT_STARTED);
+
+            LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+            LocalDate endDate = startDate.plusDays(config.getMaxAllowedDaysForImportRequestProcess());
+
+            if (request.getEndDate() != null) {
+
+                if (request.getEndDate().isBefore(request.getStartDate())) {
+                    throw new IllegalArgumentException("End date cannot be before start date.");
+                }
+
+                long daysBetween = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
+
+                if (daysBetween > config.getMaxAllowedDaysForImportRequestProcess()) {
+                    throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
+                }
+
+                endDate = request.getEndDate();
+            }
+
+            if (request.getStartDate() != null) {
+                if (request.getStartDate().isAfter(endDate)) {
+                    throw new IllegalArgumentException("Start date cannot be after end date.");
+                }
+
+                if (request.getStartDate().isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+                    throw new IllegalArgumentException("Start date cannot be in the past.");
+                }
+
+                startDate = request.getStartDate();
+            }
+
+            importRequest.setStartDate(startDate);
+            importRequest.setEndDate(endDate);
+
+            List<ImportRequestDetail> importRequestDetails = new ArrayList<>();
+            for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
+                ImportRequestDetail detail = new ImportRequestDetail();
+                detail.setItem(detail.getItem());
+                detail.setExpectMeasurementValue(detail.getActualMeasurementValue());
+                detail.setExpectQuantity(detail.getActualQuantity());
+                detail.setOrderedMeasurementValue(0.0);
+                detail.setOrderedQuantity(0);
+                detail.setActualMeasurementValue(0.0);
+                detail.setActualQuantity(0);
+                detail.setImportRequest(importRequest);
+                importRequestDetails.add(detail);
+            }
+
+            importRequestDetailRepository.saveAll(importRequestDetails);
         }
 
-        importRequest.setStartDate(startDate);
-        importRequest.setEndDate(endDate);
-
-        return Mapper.mapToImportRequestResponse(importRequestRepository.save(importRequest));
+        return Mapper.mapToImportRequestResponse(importRequest);
     }
 
     public ImportRequestResponse updateImportRequest(ImportRequestUpdateRequest request) {
@@ -129,6 +304,28 @@ public class ImportRequestService {
         String sequence = String.format("%03d", todayCount + 1);
 
         return String.format("%s-%s-%s", prefix, datePart, sequence);
+    }
+
+    private OptionalInt findLatestBatchSuffixForToday() {
+        LOGGER.info("Finding latest batch suffix for today");
+        List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(getTodayPrefix());
+
+        return requests.stream()
+                .map(ImportRequest::getBatchCode)
+                .map(code -> code.substring(getTodayPrefix().length()))
+                .mapToInt(Integer::parseInt)
+                .max(); // returns OptionalInt
+    }
+    private String getTodayPrefix() {
+        return LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")) + "_";
+    }
+    private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
+        return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" + (index + 1);
+    }
+
+    private String createImportOrderId(ImportRequest importRequest) {
+        int size = importRequest.getImportOrders().size();
+        return "DN-" + importRequest.getId() + "-" + (size + 1);
     }
 
 }

@@ -18,5 +18,6 @@ public class ImportOrderDetailRequest {
     public static class ImportOrderItem {
         private String itemId;
         private Integer quantity;
+        private Double measurementValue;
     }
 }

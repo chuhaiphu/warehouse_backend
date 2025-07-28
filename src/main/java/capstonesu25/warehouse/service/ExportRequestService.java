@@ -274,7 +274,7 @@ public class ExportRequestService {
 
     public ExportRequestResponse createExportProductionRequest(ExportRequestRequest request) {
         LOGGER.info("Creating export production request");
-        if(!checkType(ExportType.PRODUCTION, request.getType())) {
+        if(!checkType(ExportType.PRODUCTION, request.getType()) && !checkType(ExportType.BORROWING, request.getType())) {
             LOGGER.error("Invalid export type: " + request.getType());
             throw new IllegalArgumentException("Invalid export type: " + request.getType());
         }
@@ -439,7 +439,7 @@ public class ExportRequestService {
             if (hasLackStatus) {
                 exportRequest.setStatus(RequestStatus.CANCELLED);
             } else {
-                createImportForInternalExport(exportRequest);
+//                createImportForInternalExport(exportRequest);
                 exportRequest.setStatus(RequestStatus.WAITING_EXPORT);
             }
         }
@@ -452,7 +452,6 @@ public class ExportRequestService {
         LOGGER.info("Creating import request for internal export with ID: " + exportRequest.getId());
         Configuration config = configurationRepository.findAll().getFirst();
 
-        // Cách 2: Lưu chính xác InventoryItem nào bị dư và dư bao nhiêu
         Map<Item, List<Pair<InventoryItem, Double>>> excessMap = new HashMap<>();
 
         for (ExportRequestDetail detail : exportRequest.getExportRequestDetails()) {

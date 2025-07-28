@@ -101,7 +101,7 @@ public class ExportRequestController {
         );
     }
 
-    @Operation(summary = "Create a new export request for production")
+    @Operation(summary = "Create a new export request for internal")
     @PostMapping()
     public ResponseEntity<?> createExportRequestForProduction(@RequestBody ExportRequestRequest request) {
         LOGGER.info("Creating export request");
@@ -123,16 +123,16 @@ public class ExportRequestController {
         );
     }
 
-    @Operation(summary = "Create a new export request for borrowing")
-    @PostMapping("/borrow")
-    public ResponseEntity<?> createExportRequestForBorrow(@RequestBody ExportBorrowingRequest request) {
-        LOGGER.info("Creating export request for borrowing");
-        return ResponseUtil.getObject(
-            exportRequestService.createExportBorrowingRequest(request),
-            HttpStatus.CREATED,
-            "Successfully created export request for borrowing"
-        );
-    }
+//    @Operation(summary = "Create a new export request for borrowing")
+//    @PostMapping("/borrow")
+//    public ResponseEntity<?> createExportRequestForBorrow(@RequestBody ExportBorrowingRequest request) {
+//        LOGGER.info("Creating export request for borrowing");
+//        return ResponseUtil.getObject(
+//            exportRequestService.createExportBorrowingRequest(request),
+//            HttpStatus.CREATED,
+//            "Successfully created export request for borrowing"
+//        );
+//    }
 
     @Operation(summary = "Create a new export request for liquidation")
     @PostMapping("/liquid")

@@ -69,4 +69,15 @@ public class ImportRequestDetailController {
                 HttpStatus.CREATED,
                 "Successfully created import requests with details");
     }
+
+    @Operation(summary = "Create return import requests with details")
+    @PostMapping("/return-import-requests-with-import-request-details")
+    public ResponseEntity<?> createReturnImportRequestsWithDetails(@RequestBody List<ImportRequestCreateWithDetailRequest> request) {
+        LOGGER.info("Creating return import requests with details");
+        List<ImportRequestResponse> createdImportRequests = service.createImportRequestWithDetails(request);
+        return ResponseUtil.getObject(
+                createdImportRequests,
+                HttpStatus.CREATED,
+                "Successfully created import requests with details");
+    }
 }

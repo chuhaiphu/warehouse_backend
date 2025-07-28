@@ -34,6 +34,9 @@ public class ImportRequestDetail {
     @Column(name = "actual_measurement_value")
     private Double actualMeasurementValue;
 
+    @Column(name = "ordered_measurement_value")
+    private Double orderedMeasurementValue;
+
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;

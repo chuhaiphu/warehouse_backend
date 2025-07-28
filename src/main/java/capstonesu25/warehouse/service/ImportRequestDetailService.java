@@ -9,6 +9,7 @@ import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequ
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.Mapper;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ImportRequestDetailService {
     private final ImportRequestRepository importRequestRepository;
-    private final ImportRequestDetailRepository importRequestDetailRepository;  
+    private final ImportRequestDetailRepository importRequestDetailRepository;
+    private final ExportRequestRepository exportRequestRepository;
     private final ItemRepository itemRepository;
     private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
@@ -35,14 +37,48 @@ public class ImportRequestDetailService {
     @TransactionLoggable(type = "IMPORT_REQUEST", action = "CREATE", objectIdSource = "importRequestId")
     public List<ImportRequestResponse> createImportRequestWithDetails(List<ImportRequestCreateWithDetailRequest> detailRequests) {
         LOGGER.info("Creating import request detail svc");
-        
+
         // Validate that all items belong to the same provider
-        checkSameProvider(detailRequests);
-        
+
+
         // Get common data from first request
         ImportRequestCreateWithDetailRequest firstRequest = detailRequests.get(0);
         String importReason = firstRequest.getImportReason();
         ImportType importType = firstRequest.getImportType();
+        if(importType.equals(ImportType.ORDER)) {
+            checkSameProvider(detailRequests);
+        }
+
+        // ===== RETURN TYPE VALIDATION =====
+        if (ImportType.RETURN.equals(importType)) {
+            String exportRequestId = firstRequest.getExportRequestId();
+            if (exportRequestId == null || exportRequestId.isBlank()) {
+                throw new IllegalArgumentException("ExportRequestId is required for RETURN import type.");
+            }
+
+            ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
+                    .orElseThrow(() -> new RuntimeException("Export request not found with ID: " + exportRequestId));
+
+            Map<String, Double> itemRemainingMap = exportRequest.getExportRequestDetails().stream()
+                    .collect(Collectors.toMap(
+                            d -> d.getItem().getId(),
+                            ExportRequestDetail::getMeasurementValue
+                    ));
+
+            for (ImportRequestCreateWithDetailRequest req : detailRequests) {
+                Double importValue = req.getMeasurementValue();
+                Double remaining = itemRemainingMap.get(req.getItemId());
+                if (remaining == null) {
+                    throw new IllegalArgumentException("Item ID " + req.getItemId() + " not found in export request.");
+                }
+                if (importValue != null && importValue > remaining) {
+                    throw new IllegalArgumentException(String.format(
+                            "Import measurement (%.2f) exceeds remaining export measurement (%.2f) for item ID: %s",
+                            importValue, remaining, req.getItemId()
+                    ));
+                }
+            }
+        }
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
@@ -57,12 +93,10 @@ public class ImportRequestDetailService {
 
         List<ImportRequestResponse> createdImportRequestResponses = new ArrayList<>();
 
-        // Process each provider group
         for (Map.Entry<Long, List<ImportRequestCreateWithDetailRequest>> entry : requestsByProvider.entrySet()) {
             Long providerId = entry.getKey();
             List<ImportRequestCreateWithDetailRequest> requests = entry.getValue();
 
-            // Create ImportRequest for each provider
             ImportRequest importRequest = new ImportRequest();
             importRequest.setId(createImportRequestId());
             importRequest.setImportReason(importReason);
@@ -78,26 +112,26 @@ public class ImportRequestDetailService {
             LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             LocalDate endDate = startDate.plusDays(configuration.getMaxAllowedDaysForImportRequestProcess());
 
-            if(firstRequest.getEndDate() != null) {
-                if(firstRequest.getEndDate().isBefore(firstRequest.getStartDate())) {
+            if (firstRequest.getEndDate() != null) {
+                if (firstRequest.getEndDate().isBefore(firstRequest.getStartDate())) {
                     throw new IllegalArgumentException("End date cannot be before start date.");
                 }
 
                 long daysBetween = ChronoUnit.DAYS.between(firstRequest.getStartDate(), firstRequest.getEndDate());
 
                 if (daysBetween > configuration.getMaxAllowedDaysForImportRequestProcess()) {
-                    throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
+                    throw new IllegalArgumentException("End date exceeds max allowed duration.");
                 }
 
                 endDate = firstRequest.getEndDate();
             }
 
-            if(firstRequest.getStartDate() != null) {
-                if(firstRequest.getStartDate().isAfter(endDate)) {
+            if (firstRequest.getStartDate() != null) {
+                if (firstRequest.getStartDate().isAfter(endDate)) {
                     throw new IllegalArgumentException("Start date cannot be after end date.");
                 }
 
-                if(firstRequest.getStartDate().isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+                if (firstRequest.getStartDate().isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
                     throw new IllegalArgumentException("Start date cannot be in the past.");
                 }
 
@@ -107,40 +141,39 @@ public class ImportRequestDetailService {
             importRequest.setStartDate(startDate);
             importRequest.setEndDate(endDate);
 
-            // Set export request if provided
-
             // Set provider
             Provider provider = providerRepository.findById(providerId)
                     .orElseThrow(() -> new RuntimeException("Provider not found with ID: " + providerId));
             importRequest.setProvider(provider);
 
-            // Save the import request
+            // Save ImportRequest
             ImportRequest savedImportRequest = importRequestRepository.save(importRequest);
 
-            // Create import request details
+            // Save ImportRequestDetail
             List<ImportRequestDetail> savedDetails = new ArrayList<>();
             for (ImportRequestCreateWithDetailRequest req : requests) {
                 ImportRequestDetail detail = new ImportRequestDetail();
                 detail.setImportRequest(savedImportRequest);
+                detail.setExpectMeasurementValue(req.getMeasurementValue());
                 detail.setExpectQuantity(req.getQuantity());
                 detail.setItem(itemRepository.findById(req.getItemId())
                         .orElseThrow(() -> new RuntimeException("Item not found with ID: " + req.getItemId())));
+                detail.setActualMeasurementValue(0.0);
+                detail.setOrderedMeasurementValue(0.0);
                 detail.setActualQuantity(0);
                 detail.setOrderedQuantity(0);
                 ImportRequestDetail savedDetail = importRequestDetailRepository.save(detail);
                 savedDetails.add(savedDetail);
             }
 
-            // Set the saved details to the saved import request for mapping
             savedImportRequest.setDetails(savedDetails);
-            
-            // Convert to response and add to result list
             ImportRequestResponse response = Mapper.mapToImportRequestResponse(savedImportRequest);
             createdImportRequestResponses.add(response);
         }
-        
+
         return createdImportRequestResponses;
     }
+
 
     public void deleteImportRequestDetail(Long importRequestDetailId) {
         LOGGER.info("Deleting import request detail");

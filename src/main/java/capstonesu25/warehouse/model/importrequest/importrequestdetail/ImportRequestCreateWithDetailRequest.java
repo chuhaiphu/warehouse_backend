@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class ImportRequestCreateWithDetailRequest {
     private String itemId;
+    private Double measurementValue;
     private Integer quantity;
     private Long providerId;
     
