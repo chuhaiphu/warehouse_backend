@@ -143,6 +143,7 @@ public class ImportRequestService {
             importRequest.setBatchCode(getTodayPrefix() + batchSuffix);
             importRequest.setCreatedBy("system");
             importRequest.setImportOrders(new ArrayList<>());
+            importRequest.setExportRequestId(exportRequest.getId());
             importRequest = importRequestRepository.save(importRequest);
 
             // Tạo ImportRequestDetail

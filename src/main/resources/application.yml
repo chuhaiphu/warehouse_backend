@@ -4,27 +4,27 @@ spring:
     security:
       jwt:
         access_token:
-          secret: ${JWT_ACCESS_TOKEN_SECRET}
-          expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+          secret: de2a11b64cb8a10bbfa6ca0a4afb3578cc434cda024b8817b0cf98e38b61b9f3
+          expiration: 6000000
         refresh_token:
-          secret: ${JWT_REFRESH_TOKEN_SECRET}
-          expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+          secret: 85ec7a7e649be00c51fe797ae418fc06aa5fc0a80f90afa674eac1a8521e0832
+          expiration: 604800000
   datasource:
-    url: ${DATASOURCE_URL}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
+    url: jdbc:postgresql://localhost:5432/warehouse
+    username: postgres
+    password: sa
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
   pusher:
-    app-id: ${PUSHER_APP_ID}
-    key: ${PUSHER_APP_KEY}
-    secret: ${PUSHER_APP_SECRET}
-    cluster: ${PUSHER_APP_CLUSTER}
+    app-id: 1986383
+    key: 0c02fd43e1874d8d71e4
+    secret: 47b1d062f7c1fe2e3b1f
+    cluster: ap1
   main:
     allow-bean-definition-overriding: true
 springdoc:
@@ -35,5 +35,5 @@ springdoc:
   enable-data-rest: false
 
 cloudinary:
-  url: ${CLOUDINARY_URL}
+  url: cloudinary://767784219196157:LsUP8FBcIx6dHW7jP_FnxuxOHUY@dkgopfdx9
 

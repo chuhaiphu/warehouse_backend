@@ -42,6 +42,9 @@ public class ImportRequest {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Column(name = "export_request_id")
+    private String exportRequestId;
+
     @CreatedBy
     @Column(name = "created_by", nullable = false, updatable = false)
     private String createdBy;

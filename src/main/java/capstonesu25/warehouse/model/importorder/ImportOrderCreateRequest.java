@@ -22,4 +22,6 @@ public class ImportOrderCreateRequest {
     private LocalTime timeReceived;
 
     private String note;
+
+    private String exportRequestId;
 } 

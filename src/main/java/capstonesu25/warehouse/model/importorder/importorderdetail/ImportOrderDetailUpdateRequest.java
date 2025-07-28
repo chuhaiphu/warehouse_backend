@@ -14,4 +14,6 @@ public class ImportOrderDetailUpdateRequest {
 
     @NotNull(message = "Actual quantity cannot be null")
     private int actualQuantity;
+
+    private Double actualMeasurement;
 } 

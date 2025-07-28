@@ -2,10 +2,7 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
-import capstonesu25.warehouse.enums.AccountRole;
-import capstonesu25.warehouse.enums.AccountStatus;
-import capstonesu25.warehouse.enums.DetailStatus;
-import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
@@ -65,7 +62,9 @@ public class ImportOrderDetailService {
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
-        checkSameProvider(request);
+        if(importOrder.getImportRequest().getType().equals(ImportType.ORDER)) {
+            checkSameProvider(request);
+        }
         ImportOrderResponse importOrderResponse = ((ImportOrderDetailService) AopContext.currentProxy())
                 .createImportOrderDetails(importOrder, request);
 
@@ -272,7 +271,7 @@ public class ImportOrderDetailService {
     public void updateActualQuantities(List<ImportOrderDetailUpdateRequest> requests, String importOrderId) {
         LOGGER.info("Updating actual quantities for ImportOrder ID: {}", importOrderId);
 
-        importOrderRepository.findById(importOrderId)
+        ImportOrder order = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
 
         List<ImportOrderDetail> details = importOrderDetailRepository
@@ -287,6 +286,9 @@ public class ImportOrderDetailService {
                     .findFirst()
                     .ifPresent(request -> {
                         detail.setActualQuantity(request.getActualQuantity());
+                        if(order.getImportRequest().getType().equals(ImportType.RETURN)) {
+                            detail.setActualMeasurementValue(request.getActualMeasurement());
+                        }
                         updateDetailStatus(detail);
                         importOrderDetailRepository.save(detail);
                     });

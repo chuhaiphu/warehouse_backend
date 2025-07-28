@@ -38,47 +38,11 @@ public class ImportRequestDetailService {
     public List<ImportRequestResponse> createImportRequestWithDetails(List<ImportRequestCreateWithDetailRequest> detailRequests) {
         LOGGER.info("Creating import request detail svc");
 
-        // Validate that all items belong to the same provider
-
-
         // Get common data from first request
         ImportRequestCreateWithDetailRequest firstRequest = detailRequests.get(0);
         String importReason = firstRequest.getImportReason();
         ImportType importType = firstRequest.getImportType();
-        if(importType.equals(ImportType.ORDER)) {
-            checkSameProvider(detailRequests);
-        }
-
-        // ===== RETURN TYPE VALIDATION =====
-        if (ImportType.RETURN.equals(importType)) {
-            String exportRequestId = firstRequest.getExportRequestId();
-            if (exportRequestId == null || exportRequestId.isBlank()) {
-                throw new IllegalArgumentException("ExportRequestId is required for RETURN import type.");
-            }
-
-            ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId)
-                    .orElseThrow(() -> new RuntimeException("Export request not found with ID: " + exportRequestId));
-
-            Map<String, Double> itemRemainingMap = exportRequest.getExportRequestDetails().stream()
-                    .collect(Collectors.toMap(
-                            d -> d.getItem().getId(),
-                            ExportRequestDetail::getMeasurementValue
-                    ));
-
-            for (ImportRequestCreateWithDetailRequest req : detailRequests) {
-                Double importValue = req.getMeasurementValue();
-                Double remaining = itemRemainingMap.get(req.getItemId());
-                if (remaining == null) {
-                    throw new IllegalArgumentException("Item ID " + req.getItemId() + " not found in export request.");
-                }
-                if (importValue != null && importValue > remaining) {
-                    throw new IllegalArgumentException(String.format(
-                            "Import measurement (%.2f) exceeds remaining export measurement (%.2f) for item ID: %s",
-                            importValue, remaining, req.getItemId()
-                    ));
-                }
-            }
-        }
+        checkSameProvider(detailRequests);
 
         OptionalInt latestBatchSuffix = findLatestBatchSuffixForToday();
         int batchSuffix = latestBatchSuffix.isPresent() ? latestBatchSuffix.getAsInt() + 1 : 1;
