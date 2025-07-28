@@ -16,7 +16,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO}
     properties:
       hibernate:
         format_sql: true
