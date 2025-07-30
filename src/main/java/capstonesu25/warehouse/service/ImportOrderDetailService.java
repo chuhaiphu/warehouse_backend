@@ -295,10 +295,10 @@ public class ImportOrderDetailService {
         }
     }
 
-    public void updateActualMeasurement (ImportOrderDetailUpdateRequest request,  Long importOrderDetailID) {
-        //TODO
+    public void updateActualMeasurement(ImportOrderDetailUpdateRequest request, Long importOrderDetailID) {
         LOGGER.info("Updating actual measurement for ImportOrderDetail ID: {}", importOrderDetailID);
-        if(request.getInventoryItemId() == null || request.getActualMeasurement() == null) {
+
+        if (request.getInventoryItemId() == null || request.getActualMeasurement() == null) {
             throw new IllegalArgumentException("Inventory Item ID and Actual Measurement must not be null");
         }
 
@@ -307,17 +307,30 @@ public class ImportOrderDetailService {
 
         ExportRequest exportRequest = detail.getImportOrder().getExportRequest();
 
-        for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
-           for(InventoryItem inventoryItem : exportRequestDetail.getInventoryItems()) {
+        boolean found = false;
+
+        for (ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
+            for (InventoryItem inventoryItem : exportRequestDetail.getInventoryItems()) {
                 if (inventoryItem.getId().equals(request.getInventoryItemId())) {
                     LOGGER.info("Updating actual measurement for inventory item: {}", inventoryItem.getId());
-                    detail.setActualQuantity(detail.getActualQuantity() + 1 );
-                    return;
+
+                    detail.setActualQuantity(detail.getActualQuantity() + 1);
+                    detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
+
+                    updateDetailStatusByMeasurementValue(detail);
+                    importOrderDetailRepository.save(detail);
+                    found = true;
+                    break;
                 }
             }
+            if (found) break;
+        }
+
+        if (!found) {
             throw new NoSuchElementException("Inventory Item not found with ID: " + request.getInventoryItemId());
-           }
+        }
     }
+
 
 
     private void updateDetailStatus(ImportOrderDetail detail) {
@@ -329,6 +342,17 @@ public class ImportOrderDetailService {
             detail.setStatus(DetailStatus.MATCH);
         }
     }
+
+    private void updateDetailStatusByMeasurementValue(ImportOrderDetail detail) {
+        if (detail.getActualMeasurementValue() < detail.getExpectMeasurementValue()) {
+            detail.setStatus(DetailStatus.LACK);
+        } else if (detail.getActualMeasurementValue() > detail.getExpectMeasurementValue()) {
+            detail.setStatus(DetailStatus.EXCESS);
+        } else {
+            detail.setStatus(DetailStatus.MATCH);
+        }
+    }
+
 
     private void updateOrderedQuantityOfImportRequestDetail(String importOrderId) {
         LOGGER.info("Update remaining quantity of import request detail");
