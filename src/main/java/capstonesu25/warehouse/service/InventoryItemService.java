@@ -195,6 +195,7 @@ public class InventoryItemService {
 
         newItem.setExportRequestDetail(oldItem.getExportRequestDetail());
         newItem.setStatus(oldItem.getStatus());
+        newItem.setNote(request.getNote());
         InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
         LOGGER.info("check step");
         oldItem.setExportRequestDetail(null);

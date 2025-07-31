@@ -161,6 +161,32 @@ public class ExportRequestDetailService {
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }
 
+    public ExportRequestDetailResponse resetTracking (Long exportRequestDetailId, String inventoryItemId) {
+        LOGGER.info("Resetting tracking for export request detail with ID: {}", exportRequestDetailId);
+        ExportRequestDetail exportRequestDetail = exportRequestDetailRepository.findById(exportRequestDetailId)
+                .orElseThrow(() -> new RuntimeException("Export request detail not found"));
+
+        InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryItemId)
+                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+
+        if(!exportRequestDetail.getInventoryItems().contains(inventoryItem)) {
+            throw new IllegalArgumentException("Inventory item with ID: "+inventoryItemId+ "is not stable for export request detail ");
+        }
+
+        if(!inventoryItem.getIsTrackingForExport()) {
+            throw new IllegalArgumentException("Inventory item with ID: "+inventoryItemId+" is not being tracked");
+        }
+
+        inventoryItem.setIsTrackingForExport(false);
+        inventoryItemRepository.save(inventoryItem);
+
+        exportRequestDetail.setActualQuantity(exportRequestDetail.getActualQuantity() - 1);
+        if(exportRequestDetail.getActualQuantity() < exportRequestDetail.getQuantity()) {
+            exportRequestDetail.setStatus(DetailStatus.LACK);
+        }
+        return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
+    }
+
     private void chooseInventoryItemsForThoseCases(List<ExportRequestDetail> exportRequestDetails) {
         Map<ExportType, List<ExportRequestDetail>> grouped = exportRequestDetails.stream()
                 .collect(Collectors.groupingBy(detail -> detail.getExportRequest().getType()));

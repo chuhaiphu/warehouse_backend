@@ -36,6 +36,9 @@ public class InventoryItem {
     @Column(name = "imported_date")
     private LocalDateTime importedDate;
 
+    @Column(name = "note")
+    private String note;
+
     @Column(name = "is_tracking_for_export")
     private Boolean isTrackingForExport = false;
 

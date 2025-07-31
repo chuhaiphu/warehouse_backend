@@ -17,4 +17,8 @@ public class ChangeInventoryItemOfExportDetailRequest {
     @NotNull(message = "cannot be null")
     @NotEmpty(message = "cannot be empty")
     private String newInventoryItemId;
+
+    @NotNull(message = "cannot be null")
+    @NotEmpty(message = "cannot be empty")
+    private String note;
 }

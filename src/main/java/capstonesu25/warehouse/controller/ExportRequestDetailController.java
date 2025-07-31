@@ -82,4 +82,16 @@ public class ExportRequestDetailController {
             "Successfully updated actual quantity"
         );
     }
+
+    @Operation(summary = "Reset tracking inventory item of export request detail")
+    @PutMapping("/reset-tracking")
+    public ResponseEntity<?> resetTracking(@RequestBody ExportRequestActualQuantity request) {
+        LOGGER.info("Updating actual quantity for export request detail with ID: {}", request.getExportRequestDetailId());
+        return ResponseUtil.getObject(
+                service.resetTracking(
+                        request.getExportRequestDetailId(), request.getInventoryItemId()),
+                HttpStatus.OK,
+                "Successfully updated actual quantity"
+        );
+    }
 } 
