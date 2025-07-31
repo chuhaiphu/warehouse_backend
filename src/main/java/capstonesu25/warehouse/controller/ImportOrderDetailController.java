@@ -94,6 +94,17 @@ public class ImportOrderDetailController {
                 "Successfully updated actual measurement of import order detail");
     }
 
+    @PostMapping("/reset-update/{importOrderDetailId}")
+    @Operation(summary = "Reset update of import order detail")
+    public ResponseEntity<?> resetUpdateImportOrderDetail(@PathVariable Long importOrderDetailId) {
+        LOGGER.info("Resetting update of import order detail");
+        service.resetUpdate(importOrderDetailId);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully reset update of import order detail");
+    }
+
     @Operation(summary = "Delete import order detail by ID")
     @DeleteMapping("/{importOrderDetailId}")
     public ResponseEntity<?> deleteImportOrderDetail(@PathVariable Long importOrderDetailId) {

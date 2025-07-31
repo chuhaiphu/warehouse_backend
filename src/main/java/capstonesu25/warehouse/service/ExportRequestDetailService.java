@@ -81,7 +81,7 @@ public class ExportRequestDetailService {
             if (request.getMeasurementValue() != null) {
                 exportRequestDetail.setMeasurementValue(request.getMeasurementValue());
             }
-            if(exportRequest.getType().equals(ExportType.PRODUCTION)) {
+            if(exportRequest.getType().equals(ExportType.INTERNAL)) {
                 exportRequestDetail.setQuantity(0);
             }else {
                 exportRequestDetail.setQuantity(request.getQuantity());
@@ -95,7 +95,7 @@ public class ExportRequestDetailService {
 
 
             // Handling for  BORROWING types
-            if(exportRequest.getType().equals(ExportType.BORROWING)) {
+            if(exportRequest.getType().equals(ExportType.INTERNAL)) {
                 exportRequestDetail.setMeasurementValue(request.getMeasurementValue());
             }
 
@@ -168,10 +168,9 @@ public class ExportRequestDetailService {
         grouped.forEach((type, details) -> {
             switch (type) {
                 case RETURN -> autoChooseInventoryItemsForReturn(details);
-//                case BORROWING -> autoChooseInventoryItemsForPartialAndBorrowing(details);
                 case SELLING -> autoChooseInventoryItemsForSelling(details);
 //                case LIQUIDATION -> autoChooseInventoryItemsForLiquidation(details);
-                default -> autoChooseInventoryItemsForProduction(details); // PRODUCTION
+                default -> autoChooseInventoryItemsForProduction(details); // INTERNAL
             }
         });
     }
@@ -293,89 +292,6 @@ public class ExportRequestDetailService {
 
     }
 
-
-
-
-    //    private void autoChooseInventoryItemsForPartialAndBorrowing(ExportRequestDetail exportRequestDetail) {
-//        List<InventoryItem> inventoryItemList = inventoryItemRepository.findByItem_Id(exportRequestDetail.getItem().getId());
-//
-//        // FIFO - sort by imported date (oldest first)
-//        List<InventoryItem> sortedInventoryItems = inventoryItemList.stream()
-//                .sorted(Comparator.comparing(InventoryItem::getImportedDate))
-//                .toList();
-//
-//        int quantityToSelect = exportRequestDetail.getQuantity();
-//        double requestedMeasurement = exportRequestDetail.getMeasurementValue();
-//
-//        // Collect all "good fit" items (with parent + >= requested measurement)
-//        List<InventoryItem> goodFitItems = sortedInventoryItems.stream()
-//                .filter(i -> i.getParent() != null && i.getMeasurementValue() >= requestedMeasurement)
-//                .sorted(Comparator.comparingDouble(InventoryItem::getMeasurementValue)) // Closest fitting first
-//                .toList();
-//
-//        // Pick the best N good-fit items
-//        List<InventoryItem> selectedItems = new ArrayList<>();
-//        for (InventoryItem item : goodFitItems) {
-//            selectedItems.add(item);
-//            if (selectedItems.size() == quantityToSelect) {
-//                break;
-//            }
-//        }
-//
-//        // Fallback — fill remaining with other FIFO items (avoiding duplicates)
-//        List<InventoryItem> noParentList = inventoryItemRepository.findByItem_Id(exportRequestDetail.getItem().getId());
-//        List<InventoryItem> noParentItems = noParentList.stream()
-//                .filter(i -> i.getParent() == null)
-//                .sorted(Comparator.comparing(InventoryItem::getImportedDate)) // FIFO
-//                .toList();
-//
-//        if (selectedItems.size() < quantityToSelect) {
-//            for (InventoryItem item : noParentItems) {
-//                if (!selectedItems.contains(item)) {
-//                    selectedItems.add(item);
-//                    if (selectedItems.size() == quantityToSelect) {
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//
-//        // Set result or log error
-//        if (selectedItems.size() == quantityToSelect) {
-//            exportRequestDetail.setInventoryItems(selectedItems); // assumes list field
-//            exportRequestDetailRepository.save(exportRequestDetail);
-//            LOGGER.info("Selected inventory items for export request detail ID: {}", exportRequestDetail.getId());
-//        } else {
-//            LOGGER.error("Not enough inventory items found for export request detail ID: {}", exportRequestDetail.getId());
-//        }
-//    }
-//
-//    private void autoChooseInventoryItemsForLiquidation(ExportRequestDetail exportRequestDetail) {
-//        Integer actualQuantity = exportRequestDetail.getActualQuantity();
-//        if((actualQuantity*exportRequestDetail.getItem().getMeasurementValue()) >
-//                exportRequestDetail.getItem().getTotalMeasurementValue()) {
-//            throw new RuntimeException("quantity of export request detail id: " + exportRequestDetail.getItem().getId()
-//                    + " is greater than total measurement value of item id: " + exportRequestDetail.getItem().getId());
-//        }
-//        // Fetch inventory items by item ID
-//        LocalDateTime now = LocalDateTime.now();
-//        LocalDateTime maxExpireDate = now.plusDays(LIQUIDATION);
-//        List<InventoryItem> inventoryItemList = inventoryItemRepository
-//                .findByItem_IdAndExpiredDateLessThanEqual(exportRequestDetail.getItem().getId(), maxExpireDate);
-//
-//        if (inventoryItemList.isEmpty()) {
-//            throw new RuntimeException("Inventory items not found for item ID: " + exportRequestDetail.getItem().getId());
-//        }
-//
-//        // Sort the inventory items by importedDate (furthest from now first)
-//        List<InventoryItem> sortedInventoryItems = inventoryItemList.stream()
-//                .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
-//                .limit(actualQuantity)
-//                .toList();
-//
-//        exportRequestDetail.setInventoryItems(sortedInventoryItems);
-//        exportRequestDetailRepository.save(exportRequestDetail);
-//    }
     private void autoAssignCountingStaff(ExportRequest exportRequest) {
         ActiveAccountRequest activeAccountRequest = ActiveAccountRequest.builder()
                 .date(exportRequest.getCountingDate())

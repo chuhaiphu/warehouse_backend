@@ -331,6 +331,17 @@ public class ImportOrderDetailService {
         }
     }
 
+    public void resetUpdate (Long importOrderDetailId) {
+        LOGGER.info("Resetting update for ImportOrderDetail ID: {}", importOrderDetailId);
+        ImportOrderDetail detail = importOrderDetailRepository.findById(importOrderDetailId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrderDetail not found with ID: " + importOrderDetailId));
+
+        detail.setActualQuantity(0);
+        detail.setActualMeasurementValue(0.0);
+        updateDetailStatus(detail);
+        importOrderDetailRepository.save(detail);
+    }
+
 
 
     private void updateDetailStatus(ImportOrderDetail detail) {

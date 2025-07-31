@@ -175,51 +175,6 @@ public class ExportRequestService {
         return mapToResponse(export);
     }
 
-    public ExportRequestResponse createExportBorrowingRequest(ExportBorrowingRequest request) {
-        LOGGER.info("Creating export borrowing request");
-        if(!checkType(ExportType.BORROWING, request.getType())) {
-            LOGGER.error("Invalid export type: " + request.getType());
-            throw new IllegalArgumentException("Invalid export type: " + request.getType());
-        }
-
-        if(request.getDepartmentId() == null && request.getReceiverName() == null
-                && request.getReceiverPhone() == null && request.getReceiverAddress() == null) {
-            LOGGER.error("Department ID, receiver name, phone, and address cannot be null");
-            throw new IllegalArgumentException("Department ID, receiver name, phone, and address cannot be null");
-        }
-
-        ExportRequest exportRequest = new ExportRequest();
-        exportRequest.setId(createExportRequestId());
-        if(request.getDepartmentId() != null) {
-            exportRequest.setDepartmentId(request.getDepartmentId());
-        }
-        exportRequest.setReceiverName(request.getReceiverName());
-        exportRequest.setReceiverPhone(request.getReceiverPhone());
-        exportRequest.setReceiverAddress(request.getReceiverAddress());
-        exportRequest.setExportReason(request.getExportReason());
-        exportRequest.setType(request.getType());
-
-        LOGGER.info("Check counting date and counting time is valid?");
-        validateForTimeDate(request.getCountingDate(), request.getCountingTime());
-        exportRequest.setCountingDate(request.getCountingDate());
-        exportRequest.setCountingTime(request.getCountingTime());
-        LOGGER.info("Check export date and export time is valid?");
-        validateForTimeDate(request.getExportDate(), request.getExportTime());
-        exportRequest.setExportDate(request.getExportDate());
-        exportRequest.setExpectedReturnDate(request.getExpectedReturnDate());
-        exportRequest.setStatus(RequestStatus.NOT_STARTED);
-
-        ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignCountingStaff(exportRequest);
-        notificationService.handleNotification(
-            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-            NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
-            export.getId(),
-            "Đơn xuất mã #" + export.getId() + " đã được tạo",
-            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
-        );
-        return mapToResponse(export);
-    }
 
     public ExportRequestResponse createExportReturnRequest(ExportReturnRequest request) {
         LOGGER.info("Creating export return request");
@@ -274,7 +229,7 @@ public class ExportRequestService {
 
     public ExportRequestResponse createExportProductionRequest(ExportRequestRequest request) {
         LOGGER.info("Creating export production request");
-        if(!checkType(ExportType.PRODUCTION, request.getType()) && !checkType(ExportType.BORROWING, request.getType())) {
+        if(!checkType(ExportType.INTERNAL, request.getType()) ) {
             LOGGER.error("Invalid export type: " + request.getType());
             throw new IllegalArgumentException("Invalid export type: " + request.getType());
         }
@@ -433,7 +388,7 @@ public class ExportRequestService {
             }
         }
 
-        if (exportRequest.getType().equals(ExportType.PRODUCTION)) {
+        if (exportRequest.getType().equals(ExportType.INTERNAL)) {
             boolean hasLackStatus = exportRequest.getExportRequestDetails().stream()
                     .anyMatch(detail -> detail.getStatus() == DetailStatus.LACK);
             if (hasLackStatus) {
