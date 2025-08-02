@@ -45,7 +45,11 @@ public class ItemService {
     @Transactional
     public ItemResponse create(ItemRequest request) {
         LOGGER.info("Creating item: {}", request);
+        if (request.getId() == null || request.getId().trim().isEmpty()) {
+            throw new RuntimeException("Item ID must not be null or empty for create operation");
+        }
         Item item = new Item();
+        item.setId(request.getId());
         item = mapToEntity(request, item);
         return mapToResponse(itemRepository.save(item));
     }
