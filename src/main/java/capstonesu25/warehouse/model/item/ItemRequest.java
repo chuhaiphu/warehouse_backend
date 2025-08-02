@@ -13,10 +13,12 @@ public class ItemRequest {
     private String description;
     private String measurementUnit;
     private Double totalMeasurementValue;
+    private Double measurementValue;
     private String unitType;
     private Integer daysUntilDue;
     private Integer minimumStockQuantity;
     private Integer maximumStockQuantity;
+    private Integer countingMinutes;
     private Long categoryId;
     private Long providerId;
 }

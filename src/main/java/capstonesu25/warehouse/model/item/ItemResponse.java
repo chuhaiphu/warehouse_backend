@@ -21,6 +21,7 @@ public class ItemResponse {
     private Integer daysUntilDue;
     private Integer minimumStockQuantity;
     private Integer maximumStockQuantity;
+    private Integer countingMinutes;
     private Long categoryId;
     private List<Long> providerIds;
     // Replace OneToMany relationships with list of IDs

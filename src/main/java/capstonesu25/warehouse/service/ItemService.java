@@ -105,6 +105,7 @@ public class ItemService {
         response.setDaysUntilDue(item.getDaysUntilDue());
         response.setMinimumStockQuantity(item.getMinimumStockQuantity());
         response.setMaximumStockQuantity(item.getMaximumStockQuantity());
+        response.setCountingMinutes(item.getCountingMinutes());
 
         if (item.getCategory() != null) {
             response.setCategoryId(item.getCategory().getId());
@@ -166,11 +167,13 @@ public class ItemService {
         existingItem.setName(request.getName());
         existingItem.setDescription(request.getDescription());
         existingItem.setMeasurementUnit(request.getMeasurementUnit());
+        existingItem.setMeasurementValue(request.getMeasurementValue());
         existingItem.setTotalMeasurementValue(request.getTotalMeasurementValue());
         existingItem.setUnitType(request.getUnitType());
         existingItem.setDaysUntilDue(request.getDaysUntilDue());
         existingItem.setMinimumStockQuantity(request.getMinimumStockQuantity());
         existingItem.setMaximumStockQuantity(request.getMaximumStockQuantity());
+        existingItem.setCountingMinutes(request.getCountingMinutes());
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())

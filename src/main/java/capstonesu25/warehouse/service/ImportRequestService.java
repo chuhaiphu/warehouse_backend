@@ -121,8 +121,8 @@ public class ImportRequestService {
             for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
                 ImportRequestDetail detail = new ImportRequestDetail();
                 detail.setItem(exportRequestDetail.getItem());
-                detail.setExpectMeasurementValue(exportRequestDetail.getActualMeasurementValue());
-                detail.setExpectQuantity(exportRequestDetail.getActualQuantity());
+                detail.setExpectMeasurementValue(exportRequestDetail.getMeasurementValue());
+                detail.setExpectQuantity(exportRequestDetail.getQuantity());
                 detail.setOrderedMeasurementValue(0.0);
                 detail.setOrderedQuantity(0);
                 detail.setActualMeasurementValue(0.0);
