@@ -21,9 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -35,7 +33,6 @@ public class ImportOrderDetailService {
     private final ImportOrderDetailRepository importOrderDetailRepository;
     private final ItemRepository itemRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
-    private final ConfigurationRepository configurationRepository;
     private final AccountRepository accountRepository;
     private final AccountService accountService;
     private final StaffPerformanceRepository staffPerformanceRepository;
@@ -119,32 +116,32 @@ public class ImportOrderDetailService {
         }
     }
 
-    private void validateForTimeDate(LocalDate date, LocalTime time) {
-        LOGGER.info("Validating time and date for import order");
-        Configuration configuration = configurationRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("Configuration not found with name: importOrder"));
+    // private void validateForTimeDate(LocalDate date, LocalTime time) {
+    //     LOGGER.info("Validating time and date for import order");
+    //     Configuration configuration = configurationRepository.findAll().stream()
+    //             .findFirst()
+    //             .orElseThrow(() -> new NoSuchElementException("Configuration not found with name: importOrder"));
 
-        long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
-                + configuration.getCreateRequestTimeAtLeast().getMinute();
+    //     long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
+    //             + configuration.getCreateRequestTimeAtLeast().getMinute();
 
-        LOGGER.info("Check if date is in the past");
-        if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
-            throw new IllegalStateException("Cannot set time for import order: Date is in the past");
-        }
+    //     LOGGER.info("Check if date is in the past");
+    //     if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+    //         throw new IllegalStateException("Cannot set time for import order: Date is in the past");
+    //     }
 
-        if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) && time.isBefore(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
-            throw new IllegalStateException("Cannot set time for import order: Time is in the past");
-        }
-        LOGGER.info("Check if time set is too early");
-        if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) &&
-                LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
-                        .plusMinutes(minutesToAdd)
-                        .isAfter(time)) {
-            throw new IllegalStateException("Cannot set time for import order: Time is too early");
-        }
+    //     if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) && time.isBefore(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+    //         throw new IllegalStateException("Cannot set time for import order: Time is in the past");
+    //     }
+    //     LOGGER.info("Check if time set is too early");
+    //     if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) &&
+    //             LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+    //                     .plusMinutes(minutesToAdd)
+    //                     .isAfter(time)) {
+    //         throw new IllegalStateException("Cannot set time for import order: Time is too early");
+    //     }
 
-    }
+    // }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "ASSIGN_STAFF", objectIdSource = "importOrderId")
     public ImportOrderResponse assignStaff(String importOrderId, Long accountId) {

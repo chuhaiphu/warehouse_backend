@@ -9,7 +9,6 @@ import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequ
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.Mapper;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,6 @@ import java.util.*;
 public class ImportRequestDetailService {
     private final ImportRequestRepository importRequestRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
-    private final ExportRequestRepository exportRequestRepository;
     private final ItemRepository itemRepository;
     private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);

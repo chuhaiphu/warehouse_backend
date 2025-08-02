@@ -3,35 +3,21 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.Configuration;
 import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.entity.ExportRequestDetail;
-import capstonesu25.warehouse.entity.ImportOrder;
-import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
-import capstonesu25.warehouse.entity.InventoryItem;
-import capstonesu25.warehouse.entity.Item;
-import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ExportType;
 import capstonesu25.warehouse.enums.ImportType;
-import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
-import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
-import capstonesu25.warehouse.repository.ImportOrderDetailRepository;
-import capstonesu25.warehouse.repository.ImportOrderRepository;
 import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ImportRequestRepository;
-import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.utils.Mapper;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.OptionalInt;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -55,11 +41,7 @@ public class ImportRequestService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
     private final ConfigurationRepository configurationRepository;
     private final ExportRequestRepository exportRequestRepository;
-    private final InventoryItemRepository inventoryItemRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
-    private final AccountRepository accountRepository;
-    private final ImportOrderRepository importOrderRepository;
-    private final ImportOrderDetailRepository importOrderDetailRepository;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
@@ -131,13 +113,16 @@ public class ImportRequestService {
 
             importRequest.setStartDate(startDate);
             importRequest.setEndDate(endDate);
+            importRequest.setExportRequestId(request.getExportRequestId());
+            // Save Import Request first before saving Import Request Details to prevent TransientObjectException
+            importRequest = importRequestRepository.save(importRequest);
 
             List<ImportRequestDetail> importRequestDetails = new ArrayList<>();
             for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
                 ImportRequestDetail detail = new ImportRequestDetail();
-                detail.setItem(detail.getItem());
-                detail.setExpectMeasurementValue(detail.getActualMeasurementValue());
-                detail.setExpectQuantity(detail.getActualQuantity());
+                detail.setItem(exportRequestDetail.getItem());
+                detail.setExpectMeasurementValue(exportRequestDetail.getActualMeasurementValue());
+                detail.setExpectQuantity(exportRequestDetail.getActualQuantity());
                 detail.setOrderedMeasurementValue(0.0);
                 detail.setOrderedQuantity(0);
                 detail.setActualMeasurementValue(0.0);
@@ -178,26 +163,26 @@ public class ImportRequestService {
         return String.format("%s-%s-%s", prefix, datePart, sequence);
     }
 
-    private OptionalInt findLatestBatchSuffixForToday() {
-        LOGGER.info("Finding latest batch suffix for today");
-        List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(getTodayPrefix());
+    // private OptionalInt findLatestBatchSuffixForToday() {
+    //     LOGGER.info("Finding latest batch suffix for today");
+    //     List<ImportRequest> requests = importRequestRepository.findByBatchCodeStartingWith(getTodayPrefix());
 
-        return requests.stream()
-                .map(ImportRequest::getBatchCode)
-                .map(code -> code.substring(getTodayPrefix().length()))
-                .mapToInt(Integer::parseInt)
-                .max(); // returns OptionalInt
-    }
-    private String getTodayPrefix() {
-        return LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")) + "_";
-    }
-    private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
-        return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" + (index + 1);
-    }
+    //     return requests.stream()
+    //             .map(ImportRequest::getBatchCode)
+    //             .map(code -> code.substring(getTodayPrefix().length()))
+    //             .mapToInt(Integer::parseInt)
+    //             .max(); // returns OptionalInt
+    // }
+    // private String getTodayPrefix() {
+    //     return LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")) + "_";
+    // }
+    // private String createInventoryItemId(ImportOrderDetail importOrderDetail, int index) {
+    //     return "ITM-" + importOrderDetail.getItem().getId() + "-" + importOrderDetail.getImportOrder().getId() + "-" + (index + 1);
+    // }
 
-    private String createImportOrderId(ImportRequest importRequest) {
-        int size = importRequest.getImportOrders().size();
-        return "DN-" + importRequest.getId() + "-" + (size + 1);
-    }
+    // private String createImportOrderId(ImportRequest importRequest) {
+    //     int size = importRequest.getImportOrders().size();
+    //     return "DN-" + importRequest.getId() + "-" + (size + 1);
+    // }
 
 }
