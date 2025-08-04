@@ -15,5 +15,7 @@ public class ImportOrderDetailResponse {
     private String itemName;
     private int expectQuantity;
     private int actualQuantity;
+    private Double actualMeasurementValue;
+    private Double expectMeasurementValue;
     private DetailStatus status;
 }

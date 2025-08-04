@@ -65,6 +65,8 @@ public class Mapper {
                 importOrderDetail.getItem().getName(),
                 importOrderDetail.getExpectQuantity(),
                 importOrderDetail.getActualQuantity(),
+                importOrderDetail.getExpectMeasurementValue(),
+                importOrderDetail.getActualMeasurementValue(),
                 importOrderDetail.getStatus()
         );
     }
