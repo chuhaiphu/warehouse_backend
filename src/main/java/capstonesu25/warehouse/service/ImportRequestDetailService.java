@@ -54,13 +54,14 @@ public class ImportRequestDetailService {
         }
 
         List<ImportRequestResponse> createdImportRequestResponses = new ArrayList<>();
-
+        String baseId = createImportRequestId();
         for (Map.Entry<Long, List<ImportRequestCreateWithDetailRequest>> entry : requestsByProvider.entrySet()) {
             Long providerId = entry.getKey();
             List<ImportRequestCreateWithDetailRequest> requests = entry.getValue();
 
             ImportRequest importRequest = new ImportRequest();
-            importRequest.setId(createImportRequestId());
+            String uniqueId = baseId + "-P" + providerId;
+            importRequest.setId(uniqueId);
             importRequest.setImportReason(importReason);
             importRequest.setStatus(RequestStatus.NOT_STARTED);
             importRequest.setType(importType);
