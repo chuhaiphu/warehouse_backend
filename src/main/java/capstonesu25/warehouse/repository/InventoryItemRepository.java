@@ -25,5 +25,7 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
 
     List<InventoryItem> findByExportRequestDetail_Id(Long exportRequestDetailId);
 
+    List<InventoryItem> findByItem_IdAndStatus(String itemId, ItemStatus status);
+
 
 }

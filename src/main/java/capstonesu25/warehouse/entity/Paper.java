@@ -37,4 +37,8 @@ public class Paper {
     @JoinColumn(name = "export_request_id")
     private ExportRequest exportRequest;
 
+    @OneToOne
+    @JoinColumn(name = "stock_check_request_id")
+    private StockCheckRequest stockCheckRequest;
+
 }

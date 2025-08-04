@@ -42,6 +42,7 @@ public class AccountService implements LogoutHandler {
     private final ExportRequestRepository exportRequestRepository;
     private final ItemRepository itemRepository;
     private final ConfigurationRepository configurationRepository;
+    private final StockCheckRequestRepository stockCheckRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountService.class);
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -386,6 +387,37 @@ public class AccountService implements LogoutHandler {
                     }
                     LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
                     if(exportCheck.getCountingTime().isAfter(exportCheck.getCountingTime().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
+                        responses.add(accountResponse);
+                    }
+                }
+            }
+        }
+
+        if(request.getStockCheckRequestId() != null) {
+            LOGGER.info("Get all active staffs in date {} for export request", date);
+            StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(request.getStockCheckRequestId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock check request not found"));
+
+            if(!stockCheckRequest.getExpectedCompletedDate().equals(request.getDate())) {
+                return accountResponses;
+            }
+
+            for(AccountResponse accountResponse : accountResponses) {
+                List<StockCheckRequest> checkStock = stockCheckRequestRepository.findByAssignedStaff_IdAndCountingDate(
+                        accountResponse.getId(),
+                        stockCheckRequest.getCountingDate()
+                );
+                if(checkStock.isEmpty()) {
+                    responses.add(accountResponse);
+                }
+                for(StockCheckRequest check : checkStock) {
+                    int totalMinutes = 0;
+                    for (StockCheckRequestDetail detail : check.getStockCheckRequestDetails()) {
+                        LOGGER.info("Calculating expected working time for item: " + detail.getItem().getName());
+                        totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
+                    }
+                    LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+                    if(check.getCountingTime().isAfter(check.getCountingTime().plusMinutes(expectedWorkingTime.toSecondOfDay() / 60))) {
                         responses.add(accountResponse);
                     }
                 }

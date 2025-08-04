@@ -24,6 +24,9 @@ public class StaffPerformance {
     @Column(name = "export_request_id")
     private String exportRequestId;
 
+    @Column(name = "stock_check_request_id")
+    private String stockCheckRequestId;
+
     @Column(name = "is_export_counting")
     private boolean exportCounting;
 

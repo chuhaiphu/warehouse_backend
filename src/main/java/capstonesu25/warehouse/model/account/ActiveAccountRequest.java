@@ -17,4 +17,5 @@ public class ActiveAccountRequest {
     private LocalDate date;
     private String importOrderId;
     private String exportRequestId;
+    private String stockCheckRequestId;
 }

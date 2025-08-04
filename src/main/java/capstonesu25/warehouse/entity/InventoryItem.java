@@ -69,7 +69,6 @@ public class InventoryItem {
     @JsonIgnore
     private ExportRequestDetail exportRequestDetail;
 
-
     @ManyToOne
     @JoinColumn(name = "import_order_detail_id")
     private ImportOrderDetail importOrderDetail;

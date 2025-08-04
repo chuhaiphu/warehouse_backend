@@ -147,7 +147,7 @@ public class ExportRequestController {
 
     @Operation(summary = "Create a new export request for selling")
     @PostMapping("/selling")
-    public ResponseEntity<?> createExportRequestForPartial(@RequestBody ExportSellingRequest request) {
+    public ResponseEntity<?> createExportRequestForSelling(@RequestBody ExportSellingRequest request) {
         LOGGER.info("Creating export request for selling");
         return ResponseUtil.getObject(
             exportRequestService.createExportSellingRequest(request),

@@ -70,6 +70,9 @@ public class Account implements UserDetails {
     private List<ExportRequest> exportRequests;
 
     @OneToMany(mappedBy = "assignedStaff", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    private List<StockCheckRequest> stockCheckRequests;
+
+    @OneToMany(mappedBy = "assignedStaff", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<StaffPerformance> staffPerformances;
 
     @OneToMany(mappedBy = "receiver", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
