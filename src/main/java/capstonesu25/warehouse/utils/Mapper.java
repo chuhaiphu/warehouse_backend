@@ -25,6 +25,9 @@ public class Mapper {
                 importRequestDetail.getActualQuantity(),
                 importRequestDetail.getExpectQuantity(),
                 importRequestDetail.getOrderedQuantity(),
+                importRequestDetail.getActualMeasurementValue(),
+                importRequestDetail.getExpectMeasurementValue(),
+                importRequestDetail.getOrderedMeasurementValue(),
                 importRequestDetail.getStatus() != null ? importRequestDetail.getStatus() : null
         );
     }

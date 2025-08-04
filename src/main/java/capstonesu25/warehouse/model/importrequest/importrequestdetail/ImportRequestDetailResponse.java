@@ -16,6 +16,9 @@ public class ImportRequestDetailResponse {
     private int actualQuantity;
     private int expectQuantity;
     private int orderedQuantity;
+    private Double actualMeasurementValue;
+    private Double expectMeasurementValue;
+    private Double orderedMeasurementUnit;
     private DetailStatus status;
 
 
