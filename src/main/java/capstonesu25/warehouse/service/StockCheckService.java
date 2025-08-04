@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -45,7 +46,6 @@ public class StockCheckService {
         StockCheckRequest stockCheckRequest = new StockCheckRequest();
         stockCheckRequest.setId(createStockCheckID());
         stockCheckRequest.setStockCheckReason(request.getStockCheckReason());
-        stockCheckRequest.setStatus(request.getStatus());
         stockCheckRequest.setType(request.getType());
         stockCheckRequest.setNote(request.getNote());
         //validate date
@@ -58,6 +58,7 @@ public class StockCheckService {
         stockCheckRequest.setCountingTime(request.getCountingTime());
         stockCheckRequest.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        stockCheckRequest.setStockCheckRequestDetails(new ArrayList<>());
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
     }
 

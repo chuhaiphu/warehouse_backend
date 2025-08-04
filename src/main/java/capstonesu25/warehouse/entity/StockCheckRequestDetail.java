@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 @Entity
 @Table(name = "stock_check_request_detail")
@@ -35,7 +36,7 @@ public class StockCheckRequestDetail {
 
     @Convert(converter = StringListConverter.class)
     @Column(name = "inventory_item_ids", columnDefinition = "TEXT")
-    private List<String> inventoryItemsId;
+    private List<String> inventoryItemsId = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "stock_check_request_id")
