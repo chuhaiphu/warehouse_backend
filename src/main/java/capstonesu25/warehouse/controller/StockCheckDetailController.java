@@ -39,10 +39,10 @@ public class StockCheckDetailController {
 
     @Operation(summary = "Get stock check request detail by ID")
     @GetMapping("/detail/{id}")
-    public ResponseEntity<?> getById(@PathVariable String id) {
+    public ResponseEntity<?> getById(@PathVariable Long id) {
         LOGGER.info("Getting stock check request detail by id: {}", id);
         return ResponseUtil.getObject(
-                stockCheckDetailService.getAllByStockCheckRequestId(id),
+                stockCheckDetailService.getById(id),
                 HttpStatus.OK,
                 "Successfully retrieved stock check request"
         );
