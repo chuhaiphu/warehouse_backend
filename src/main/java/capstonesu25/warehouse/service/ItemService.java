@@ -69,15 +69,6 @@ public class ItemService {
         return mapToResponse(itemRepository.save(updatedItem));
     }
 
-    @Transactional
-    public void delete(String itemId) {
-        LOGGER.info("Deleting item with id: {}", itemId);
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
-        item.getStoredLocations().forEach(storedLocation -> storedLocation.setItem(null));
-        itemRepository.delete(item);
-    }
-
     public Page<ItemResponse> getItemsByCategoryId(Long categoryId, int page, int limit) {
         LOGGER.info("Getting items by category id: {}, page: {}, limit: {}", categoryId, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);

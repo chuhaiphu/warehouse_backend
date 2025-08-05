@@ -128,6 +128,18 @@ public class StoredLocationController {
 //                "Successfully updated stored location");
 //    }
 
+    @GetMapping("/suggest-locations")
+    @Operation(summary = "Suggest stored locations", description = "Returns a list of stored locations that are not full and not used")
+    public ResponseEntity<?> suggestLocations(@RequestParam String itemId, @RequestParam Long locationId) {
+        LOGGER.info("Suggesting stored locations");
+        List<StoredLocationResponse> result = storedLocationService.suggestNearestStoredLocations(itemId, locationId);
+        return ResponseUtil.getCollection(
+                result,
+                HttpStatus.OK,
+                "Successfully suggested stored locations",
+                null);
+    }
+
     @Operation(summary = "Delete a stored location by ID", description = "Removes a stored location from the system")
     @DeleteMapping("/{storedLocationId}")
     public ResponseEntity<?> deleteStoredLocation(@PathVariable Long storedLocationId) {

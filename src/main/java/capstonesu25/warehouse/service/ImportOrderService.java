@@ -23,10 +23,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -527,36 +525,87 @@ public class ImportOrderService {
         LOGGER.info("Auto fill location");
 
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
+
         for (ImportOrderDetail importOrderDetail : importOrderDetails) {
-            List<InventoryItem> inventoryItemList = importOrderDetail.getItem().getInventoryItems();
-            // get the stored location
-            List<StoredLocation> storedLocationList = storedLocationRepository
-                    .findByItem_IdAndIsFulledFalseOrderByZoneAscFloorAscRowAscLineAsc(
-                            importOrderDetail.getItem().getId());
-            for (InventoryItem inventoryItem : inventoryItemList) {
-                for (StoredLocation storedLocation : storedLocationList) {
-                    if (storedLocation.getCurrentCapacity() + 1 <= storedLocation
-                            .getMaximumCapacityForItem()) {
-                        inventoryItem.setStoredLocation(storedLocation);
-                        Integer newCapacity = storedLocation.getCurrentCapacity() + 1;
-                        storedLocation.setCurrentCapacity(newCapacity);
+            Item item = importOrderDetail.getItem();
+            int requiredQuantity = importOrderDetail.getActualQuantity();
 
-                        storedLocation.setUsed(true);
+            List<InventoryItem> inventoryItems = item.getInventoryItems().stream()
+                    .filter(i -> i.getStoredLocation() == null)
+                    .limit(requiredQuantity)
+                    .toList();
 
-                        boolean isNowFull = (storedLocation.getMaximumCapacityForItem() - newCapacity) < 1;
-                        storedLocation.setFulled(isNowFull);
-
-                        storedLocationRepository.save(storedLocation);
-                        break;
-                    }
-                }
-
-                inventoryItem.setStatus(ItemStatus.AVAILABLE);
-                inventoryItemRepository.save(inventoryItem);
+            if (inventoryItems.size() < requiredQuantity) {
+                LOGGER.warn("Not enough unassigned inventory items for item: {}", item.getId());
+                continue;
             }
 
+            List<StoredLocation> storedLocations = storedLocationRepository.findByIsFulledFalse();
+
+            // Sort by zone, floor, row, line
+            storedLocations.sort(Comparator
+                    .comparing(StoredLocation::getZone)
+                    .thenComparing(loc -> Integer.parseInt(loc.getFloor()))
+                    .thenComparing(loc -> Integer.parseInt(loc.getRow().replace("R", "")))
+                    .thenComparing(loc -> Integer.parseInt(loc.getLine().replace("L", "")))
+            );
+
+            boolean assigned = false;
+
+            // Group by zone
+            Map<String, List<StoredLocation>> groupedByZone = storedLocations.stream()
+                    .collect(Collectors.groupingBy(StoredLocation::getZone, LinkedHashMap::new, Collectors.toList()));
+
+            for (Map.Entry<String, List<StoredLocation>> zoneEntry : groupedByZone.entrySet()) {
+                List<StoredLocation> zoneLocations = zoneEntry.getValue();
+
+                // 1. Ưu tiên location đã chứa item và đủ chỗ
+                Optional<StoredLocation> preferred = zoneLocations.stream()
+                        .filter(loc -> loc.getItems() != null && loc.getItems().contains(item))
+                        .filter(loc -> (loc.getMaximumCapacityForItem() - loc.getCurrentCapacity()) >= requiredQuantity)
+                        .findFirst();
+
+                // 2. Nếu không có, chọn slot đầu tiên còn chỗ
+                if (preferred.isEmpty()) {
+                    preferred = zoneLocations.stream()
+                            .filter(loc -> (loc.getMaximumCapacityForItem() - loc.getCurrentCapacity()) >= requiredQuantity)
+                            .findFirst();
+                }
+
+                if (preferred.isPresent()) {
+                    StoredLocation loc = preferred.get();
+
+                    // Add mapping (many-to-many)
+                    if (loc.getItems() == null) loc.setItems(new ArrayList<>());
+                    if (!loc.getItems().contains(item)) loc.getItems().add(item);
+
+                    if (item.getStoredLocations() == null) item.setStoredLocations(new ArrayList<>());
+                    if (!item.getStoredLocations().contains(loc)) item.getStoredLocations().add(loc);
+
+                    assignItemsToLocation(inventoryItems, loc);
+                    assigned = true;
+                    break;
+                }
+            }
+
+            if (!assigned) {
+                LOGGER.warn("Không thể gán vị trí cho item: {}", item.getId());
+            }
+        }
+    }
+
+    private void assignItemsToLocation(List<InventoryItem> items, StoredLocation location) {
+        for (InventoryItem item : items) {
+            item.setStoredLocation(location);
+            item.setStatus(ItemStatus.AVAILABLE);
+            inventoryItemRepository.save(item);
         }
 
+        location.setCurrentCapacity(location.getCurrentCapacity() + items.size());
+        location.setUsed(true);
+        location.setFulled(location.getCurrentCapacity() >= location.getMaximumCapacityForItem());
+
+        storedLocationRepository.save(location);
     }
 
     private void createInventoryItem(ImportOrderDetail importOrderDetail) {

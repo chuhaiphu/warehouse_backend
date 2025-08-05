@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -98,6 +99,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
+    @Transactional
     public ExportRequestResponse createExportSellingRequest(ExportSellingRequest request) {
         LOGGER.info("Creating export selling request");
         if(!checkType(ExportType.SELLING, request.getType())) {
@@ -139,6 +141,7 @@ public class ExportRequestService {
         return mapToResponse(export);
     }
 
+    @Transactional
     public ExportRequestResponse createExportLiquidationRequest(ExportLiquidationRequest request) {
         LOGGER.info("Creating export liquidation request");
         if(!checkType(ExportType.LIQUIDATION, request.getType())) {
@@ -227,6 +230,7 @@ public class ExportRequestService {
         return mapToResponse(export);
     }
 
+    @Transactional
     public ExportRequestResponse createExportProductionRequest(ExportRequestRequest request) {
         LOGGER.info("Creating export production request");
         if(!checkType(ExportType.INTERNAL, request.getType()) ) {
@@ -1012,7 +1016,8 @@ public class ExportRequestService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
 
-        int todayCount = exportRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+        List<ExportRequest> exportRequests = exportRequestRepository.findByCreatedDateBetween(startOfDay, endOfDay);
+        int todayCount = exportRequests.size();
 
         String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
         String sequence = String.format("%03d", todayCount + 1);          // 001, 002, ...

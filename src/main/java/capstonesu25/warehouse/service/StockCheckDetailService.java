@@ -10,6 +10,7 @@ import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class StockCheckDetailService {
                 .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
         return mapToResponse(detail);
     }
-
+    @Transactional
     public void create (List<StockCheckRequestDetailRequest> requests, String stockCheckRequestId) {
         StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(stockCheckRequestId)
                 .orElseThrow(() -> new RuntimeException("Stock check request not found"));

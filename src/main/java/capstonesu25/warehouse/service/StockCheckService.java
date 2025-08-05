@@ -9,6 +9,7 @@ import capstonesu25.warehouse.repository.StockCheckRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,10 +42,14 @@ public class StockCheckService {
                 .toList();
     }
 
+    @Transactional
     public StockCheckRequestResponse createStockCheckRequest(StockCheckRequestRequest request) {
         LOGGER.info("Creating stock check request with data: {}", request);
         StockCheckRequest stockCheckRequest = new StockCheckRequest();
-        stockCheckRequest.setId(createStockCheckID());
+        LOGGER.info("Setting stock check request properties");
+        String id = createStockCheckID();
+        LOGGER.info("ID is : {}", id);
+        stockCheckRequest.setId(id);
         stockCheckRequest.setStockCheckReason(request.getStockCheckReason());
         stockCheckRequest.setType(request.getType());
         stockCheckRequest.setNote(request.getNote());
@@ -74,12 +79,13 @@ public class StockCheckService {
     private String createStockCheckID() {
         String prefix = "PK";
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
+        LOGGER.info("Creating stock check ID for date: {}", today);
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-
-        int todayCount = stockCheckRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
-
+        LOGGER.info("Calculating count of stock check requests created today between {} and {}", startOfDay, endOfDay);
+        List<StockCheckRequest> existingRequests = stockCheckRequestRepository.findByCreatedDateBetween(startOfDay,endOfDay);
+        int todayCount = existingRequests.size();
+        LOGGER.info("Count of stock check requests created today: {}", todayCount);
         String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
         String sequence = String.format("%03d", todayCount + 1);
 

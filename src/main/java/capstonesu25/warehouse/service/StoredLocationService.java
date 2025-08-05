@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -73,7 +74,6 @@ public class StoredLocationService {
         LOGGER.info("Creating {} stored locations", requestList.size());
         List<StoredLocation> storedLocations = new ArrayList<>();
         for (StoredLocationRequest request : requestList) {
-
             StoredLocation storedLocation = new StoredLocation();
             storedLocation.setZone(request.getZone());
             storedLocation.setFloor(request.getFloor());
@@ -82,12 +82,6 @@ public class StoredLocationService {
             storedLocation.setRoad(request.getIsRoad());
             storedLocation.setDoor(request.getIsDoor());
             storedLocation.setMaximumCapacityForItem(request.getMaximumCapacityForItem());
-            if (request.getIsDoor() == false && request.getIsRoad() == false) {
-                Item item = itemRepository.findById(request.getItemId()).orElseThrow(
-                        () -> new IllegalArgumentException(
-                                "This item with ID: " + request.getItemId() + " is not presented"));
-                storedLocation.setItem(item);
-            }
             storedLocations.add(storedLocation);
             storedLocationRepository.save(storedLocation);
 
@@ -110,6 +104,41 @@ public class StoredLocationService {
     // updateEntityFromRequest(existingLocation, request);
     // return mapToResponse(storedLocationRepository.save(existingLocation));
     // }
+
+    public List<StoredLocationResponse> suggestNearestStoredLocations(String itemId, Long locationId) {
+        Item item = itemRepository.findById(itemId).orElseThrow(() ->
+                new IllegalArgumentException("Item not found with id: " + itemId));
+
+        StoredLocation baseLocation = storedLocationRepository.findById(locationId).orElseThrow(() ->
+                new IllegalArgumentException("StoredLocation not found with id: " + locationId));
+
+        List<StoredLocation> allLocations = storedLocationRepository.findByIsFulledFalse();
+
+        return allLocations.stream()
+                .filter(loc -> !loc.getId().equals(baseLocation.getId()))
+                .filter(loc -> {
+                    List<Item> locItems = loc.getItems();
+                    return locItems == null || locItems.isEmpty() || locItems.contains(item);
+                })
+                .sorted(Comparator.comparingInt(loc -> computeDistance(baseLocation, loc)))
+                .map(this::mapToResponse)
+                .toList();
+    }
+    private int computeDistance(StoredLocation a, StoredLocation b) {
+        int zoneDiff = Math.abs(a.getZone().charAt(0) - b.getZone().charAt(0));
+        int floorDiff = Math.abs(parseInt(a.getFloor()) - parseInt(b.getFloor()));
+        int rowDiff = Math.abs(parseInt(a.getRow().replace("R", "")) - parseInt(b.getRow().replace("R", "")));
+        int lineDiff = Math.abs(parseInt(a.getLine().replace("L", "")) - parseInt(b.getLine().replace("L", "")));
+        return zoneDiff * 1000 + floorDiff * 100 + rowDiff * 10 + lineDiff; // trọng số ưu tiên theo zone > floor > row > line
+    }
+
+    private int parseInt(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 
     @Transactional
     public void delete(Long id) {
@@ -143,8 +172,10 @@ public class StoredLocationService {
             response.setInventoryItemIds(new ArrayList<>());
         }
 
-        if (storedLocation.getItem() != null) {
-            response.setItemId(storedLocation.getItem().getId());
+        if (storedLocation.getItems() != null) {
+            response.setItemId(storedLocation.getItems().stream()
+                    .map(Item::getId)
+                    .collect(Collectors.toList()));
         }
 
         return response;

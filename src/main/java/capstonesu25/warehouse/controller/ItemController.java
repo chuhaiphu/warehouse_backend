@@ -116,15 +116,6 @@ public class ItemController {
                 "Successfully updated item");
     }
 
-    @Operation(summary = "Delete an item by ID")
-    @DeleteMapping("/{itemId}")
-    public ResponseEntity<?> deleteItem(@PathVariable String itemId) {
-        LOGGER.info("Deleting item");
-        itemService.delete(itemId);
-        return ResponseUtil.getObject(
-                null,
-                HttpStatus.OK,
-                "Successfully deleted item");
-    }
+
 
 }

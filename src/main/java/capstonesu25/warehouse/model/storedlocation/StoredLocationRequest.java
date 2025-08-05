@@ -29,5 +29,4 @@ public class StoredLocationRequest {
     private Boolean isDoor;
     @NotNull(message = "cannot be null")
     private Integer maximumCapacityForItem;
-    private String itemId; // References to item
 }

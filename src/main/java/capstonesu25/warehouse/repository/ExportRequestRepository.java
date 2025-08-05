@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.repository;
 
 import capstonesu25.warehouse.entity.ExportRequest;
+import capstonesu25.warehouse.entity.StockCheckRequest;
 import capstonesu25.warehouse.enums.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,4 +40,10 @@ public interface ExportRequestRepository extends JpaRepository<ExportRequest, St
 
     @Query("SELECT COUNT(er) FROM ExportRequest er WHERE er.createdDate BETWEEN :start AND :end")
     int countByCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT s FROM ExportRequest s " +
+            "WHERE s.createdDate BETWEEN :start AND :end")
+    List<ExportRequest> findByCreatedDateBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

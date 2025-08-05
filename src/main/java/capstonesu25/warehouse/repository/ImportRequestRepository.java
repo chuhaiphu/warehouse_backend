@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.repository;
 
 import capstonesu25.warehouse.entity.ImportRequest;
+import capstonesu25.warehouse.entity.StockCheckRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,4 +16,10 @@ public interface ImportRequestRepository extends JpaRepository<ImportRequest, St
 
     @Query("SELECT COUNT(ir) FROM ImportRequest ir WHERE ir.createdDate BETWEEN :start AND :end")
     int countByCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("SELECT s FROM ImportRequest s " +
+            "WHERE s.createdDate BETWEEN :start AND :end")
+    List<ImportRequest> findByCreatedDateBetween(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

@@ -45,9 +45,8 @@ public class StoredLocation {
     @Column(name = "current_capacity")
     private Integer currentCapacity = 0;
 
-    @ManyToOne
-    @JoinColumn(name = "item_id")
-    private Item item;
+    @ManyToMany(mappedBy = "storedLocations")
+    private List<Item> items;
 
     @OneToMany(mappedBy = "storedLocation", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<InventoryItem> inventoryItems;

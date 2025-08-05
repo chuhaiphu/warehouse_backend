@@ -188,8 +188,8 @@ public class ImportRequestDetailService {
 
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-
-        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
+        List<ImportRequest> existingRequests = importRequestRepository.findByCreatedDateBetween(startOfDay, endOfDay);
+        int todayCount = existingRequests.size();
 
         String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
         String sequence = String.format("%03d", todayCount + 1);

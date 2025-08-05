@@ -27,6 +27,6 @@ public class StoredLocationResponse {
     private List<String> inventoryItemIds; // References to inventory items
     private double maximumCapacityForItem;
     private double currentCapacity;
-    private String itemId; // References to item
+    private List<String> itemId; // References to item
 
 }
