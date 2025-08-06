@@ -2,6 +2,7 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailRequest;
+import capstonesu25.warehouse.model.stockcheck.detail.UpdateActualStockCheck;
 import capstonesu25.warehouse.service.StockCheckDetailService;
 import capstonesu25.warehouse.service.StockCheckService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -58,6 +59,30 @@ public class StockCheckDetailController {
                 null,
                 HttpStatus.CREATED,
                 "Successfully created stock check request"
+        );
+    }
+
+    @Operation(summary = "Update stock check request detail by ID")
+    @PutMapping("/tracking")
+    public ResponseEntity<?> updateStockCheckRequestDetail(@RequestBody UpdateActualStockCheck request) {
+        LOGGER.info("Updating stock check request detail with data: {}", request);
+        stockCheckDetailService.updateActualQuantity(request);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully updated stock check request detail"
+        );
+    }
+
+    @Operation(summary = "reset tracking for stock check request detail by ID")
+    @PutMapping("/reset-tracking")
+    public ResponseEntity<?> resetTrackingForStockCheckRequestDetail(@RequestBody UpdateActualStockCheck request) {
+        LOGGER.info("Resetting tracking for stock check request detail with data: {}", request);
+        stockCheckDetailService.resetTrackingForStockCheckRequestDetail(request);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully reset tracking for stock check request detail"
         );
     }
 }

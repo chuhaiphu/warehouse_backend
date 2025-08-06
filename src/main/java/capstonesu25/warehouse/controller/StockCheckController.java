@@ -64,4 +64,10 @@ public class StockCheckController {
                 "Successfully created stock check request"
         );
     }
+
+    //assign new staff
+    // confirm counted
+    // complete
+    // update status
+
 }

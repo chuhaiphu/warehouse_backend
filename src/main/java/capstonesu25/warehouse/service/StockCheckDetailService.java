@@ -1,11 +1,14 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
+import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailRequest;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailResponse;
+import capstonesu25.warehouse.model.stockcheck.detail.UpdateActualStockCheck;
 import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -69,6 +72,81 @@ public class StockCheckDetailService {
         stockCheckRequestDetailRepository.saveAll(requestDetails);
 
         autoAssignCountingStaff(stockCheckRequest);
+    }
+
+    @Transactional
+    public StockCheckRequestDetailResponse updateActualQuantity(UpdateActualStockCheck request) {
+        LOGGER.info("Updating actual quantity for stock check request detail with ID: {}", request.getStockCheckDetailId());
+        StockCheckRequestDetail detail = stockCheckRequestDetailRepository.findById(request.getStockCheckDetailId())
+                .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
+        InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
+                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+        if(inventoryItem.getIsTrackingForStockCheck()) {
+           throw new RuntimeException("Inventory item is already being tracked for stock check");
+        }
+        boolean flag = false;
+        for(String inventoryItemId : detail.getInventoryItemsId()) {
+            if (inventoryItemId.equals(request.getInventoryItemId())) {
+                detail.setActualQuantity(detail.getActualQuantity() + 1);
+                detail.setActualMeasurementValue(detail.getActualMeasurementValue() + inventoryItem.getMeasurementValue());
+                inventoryItem.setIsTrackingForStockCheck(true);
+                flag = false;
+                break;
+            }
+            flag = true;
+        }
+        if(flag){
+            throw new RuntimeException("Inventory item ID not found in stock check request detail");
+        }
+        if(detail.getActualMeasurementValue() > detail.getMeasurementValue()) {
+            detail.setStatus(DetailStatus.EXCESS);
+        } else if(detail.getActualQuantity() == detail.getQuantity()) {
+            detail.setStatus(DetailStatus.LACK);
+        } else {
+            detail.setStatus(DetailStatus.LACK);
+        }
+        inventoryItemRepository.save(inventoryItem);
+        return mapToResponse(stockCheckRequestDetailRepository.save(detail));
+    }
+
+    @Transactional
+    public StockCheckRequestDetailResponse resetTrackingForStockCheckRequestDetail(UpdateActualStockCheck request) {
+        LOGGER.info("Resetting tracking for stock check request detail with ID: {}", request.getStockCheckDetailId());
+        StockCheckRequestDetail detail = stockCheckRequestDetailRepository.findById(request.getStockCheckDetailId())
+                .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
+        InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
+                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+        if(!inventoryItem.getIsTrackingForStockCheck()) {
+            throw new RuntimeException("Inventory item is not being tracked for stock check");
+        }
+        boolean flag = false;
+        for(String inventoryItemId : detail.getInventoryItemsId()) {
+            if (inventoryItemId.equals(request.getInventoryItemId())) {
+                detail.setActualQuantity(detail.getActualQuantity() - 1);
+                detail.setActualMeasurementValue(detail.getActualMeasurementValue() - inventoryItem.getMeasurementValue());
+                inventoryItem.setIsTrackingForStockCheck(false);
+                flag = false;
+                break;
+            }
+            flag = true;
+        }
+        if(flag){
+            throw new RuntimeException("Inventory item ID not found in stock check request detail");
+        }
+
+        if(detail.getActualMeasurementValue() > detail.getMeasurementValue()) {
+            detail.setStatus(DetailStatus.EXCESS);
+        } else if(detail.getActualQuantity() == detail.getQuantity()) {
+            detail.setStatus(DetailStatus.LACK);
+        } else {
+            detail.setStatus(DetailStatus.LACK);
+        }
+
+        if(detail.getActualQuantity() == 0.0 && detail.getActualMeasurementValue() == 0.0) {
+            detail.setStatus(null);
+        }
+        inventoryItemRepository.save(inventoryItem);
+        return mapToResponse(stockCheckRequestDetailRepository.save(detail));
     }
 
     private void autoAssignCountingStaff(StockCheckRequest stockCheckRequest) {

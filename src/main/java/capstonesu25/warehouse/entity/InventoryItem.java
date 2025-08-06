@@ -48,6 +48,9 @@ public class InventoryItem {
     @Column(name = "need_to_liquidate")
     private Boolean needToLiquidate = false;
 
+    @Column(name = "is_tracking_for_stock_check")
+    private Boolean isTrackingForStockCheck = false;
+
     @Column(name = "updated_date")
     private LocalDateTime updatedDate;
 

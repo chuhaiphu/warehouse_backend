@@ -3,6 +3,7 @@ package capstonesu25.warehouse.model.stockcheck;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.enums.StockCheckType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class StockCheckRequestResponse {
     private String id;
     private String stockCheckReason;
