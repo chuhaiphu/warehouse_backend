@@ -43,6 +43,17 @@ public class StockCheckController {
         );
     }
 
+    @GetMapping("/staff/{staffId}")
+    public ResponseEntity<?> getByStaffId(@PathVariable Long staffId) {
+        LOGGER.info("Getting stock check requests by staff id: {}", staffId);
+        return ResponseUtil.getCollection(
+                stockCheckService.getAllStockCheckRequestsByStaffId(staffId),
+                HttpStatus.OK,
+                "Successfully retrieved stock check requests by staff id",
+                null
+        );
+    }
+
     @PostMapping("/create")
     @Operation(summary = "Create a new stock check request")
     public ResponseEntity<?> createStockCheckRequest(@RequestBody StockCheckRequestRequest request) {

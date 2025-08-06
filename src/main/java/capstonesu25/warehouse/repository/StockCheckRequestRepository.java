@@ -25,4 +25,6 @@ public interface StockCheckRequestRepository extends JpaRepository<StockCheckReq
             @Param("end") LocalDateTime end);
     List<StockCheckRequest> findByAssignedStaff_IdAndCountingDate(
             Long staffId, LocalDate countingDate);
+
+    List<StockCheckRequest> findByAssignedStaff_Id(Long staffId);
 }

@@ -42,6 +42,14 @@ public class StockCheckService {
                 .toList();
     }
 
+    public List<StockCheckRequestResponse> getAllStockCheckRequestsByStaffId(Long staffId) {
+        LOGGER.info("Fetching all stock check requests by staff ID: {}", staffId);
+        List<StockCheckRequest> stockCheckRequests = stockCheckRequestRepository.findByAssignedStaff_Id(staffId);
+        return stockCheckRequests.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     @Transactional
     public StockCheckRequestResponse createStockCheckRequest(StockCheckRequestRequest request) {
         LOGGER.info("Creating stock check request with data: {}", request);
