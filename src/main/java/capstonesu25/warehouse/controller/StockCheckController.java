@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.service.StockCheckService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -66,7 +67,30 @@ public class StockCheckController {
     }
 
     //assign new staff
+    @Operation(summary = "Assign a staff member to a stock check request")
+    @PostMapping("/assign-staff")
+    public ResponseEntity<?> assignStaffToStockCheck(@RequestBody AssignStaffStockCheck request) {
+        LOGGER.info("Assigning staff to stock check request with data: {}", request);
+        return ResponseUtil.getObject(
+                stockCheckService.assignStaffToStockCheck(request),
+                HttpStatus.OK,
+                "Successfully assigned staff to stock check request"
+        );
+    }
+
     // confirm counted
+
+    @Operation(summary = "Confirm counted stock check request")
+    @PutMapping("/confirm-counted/{stockCheckId}")
+    public ResponseEntity<?> confirmCountedStockCheck(@PathVariable String stockCheckId) {
+        LOGGER.info("Confirming counted stock check request with ID: {}", stockCheckId);
+        return ResponseUtil.getObject(
+                stockCheckService.confirmCountedStockCheck(stockCheckId),
+                HttpStatus.OK,
+                "Successfully confirmed counted stock check request"
+        );
+    }
+
     // complete
     // update status
 

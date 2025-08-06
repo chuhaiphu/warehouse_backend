@@ -10,4 +10,5 @@ public interface StaffPerformanceRepository extends JpaRepository<StaffPerforman
     List<StaffPerformance> findByAssignedStaff_IdAndDate(Long accountId, LocalDate date);
     StaffPerformance findByImportOrderIdAndAssignedStaff_Id(String importOrderId, Long accountId);
     StaffPerformance findByExportRequestIdAndAssignedStaff_IdAndExportCounting(String exportRequestId, Long accountId, boolean isExportCounting);
+    StaffPerformance findByStockCheckRequestIdAndAssignedStaff_Id(String stockCheckRequestId, Long accountId);
 }

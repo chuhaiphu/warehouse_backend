@@ -81,15 +81,17 @@ public class StockCheckDetailService {
                 .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
         InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
                 .orElseThrow(() -> new RuntimeException("Inventory item not found"));
-        if(inventoryItem.getIsTrackingForStockCheck()) {
-           throw new RuntimeException("Inventory item is already being tracked for stock check");
+        for(String inventoryItemId : detail.getCheckedInventoryItemsId()) {
+            if (inventoryItemId.equals(request.getInventoryItemId())) {
+                    throw new RuntimeException("Inventory item is already being tracked for stock check");
+            }
         }
         boolean flag = false;
         for(String inventoryItemId : detail.getInventoryItemsId()) {
             if (inventoryItemId.equals(request.getInventoryItemId())) {
                 detail.setActualQuantity(detail.getActualQuantity() + 1);
                 detail.setActualMeasurementValue(detail.getActualMeasurementValue() + inventoryItem.getMeasurementValue());
-                inventoryItem.setIsTrackingForStockCheck(true);
+                detail.getCheckedInventoryItemsId().add(inventoryItem.getId());
                 flag = false;
                 break;
             }
@@ -105,7 +107,6 @@ public class StockCheckDetailService {
         } else {
             detail.setStatus(DetailStatus.LACK);
         }
-        inventoryItemRepository.save(inventoryItem);
         return mapToResponse(stockCheckRequestDetailRepository.save(detail));
     }
 
@@ -116,23 +117,35 @@ public class StockCheckDetailService {
                 .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
         InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
                 .orElseThrow(() -> new RuntimeException("Inventory item not found"));
-        if(!inventoryItem.getIsTrackingForStockCheck()) {
-            throw new RuntimeException("Inventory item is not being tracked for stock check");
-        }
-        boolean flag = false;
-        for(String inventoryItemId : detail.getInventoryItemsId()) {
+
+        boolean checked = false;
+        for (String inventoryItemId : detail.getCheckedInventoryItemsId()) {
             if (inventoryItemId.equals(request.getInventoryItemId())) {
-                detail.setActualQuantity(detail.getActualQuantity() - 1);
-                detail.setActualMeasurementValue(detail.getActualMeasurementValue() - inventoryItem.getMeasurementValue());
-                inventoryItem.setIsTrackingForStockCheck(false);
-                flag = false;
+                checked = true;
                 break;
             }
-            flag = true;
         }
-        if(flag){
+        if(!checked) {
+            throw new RuntimeException("Inventory item is not being tracked for stock check");
+        }
+
+        boolean found = false;
+        for (String inventoryItemId : detail.getInventoryItemsId()) {
+            if (inventoryItemId.equals(request.getInventoryItemId())) {
+                detail.setActualQuantity(detail.getActualQuantity() - 1);
+                detail.setActualMeasurementValue(
+                        detail.getActualMeasurementValue() - inventoryItem.getMeasurementValue()
+                );
+                detail.getCheckedInventoryItemsId().remove(inventoryItem.getId());
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
             throw new RuntimeException("Inventory item ID not found in stock check request detail");
         }
+
 
         if(detail.getActualMeasurementValue() > detail.getMeasurementValue()) {
             detail.setStatus(DetailStatus.EXCESS);
@@ -145,7 +158,6 @@ public class StockCheckDetailService {
         if(detail.getActualQuantity() == 0.0 && detail.getActualMeasurementValue() == 0.0) {
             detail.setStatus(null);
         }
-        inventoryItemRepository.save(inventoryItem);
         return mapToResponse(stockCheckRequestDetailRepository.save(detail));
     }
 
@@ -192,6 +204,7 @@ public class StockCheckDetailService {
                 .stockCheckRequestId(detail.getStockCheckRequest().getId())
                 .itemId(detail.getItem().getId())
                 .inventoryItemIds(detail.getInventoryItemsId())
+                .checkedInventoryItemIds(detail.getCheckedInventoryItemsId())
                 .build();
     }
 }

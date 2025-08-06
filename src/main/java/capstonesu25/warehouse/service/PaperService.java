@@ -31,6 +31,7 @@ public class PaperService {
     private final CloudinaryUtil cloudinaryUtil;
     private final NotificationService notificationService;
     private final AccountRepository accountRepository;
+    private final StockCheckRequestRepository stockCheckRequestRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PaperService.class);
 
@@ -112,6 +113,16 @@ public class PaperService {
                     accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
             );
         }
+        if(request.getStockCheckRequestId() != null) {
+            LOGGER.info("Updating stock check request status at creating paper");
+            StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(request.getStockCheckRequestId()).orElseThrow();
+            stockCheckRequest.setStatus(RequestStatus.COUNTED);
+            stockCheckRequestRepository.save(stockCheckRequest);
+            paper.setStockCheckRequest(stockCheckRequest);
+            paper.setSignProviderName(stockCheckRequest.getAssignedStaff().getFullName());
+            paper.setSignReceiverName(request.getSignReceiverName());
+            paperRepository.save(paper);
+        }
 
     }
 
@@ -131,6 +142,12 @@ public class PaperService {
             exportRequest.setStatus(RequestStatus.IN_PROGRESS);
             exportRequest.setPaper(null);
             exportRequestRepository.save(exportRequest);
+        }
+        if(paper.getStockCheckRequest() != null) {
+            StockCheckRequest stockCheckRequest = paper.getStockCheckRequest();
+            stockCheckRequest.setStatus(RequestStatus.IN_PROGRESS);
+            stockCheckRequest.setPaper(null);
+            stockCheckRequestRepository.save(stockCheckRequest);
         }
         paperRepository.delete(paper);
     }

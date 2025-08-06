@@ -38,6 +38,10 @@ public class StockCheckRequestDetail {
     @Column(name = "inventory_item_ids", columnDefinition = "TEXT")
     private List<String> inventoryItemsId = new ArrayList<>();
 
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "checked_inventory_item_ids", columnDefinition = "TEXT")
+    private List<String> checkedInventoryItemsId = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "stock_check_request_id")
     private StockCheckRequest stockCheckRequest;

@@ -1,10 +1,15 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.StockCheckRequest;
-import capstonesu25.warehouse.entity.StockCheckRequestDetail;
+import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.enums.AccountRole;
+import capstonesu25.warehouse.enums.AccountStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
+import capstonesu25.warehouse.repository.AccountRepository;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
+import capstonesu25.warehouse.repository.StaffPerformanceRepository;
 import capstonesu25.warehouse.repository.StockCheckRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -25,6 +30,8 @@ import java.util.NoSuchElementException;
 public class StockCheckService {
     private final StockCheckRequestRepository stockCheckRequestRepository;
     private final ConfigurationRepository configurationRepository;
+    private final StaffPerformanceRepository staffPerformanceRepository;
+    private final AccountRepository accountRepository;
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(StockCheckService.class);
 
     public StockCheckRequestResponse getStockCheckRequestById(String id) {
@@ -61,6 +68,7 @@ public class StockCheckService {
         stockCheckRequest.setStockCheckReason(request.getStockCheckReason());
         stockCheckRequest.setType(request.getType());
         stockCheckRequest.setNote(request.getNote());
+        stockCheckRequest.setStatus(RequestStatus.NOT_STARTED);
         //validate date
         validateForTimeDate(request.getStartDate());
         stockCheckRequest.setStartDate(request.getStartDate());
@@ -75,13 +83,79 @@ public class StockCheckService {
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
     }
 
+    @Transactional
+    public StockCheckRequestResponse assignStaffToStockCheck(AssignStaffStockCheck request) {
+        LOGGER.info("Assigning staff to stock check request with data: {}", request);
+        StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(request.getStockCheckId())
+                .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + request.getStockCheckId()));
+
+        if(stockCheckRequest.getAssignedStaff() != null) {
+            LOGGER.info("Return working for pre staff: {}",stockCheckRequest.getAssignedStaff().getEmail());
+            StaffPerformance staffPerformance = staffPerformanceRepository.
+                    findByStockCheckRequestIdAndAssignedStaff_Id(stockCheckRequest.getId(),stockCheckRequest.getAssignedStaff().getId());
+            if(staffPerformance != null) {
+                LOGGER.info("Delete working time for pre staff: {}",stockCheckRequest.getAssignedStaff().getEmail());
+                staffPerformanceRepository.delete(staffPerformance);
+            }
+        }
+
+        Account account = accountRepository.findById(request.getStaffId())
+                .orElseThrow(() -> new NoSuchElementException("Staff not found with ID: " + request.getStaffId()));
+        validateAccountForAssignment(account);
+        validateForTimeDate(stockCheckRequest.getExpectedCompletedDate());
+        setTimeForCountingStaffPerformance(account, stockCheckRequest);
+
+        stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        stockCheckRequest.setStatus(RequestStatus.IN_PROGRESS);
+        return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+    }
+
+    public StockCheckRequestResponse confirmCountedStockCheck(String stockCheckId) {
+        LOGGER.info("Confirming counted stock check request with ID: {}", stockCheckId);
+        StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(stockCheckId)
+                .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + stockCheckId));
+
+        if (stockCheckRequest.getStatus() != RequestStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Cannot confirm counted stock check request: Request is not in progress");
+        }
+
+        stockCheckRequest.setStatus(RequestStatus.COUNTED);
+        stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+    }
+
+    private void setTimeForCountingStaffPerformance(Account account, StockCheckRequest request) {
+        int totalMinutes = 0;
+        for (StockCheckRequestDetail detail : request.getStockCheckRequestDetails()) {
+            LOGGER.info("Calculating expected working time for item " );
+            totalMinutes += detail.getQuantity() * detail.getItem().getCountingMinutes();
+        }
+        LocalTime expectedWorkingTime = LocalTime.of(0, 0).plusMinutes(totalMinutes);
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(expectedWorkingTime);
+        staffPerformance.setDate(request.getCountingDate());
+        staffPerformance.setStockCheckRequestId(request.getId());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformance.setExportCounting(true);
+        staffPerformanceRepository.save(staffPerformance);
+        LOGGER.info("Expected working time for counting staff: " + expectedWorkingTime);
+    }
 
     private void validateForTimeDate(LocalDate date) {
         LOGGER.info("Check if date is in the past");
         if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
             throw new IllegalStateException("Cannot set time for  export request: Date is in the past");
         }
+    }
 
+    private void validateAccountForAssignment(Account account) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Cannot assign staff: Account is not active");
+        }
+
+        if (account.getRole() != AccountRole.STAFF) {
+            throw new IllegalStateException("Cannot assign staff: Account is not a staff member");
+        }
     }
 
     private String createStockCheckID() {

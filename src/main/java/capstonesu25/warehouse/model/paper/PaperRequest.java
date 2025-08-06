@@ -17,4 +17,5 @@ public class PaperRequest {
     private String description;
     private String importOrderId;
     private String exportRequestId;
+    private String stockCheckRequestId;
 }
