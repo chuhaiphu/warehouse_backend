@@ -44,6 +44,7 @@ public class StockCheckController {
         );
     }
 
+    @Operation(summary = "Get stock check requests by staff ID")
     @GetMapping("/staff/{staffId}")
     public ResponseEntity<?> getByStaffId(@PathVariable Long staffId) {
         LOGGER.info("Getting stock check requests by staff id: {}", staffId);
