@@ -3,14 +3,12 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
+import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
-import capstonesu25.warehouse.repository.AccountRepository;
-import capstonesu25.warehouse.repository.ConfigurationRepository;
-import capstonesu25.warehouse.repository.StaffPerformanceRepository;
-import capstonesu25.warehouse.repository.StockCheckRequestRepository;
+import capstonesu25.warehouse.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
@@ -32,6 +30,8 @@ public class StockCheckService {
     private final ConfigurationRepository configurationRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final AccountRepository accountRepository;
+    private final InventoryItemRepository inventoryItemRepository;
+    private final ItemRepository itemRepository;
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(StockCheckService.class);
 
     public StockCheckRequestResponse getStockCheckRequestById(String id) {
@@ -104,7 +104,7 @@ public class StockCheckService {
         validateAccountForAssignment(account);
         validateForTimeDate(stockCheckRequest.getExpectedCompletedDate());
         setTimeForCountingStaffPerformance(account, stockCheckRequest);
-
+        stockCheckRequest.setAssignedStaff(account);
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheckRequest.setStatus(RequestStatus.IN_PROGRESS);
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
@@ -122,6 +122,81 @@ public class StockCheckService {
         stockCheckRequest.setStatus(RequestStatus.COUNTED);
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+    }
+
+    public StockCheckRequestResponse updateStatus(String stockCheckId, RequestStatus status) {
+        LOGGER.info("Updating status of stock check request with ID: {}", stockCheckId);
+        StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(stockCheckId)
+                .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + stockCheckId));
+
+        if (status == RequestStatus.COMPLETED && stockCheckRequest.getStatus() != RequestStatus.COUNTED) {
+            throw new IllegalStateException("Cannot complete stock check request: Request is not counted");
+        }
+
+        stockCheckRequest.setStatus(status);
+        stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+    }
+
+    @Transactional
+    public StockCheckRequestResponse completeStockCheck(String stockCheckId) {
+        //check status
+        LOGGER.info("Completing stock check request with ID: {}", stockCheckId);
+        StockCheckRequest stockCheck = stockCheckRequestRepository.findById(stockCheckId)
+                .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + stockCheckId));
+        if(!stockCheck.getStatus().equals(RequestStatus.CONFIRMED)) {
+            throw new IllegalStateException("Cannot complete stock check request: Request is not confirmed");
+        }
+        //check different between checkedList and rq
+        List<InventoryItem> inventoryItems = new ArrayList<>();
+        List<InventoryItem> needLiquidateItems = new ArrayList<>();
+       for(StockCheckRequestDetail detail : stockCheck.getStockCheckRequestDetails()) {
+           List<String> requestCheck = detail.getInventoryItemsId();
+           List<String> checkedCheck = detail.getCheckedInventoryItemsId();
+
+           requestCheck.removeAll(checkedCheck);
+           if(!requestCheck.isEmpty()) {
+               for(String inventoryId : requestCheck) {
+                   LOGGER.info("Item with ID {} is not checked in stock check request", inventoryId);
+                   InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
+                           .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+                   if(inventoryItem.getStatus().equals(ItemStatus.AVAILABLE)) {
+                       inventoryItems.add(inventoryItem);
+                   }
+                   if(inventoryItem.getStatus().equals(ItemStatus.NEED_LIQUID)) {
+                       needLiquidateItems.add(inventoryItem);
+                   }
+               }
+           }
+       }
+
+       for(InventoryItem inventoryItem : inventoryItems) {
+           LOGGER.info("Updating inventory item {} to not counted", inventoryItem.getId());
+           inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+           inventoryItem.setNote("Không thể tìm thấy khi kiểm đếm");
+           inventoryItem.setStoredLocation(null);
+           inventoryItemRepository.save(inventoryItem);
+           Item item = inventoryItem.getItem();
+           item.setQuantity(item.getQuantity() - 1);
+           item.setMeasurementValue(item.getMeasurementValue() - inventoryItem.getMeasurementValue());
+           itemRepository.save(item);
+       }
+
+       for(InventoryItem inventoryItem : needLiquidateItems) {
+           LOGGER.info("Updating inventory item {} to need liquidate", inventoryItem.getId());
+              inventoryItem.setStatus(ItemStatus.NEED_LIQUID);
+              inventoryItem.setNote("Cần thanh lý");
+              inventoryItem.setNeedToLiquidate(true);
+              inventoryItemRepository.save(inventoryItem);
+              Item item = inventoryItem.getItem();
+              item.setQuantity(item.getQuantity() - 1);
+              item.setMeasurementValue(item.getMeasurementValue() - inventoryItem.getMeasurementValue());
+              itemRepository.save(item);
+       }
+
+        stockCheck.setStatus(RequestStatus.COMPLETED);
+        stockCheck.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        return mapToResponse(stockCheckRequestRepository.save(stockCheck));
     }
 
     private void setTimeForCountingStaffPerformance(Account account, StockCheckRequest request) {
