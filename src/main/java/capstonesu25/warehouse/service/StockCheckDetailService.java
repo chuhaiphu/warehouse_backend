@@ -64,10 +64,15 @@ public class StockCheckDetailService {
             detail.setActualQuantity(0);
             List<InventoryItem> inventoryItems = inventoryItemRepository.findByItem_IdAndStatus(
                     request.getItemId(), ItemStatus.AVAILABLE);
-            detail.setQuantity(inventoryItems.size());
-            detail.setMeasurementValue(inventoryItems.stream()
-                    .map(InventoryItem::getMeasurementValue)
-                    .reduce(0.0, Double::sum));
+            if(request.getQuantity() == null || request.getQuantity() == 0) {
+                detail.setQuantity(inventoryItems.size());
+            }
+            if(request.getMeasurementValue() == null || request.getMeasurementValue() == 0.0) {
+                detail.setMeasurementValue(inventoryItems.stream()
+                        .map(InventoryItem::getMeasurementValue)
+                        .reduce(0.0, Double::sum));
+            }
+
             detail.setInventoryItemsId(inventoryItems.stream()
                     .map(InventoryItem::getId)
                     .toList());
