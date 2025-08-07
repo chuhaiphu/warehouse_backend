@@ -70,11 +70,6 @@ public class ImportOrderService {
         ImportRequest importRequest = importRequestRepository.findById(request.getImportRequestId())
                 .orElseThrow(() -> new NoSuchElementException(
                         "ImportRequest not found with ID: " + request.getImportRequestId()));
-        if (importRequest.getExportRequestId() != null) {
-            if(!importRequest.getExportRequestId().equals(request.getExportRequestId())) {
-                throw new IllegalStateException("Cannot create import order: Import request and export request IDs not match");
-            }
-        }
 
         boolean canBeContinued = false;
         if(importRequest.getType().equals(ImportType.ORDER)) {

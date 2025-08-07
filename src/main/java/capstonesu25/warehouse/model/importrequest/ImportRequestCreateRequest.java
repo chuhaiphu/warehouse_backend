@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -24,5 +25,15 @@ public class ImportRequestCreateRequest {
 
     private LocalDate endDate;
 
-    private String exportRequestId;
-} 
+    private Long departmentId;
+
+    private List<ReturnImportRequestDetail> returnImportRequestDetails;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ReturnImportRequestDetail {
+        private String inventoryItemId;
+        private Double measurementValue;
+    }
+}

@@ -9,6 +9,7 @@ import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ReturnImportOrderDetail;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.Mapper;
 import capstonesu25.warehouse.utils.NotificationUtil;
@@ -25,6 +26,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,7 @@ public class ImportOrderDetailService {
     private final AccountService accountService;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final NotificationService notificationService;
+    private final InventoryItemRepository inventoryItemRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
@@ -77,6 +81,48 @@ public class ImportOrderDetailService {
 
         updateOrderedQuantityOfImportRequestDetail(importOrderId);
         return importOrderResponse;
+    }
+
+    public void createReturnImportOrderDetails(
+            List<ReturnImportOrderDetail> request, String importOrderId) {
+        LOGGER.info("Creating return import order details for import order id: {}", importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
+
+       ImportRequest importRequest = importOrder.getImportRequest();
+        Set<String> requestedItemIds = request.stream()
+                .map(ReturnImportOrderDetail::getInventoryItemId)
+                .collect(Collectors.toSet());
+
+        for (ReturnImportOrderDetail returnDetail : request) {
+            String itemId = returnDetail.getInventoryItemId();
+            if (!requestedItemIds.contains(itemId)) {
+                throw new IllegalArgumentException("Inventory item ID not found in import request: " + itemId);
+            }
+        }
+
+        for (ReturnImportOrderDetail returnDetail : request) {
+            InventoryItem inventoryItem = inventoryItemRepository.findById(returnDetail.getInventoryItemId()).orElseThrow(
+                    () -> new NoSuchElementException("Inventory Item not found with ID: " + returnDetail.getInventoryItemId()));
+            ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setImportOrder(importOrder);
+            detail.setItem(inventoryItem.getItem());
+            detail.setExpectQuantity(1);
+            detail.setActualQuantity(0);
+            detail.setExpectMeasurementValue(returnDetail.getMeasurementValue());
+            detail.setActualMeasurementValue(0.0);
+            importOrderDetailRepository.save(detail);
+        }
+
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(importOrder.getDateReceived());
+        activeAccountRequest.setImportOrderId(importOrder.getId());
+
+        List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        if (!accountResponse.isEmpty()) {
+            assignStaff(importOrder.getId(), accountResponse.get(0).getId());
+        }
+
     }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "CREATE", objectIdSource = "importOrderId")

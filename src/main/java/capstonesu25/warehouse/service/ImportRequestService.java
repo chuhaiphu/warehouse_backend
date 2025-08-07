@@ -1,22 +1,13 @@
 package capstonesu25.warehouse.service;
 
-import capstonesu25.warehouse.entity.Configuration;
-import capstonesu25.warehouse.entity.ExportRequest;
-import capstonesu25.warehouse.entity.ExportRequestDetail;
-import capstonesu25.warehouse.entity.ImportRequest;
-import capstonesu25.warehouse.entity.ImportRequestDetail;
-import capstonesu25.warehouse.enums.ExportType;
+import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
-import capstonesu25.warehouse.repository.ConfigurationRepository;
-import capstonesu25.warehouse.repository.ExportRequestRepository;
-import capstonesu25.warehouse.repository.ImportRequestDetailRepository;
-import capstonesu25.warehouse.repository.ImportRequestRepository;
+import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.Mapper;
-import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +23,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -43,6 +35,8 @@ public class ImportRequestService {
     private final ConfigurationRepository configurationRepository;
     private final ExportRequestRepository exportRequestRepository;
     private final ImportRequestDetailRepository importRequestDetailRepository;
+    private final DepartmentRepository departmentRepository;
+    private final InventoryItemRepository inventoryItemRepository;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
@@ -72,32 +66,29 @@ public class ImportRequestService {
         if(!request.getImportType().equals(ImportType.RETURN)) {
            throw new RuntimeException("The type of import request must be RETURN");
         }
-
+        Department department = departmentRepository.findById(request.getDepartmentId()).orElseThrow(
+                () -> new NoSuchElementException("Department not found with ID: " + request.getDepartmentId()
+        ));
         Configuration config = configurationRepository.findAll().getFirst();
-        ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId())
-                .orElseThrow(() -> new IllegalArgumentException("Not found export request with ID : " + request.getExportRequestId()));
 
-        if(exportRequest.getType().equals(ExportType.INTERNAL)) {
             importRequest.setId(createImportRequestId());
             importRequest.setImportReason(request.getImportReason());
             importRequest.setType(request.getImportType());
             importRequest.setStatus(RequestStatus.NOT_STARTED);
+            importRequest.setDepartmentId(department.getId());
 
             LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
             LocalDate endDate = startDate.plusDays(config.getMaxAllowedDaysForImportRequestProcess());
 
             if (request.getEndDate() != null) {
-
                 if (request.getEndDate().isBefore(request.getStartDate())) {
                     throw new IllegalArgumentException("End date cannot be before start date.");
                 }
-
                 long daysBetween = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
 
                 if (daysBetween > config.getMaxAllowedDaysForImportRequestProcess()) {
                     throw new IllegalArgumentException("End date cannot be after the maximum allowed date for import request processing.");
                 }
-
                 endDate = request.getEndDate();
             }
 
@@ -105,36 +96,32 @@ public class ImportRequestService {
                 if (request.getStartDate().isAfter(endDate)) {
                     throw new IllegalArgumentException("Start date cannot be after end date.");
                 }
-
                 if (request.getStartDate().isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
                     throw new IllegalArgumentException("Start date cannot be in the past.");
                 }
-
                 startDate = request.getStartDate();
             }
 
             importRequest.setStartDate(startDate);
             importRequest.setEndDate(endDate);
-            importRequest.setExportRequestId(request.getExportRequestId());
-            // Save Import Request first before saving Import Request Details to prevent TransientObjectException
             importRequest = importRequestRepository.save(importRequest);
 
-            List<ImportRequestDetail> importRequestDetails = new ArrayList<>();
-            for(ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
-                ImportRequestDetail detail = new ImportRequestDetail();
-                detail.setItem(exportRequestDetail.getItem());
-                detail.setExpectMeasurementValue(exportRequestDetail.getMeasurementValue());
-                detail.setExpectQuantity(exportRequestDetail.getQuantity());
-                detail.setOrderedMeasurementValue(0.0);
-                detail.setOrderedQuantity(0);
-                detail.setActualMeasurementValue(0.0);
-                detail.setActualQuantity(0);
-                detail.setImportRequest(importRequest);
-                importRequestDetails.add(detail);
+            List<ImportRequestDetail> detailList = new ArrayList<>();
+            for(ImportRequestCreateRequest.ReturnImportRequestDetail detail : request.getReturnImportRequestDetails()) {
+                ImportRequestDetail importRequestDetail = new ImportRequestDetail();
+                InventoryItem inventoryItem = inventoryItemRepository.findById(detail.getInventoryItemId())
+                        .orElseThrow(() -> new NoSuchElementException("InventoryItem not found with ID: " + detail.getInventoryItemId()));
+                importRequestDetail.setInventoryItemId(detail.getInventoryItemId());
+                importRequestDetail.setExpectMeasurementValue(detail.getMeasurementValue());
+                importRequestDetail.setExpectQuantity(1);
+                importRequestDetail.setActualQuantity(0);
+                importRequestDetail.setActualMeasurementValue(0.0);
+                importRequestDetail.setOrderedMeasurementValue(0.0);
+                importRequestDetail.setOrderedQuantity(0);
+                importRequestDetail.setImportRequest(importRequest);
+                detailList.add(importRequestDetail);
             }
-
-            importRequestDetailRepository.saveAll(importRequestDetails);
-        }
+            importRequest.setDetails(detailList);
 
         return Mapper.mapToImportRequestResponse(importRequest);
     }

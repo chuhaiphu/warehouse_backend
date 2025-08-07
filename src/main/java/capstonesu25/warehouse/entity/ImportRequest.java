@@ -42,6 +42,9 @@ public class ImportRequest {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Column(name = "department_id")
+    private Long departmentId;
+
     @Column(name = "export_request_id")
     private String exportRequestId;
 

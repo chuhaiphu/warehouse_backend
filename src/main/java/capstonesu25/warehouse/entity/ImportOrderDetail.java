@@ -21,6 +21,9 @@ public class ImportOrderDetail {
     @Column(name = "status")
     private DetailStatus status;
 
+    @Column(name = "inventory_item_id")
+    private String inventoryItemId;
+
     @Column(name = "expect_quantity")
     private int expectQuantity;
 

@@ -3,6 +3,7 @@ package capstonesu25.warehouse.controller;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailRequest;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailUpdateRequest;
+import capstonesu25.warehouse.model.importorder.importorderdetail.ReturnImportOrderDetail;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportOrderDetailService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -67,6 +68,19 @@ public class ImportOrderDetailController {
                 service.create(request, importOrderId),
                 HttpStatus.CREATED,
                 "Successfully created import order details");
+    }
+
+    @Operation(summary = "Create return import order details from Excel file")
+    @PostMapping("/return/{importOrderId}")
+    public ResponseEntity<?> createReturnImportOrderDetails(
+            @RequestBody List<ReturnImportOrderDetail> requests,
+            @PathVariable String importOrderId) {
+        LOGGER.info("Creating return import order details from Excel file");
+        service.createReturnImportOrderDetails(requests, importOrderId);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.CREATED,
+                "Successfully created return import order details");
     }
 
     @Operation(summary = "Update actual quantities of import order details")
