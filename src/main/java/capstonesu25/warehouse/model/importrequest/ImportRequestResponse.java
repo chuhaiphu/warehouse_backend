@@ -30,6 +30,6 @@ public class ImportRequestResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private String exportRequestId;
-
+    private Long departmentId;
 
 }
