@@ -38,7 +38,7 @@ public class RegisterRequest {
     private String password;
 
     @NotNull(message = "Role can not be null")
-    @Pattern(regexp = "DEPARTMENT|STAFF|WAREHOUSE_MANAGER|ACCOUNTING|ADMIN", 
-            message = "Role must be one of: DEPARTMENT, STAFF, WAREHOUSE_MANAGER, ACCOUNTING, ADMIN")
+    @Pattern(regexp = "DEPARTMENT|STAFF|WAREHOUSE_MANAGER|ACCOUNTING|ADMIN|MANAGER", 
+            message = "Role must be one of: DEPARTMENT, STAFF, WAREHOUSE_MANAGER, ACCOUNTING, ADMIN, MANAGER")
     private String role;
 }
