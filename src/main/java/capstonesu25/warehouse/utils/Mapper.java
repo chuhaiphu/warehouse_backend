@@ -22,6 +22,7 @@ public class Mapper {
                 importRequestDetail.getImportRequest() != null ? importRequestDetail.getImportRequest().getId() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getId() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
+                importRequestDetail.getInventoryItemId(),
                 importRequestDetail.getActualQuantity(),
                 importRequestDetail.getExpectQuantity(),
                 importRequestDetail.getOrderedQuantity(),
