@@ -163,6 +163,17 @@ public class ImportOrderController {
 				"Successfully completed import order");
 	}
 
+	@Operation(summary = "complete a return import order")
+	@PostMapping("/complete-return/{importOrderId}")
+	public ResponseEntity<?> completeReturnImportOrder(@PathVariable String importOrderId) {
+		LOGGER.info("Completing return import order");
+		ImportOrderResponse result = importOrderService.completeReturnImportOrder(importOrderId);
+		return ResponseUtil.getObject(
+				result,
+				HttpStatus.OK,
+				"Successfully completed return import order");
+	}
+
 	@Operation(summary = "extend an import order")
 	@PostMapping("/extend")
 	public ResponseEntity<?> extendImportOrder(@RequestBody ExtendImportOrderRequest request) {

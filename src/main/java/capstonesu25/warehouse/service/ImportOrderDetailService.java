@@ -338,6 +338,34 @@ public class ImportOrderDetailService {
         }
     }
 
+    public void trackingReturnImportOrderDetail(Long detailId, ImportOrderDetailUpdateRequest updateRequest) {
+        LOGGER.info("Tracking return import order detail for detail ID: {}", detailId);
+        ImportOrderDetail detail = importOrderDetailRepository.findById(detailId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrderDetail not found with ID: " + detailId));
+
+        if(!detail.getInventoryItemId().equals(updateRequest.getInventoryItemId())) {
+            LOGGER.info("Inventory Item ID does not match for detail ID: {}", detailId);
+        }
+        InventoryItem inventoryItem = inventoryItemRepository.findById(updateRequest.getInventoryItemId())
+                .orElseThrow(() -> new NoSuchElementException("Inventory Item not found with ID: " + updateRequest.getInventoryItemId()));
+        if(updateRequest.getActualMeasurement() == 0) {
+            detail.setActualMeasurementValue(detail.getExpectMeasurementValue());
+            detail.setStatus(DetailStatus.MATCH);
+        }
+        if(updateRequest.getActualMeasurement() > detail.getExpectMeasurementValue()) {
+            LOGGER.info("Actual measurement exceeds expected measurement for detail ID: {}", detailId);
+            throw new IllegalArgumentException("Actual measurement cannot exceed expected measurement");
+        }
+        detail.setActualQuantity(1);
+        detail.setActualMeasurementValue(updateRequest.getActualMeasurement());
+        if(detail.getActualMeasurementValue() < detail.getExpectMeasurementValue()) {
+            detail.setStatus(DetailStatus.LACK);
+        } else {
+            detail.setStatus(DetailStatus.MATCH);
+        }
+        importOrderDetailRepository.save(detail);
+    }
+
     public void updateActualMeasurement(ImportOrderDetailUpdateRequest request, Long importOrderDetailID) {
         LOGGER.info("Updating actual measurement for ImportOrderDetail ID: {}", importOrderDetailID);
 
@@ -381,7 +409,7 @@ public class ImportOrderDetailService {
 
         detail.setActualQuantity(0);
         detail.setActualMeasurementValue(0.0);
-        updateDetailStatus(detail);
+        detail.setStatus(null);
         importOrderDetailRepository.save(detail);
     }
 

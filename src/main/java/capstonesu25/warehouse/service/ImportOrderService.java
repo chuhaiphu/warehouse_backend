@@ -11,6 +11,7 @@ import capstonesu25.warehouse.model.importorder.ImportOrderUpdateRequest;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.Mapper;
 import capstonesu25.warehouse.utils.NotificationUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -342,6 +343,28 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
+    @Transactional
+    public ImportOrderResponse completeReturnImportOrder(String importOrderId) {
+        LOGGER.info("Completing import order with ID: " + importOrderId);
+        ImportOrder importOrder = importOrderRepository.findById(importOrderId)
+                .orElseThrow(() -> new NoSuchElementException("ImportOrder not found with ID: " + importOrderId));
+
+
+        importOrder.setStatus(RequestStatus.COMPLETED);
+        updateReturnImportRequest(importOrder);
+        updateImportOrder(importOrder);
+        handleImportItems(importOrder);
+
+        notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+    }
+
     @TransactionLoggable(type = "IMPORT_ORDER", action = "EXTEND", objectIdSource = "importOrderId")
     public ImportOrderResponse extendImportOrder(String importOrderId, LocalDate extendedDate, LocalTime extendedTime,
             String extendedReason) {
@@ -495,9 +518,43 @@ public class ImportOrderService {
         }
     }
 
+    private void updateReturnImportRequest(ImportOrder importOrder) {
+        LOGGER.info("Updating return import request after paper creation");
+
+        ImportRequest importRequest = importOrder.getImportRequest();
+        List<ImportRequestDetail> importRequestDetails = importRequest.getDetails();
+        for (ImportRequestDetail detail : importRequestDetails) {
+            for (ImportOrderDetail importOrderDetail : importOrder.getImportOrderDetails()) {
+                if (detail.getItem().getId().equals(importOrderDetail.getItem().getId())) {
+                    detail.setActualQuantity(detail.getActualQuantity() + importOrderDetail.getActualQuantity());
+                    if (detail.getActualMeasurementValue() == detail.getExpectMeasurementValue()) {
+                        detail.setStatus(DetailStatus.MATCH);
+                    } else {
+                        detail.setStatus(DetailStatus.LACK);
+                    }
+                    importRequestDetailRepository.save(detail);
+                }
+            }
+        }
+
+        boolean allCompleted = true;
+        for (ImportRequestDetail detail : importRequestDetails) {
+            if (detail.getActualMeasurementValue() < detail.getExpectMeasurementValue()) {
+                allCompleted = false;
+                break;
+            }
+        }
+
+        if (allCompleted) {
+            importRequest.setStatus(RequestStatus.COMPLETED);
+            importRequestRepository.save(importRequest);
+        }
+    }
+
     private void updateImportOrder(ImportOrder importOrder) {
         LOGGER.info("Updating import order after completed");
         List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
+        if(importOrder.getImportRequest().getType().equals(ImportType.ORDER)) {
         for (ImportOrderDetail importOrderDetail : importOrderDetails) {
             LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
             createInventoryItem(importOrderDetail);
@@ -511,8 +568,23 @@ public class ImportOrderService {
             }
             importOrderDetailRepository.save(importOrderDetail);
         }
+        } else {
+            int i  = 0;
+            for (ImportOrderDetail importOrderDetail : importOrderDetails) {
+                LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
+                createReturnInventoryItem(importOrderDetail,i);
+                LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
+                if (importOrderDetail.getActualMeasurementValue() == importOrderDetail.getExpectMeasurementValue()) {
+                    importOrderDetail.setStatus(DetailStatus.MATCH);
+                } else {
+                    importOrderDetail.setStatus(DetailStatus.LACK);
+                }
+                i++;
+                importOrderDetailRepository.save(importOrderDetail);
+            }
+        }
 
-        importOrder.setUpdatedDate(LocalDateTime.now());
+
         importOrderRepository.save(importOrder);
     }
 
@@ -623,23 +695,41 @@ public class ImportOrderService {
         }
     }
 
+    private void createReturnInventoryItem(ImportOrderDetail importOrderDetail, int index) {
+        LOGGER.info("Creating return inventory item for import order detail id: {}", importOrderDetail.getId());
+        InventoryItem inventoryItem = new InventoryItem();
+        inventoryItem.setId(createInventoryItemId(importOrderDetail, index));
+        inventoryItem.setImportOrderDetail(importOrderDetail);
+        inventoryItem.setItem(importOrderDetail.getItem());
+        InventoryItem parentItem = inventoryItemRepository.findById(importOrderDetail.getInventoryItemId())
+                .orElseThrow(() -> new NoSuchElementException("InventoryItem not found with ID: "
+                        + importOrderDetail.getInventoryItemId()));
+        inventoryItem.setImportedDate(parentItem.getImportedDate());
+        inventoryItem.setMeasurementValue(importOrderDetail.getActualMeasurementValue());
+        inventoryItem.setStatus(ItemStatus.AVAILABLE);
+        inventoryItem.setUpdatedDate(LocalDateTime.now());
+        inventoryItem.setExpiredDate(parentItem.getExpiredDate());
+        inventoryItem.setParent(parentItem);
+        inventoryItem.setStoredLocation(parentItem.getStoredLocation());
+        inventoryItemRepository.save(inventoryItem);
+    }
+
     private void handleImportItems(ImportOrder importOrder) {
         LOGGER.info("Handling import items for import order id: {}", importOrder.getId());
-        Map<String, Item> updatedItems = new HashMap<>();
-
-        for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
-            for (InventoryItem inventoryItem : detail.getInventoryItems()) {
-                Item item = inventoryItem.getItem();
-                if (item != null) {
-                    item.setTotalMeasurementValue(
-                            item.getTotalMeasurementValue() + inventoryItem.getMeasurementValue());
-                    item.setQuantity(item.getQuantity() + 1);
-                    updatedItems.put(item.getId(), item);
+            Map<String, Item> updatedItems = new HashMap<>();
+            for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+                for (InventoryItem inventoryItem : detail.getInventoryItems()) {
+                    Item item = inventoryItem.getItem();
+                    if (item != null) {
+                        item.setTotalMeasurementValue(
+                                item.getTotalMeasurementValue() + inventoryItem.getMeasurementValue());
+                        item.setQuantity(item.getQuantity() + 1);
+                        updatedItems.put(item.getId(), item);
+                    }
                 }
             }
-        }
 
-        itemRepository.saveAll(updatedItems.values());
+            itemRepository.saveAll(updatedItems.values());
         LOGGER.info("Updated {} imported items", updatedItems.size());
     }
 

@@ -76,6 +76,9 @@ public class StockCheckService {
         stockCheckRequest.setExpectedCompletedDate(request.getExpectedCompletedDate());
         validateForTimeDate(request.getCountingDate());
         stockCheckRequest.setCountingDate(request.getCountingDate());
+        if(request.getCountingDate().equals(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+            stockCheckRequest.setStatus(RequestStatus.IN_PROGRESS);
+        }
         stockCheckRequest.setCountingTime(request.getCountingTime());
         stockCheckRequest.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));

@@ -95,6 +95,17 @@ public class ImportOrderDetailController {
                 "Successfully updated actual quantities");
     }
 
+    @Operation(summary = "tracking import order detail of return request")
+    @PutMapping("/tracking/{importOrderDetailId}")
+    public ResponseEntity<?> trackingReturnImportOrderDetail(@PathVariable Long importOrderDetailId, ImportOrderDetailUpdateRequest request) {
+        LOGGER.info("Tracking return import order detail");
+        service.trackingReturnImportOrderDetail(importOrderDetailId, request);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "Successfully tracked return import order detail");
+    }
+
     @Operation(summary = "Update actual measurement of import order detail")
     @PutMapping("/measurement/{importOrderDetailId}")
     public ResponseEntity<?> updateActualMeasurement(
