@@ -56,7 +56,8 @@ public class Mapper {
                 importRequest.getBatchCode(),
                 importRequest.getStartDate(),
                 importRequest.getEndDate(),
-                importRequest.getExportRequestId()
+                importRequest.getExportRequestId(),
+                importRequest.getDepartmentId()
         );
     }
 
