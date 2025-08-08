@@ -76,7 +76,7 @@ public class StockCheckService {
         stockCheckRequest.setExpectedCompletedDate(request.getExpectedCompletedDate());
         validateForTimeDate(request.getCountingDate());
         stockCheckRequest.setCountingDate(request.getCountingDate());
-        if(request.getCountingDate().equals(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+        if(request.getStartDate().equals(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
             stockCheckRequest.setStatus(RequestStatus.IN_PROGRESS);
         }
         stockCheckRequest.setCountingTime(request.getCountingTime());
@@ -118,10 +118,6 @@ public class StockCheckService {
         StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(stockCheckId)
                 .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + stockCheckId));
 
-        if (stockCheckRequest.getStatus() != RequestStatus.IN_PROGRESS) {
-            throw new IllegalStateException("Cannot confirm counted stock check request: Request is not in progress");
-        }
-
         stockCheckRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
@@ -143,66 +139,62 @@ public class StockCheckService {
 
     @Transactional
     public StockCheckRequestResponse completeStockCheck(String stockCheckId) {
-        //check status
         LOGGER.info("Completing stock check request with ID: {}", stockCheckId);
+
+        // Step 1: Validate status
         StockCheckRequest stockCheck = stockCheckRequestRepository.findById(stockCheckId)
                 .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + stockCheckId));
-        if(!stockCheck.getStatus().equals(RequestStatus.CONFIRMED)) {
+        if (!stockCheck.getStatus().equals(RequestStatus.CONFIRMED)) {
             throw new IllegalStateException("Cannot complete stock check request: Request is not confirmed");
         }
-        //check different between checkedList and rq
-        List<InventoryItem> inventoryItems = new ArrayList<>();
-        List<InventoryItem> needLiquidateItems = new ArrayList<>();
-       for(StockCheckRequestDetail detail : stockCheck.getStockCheckRequestDetails()) {
-           List<String> requestCheck = detail.getInventoryItemsId();
-           List<String> checkedCheck = detail.getCheckedInventoryItemsId();
 
-           requestCheck.removeAll(checkedCheck);
-           if(!requestCheck.isEmpty()) {
-               for(String inventoryId : requestCheck) {
-                   LOGGER.info("Item with ID {} is not checked in stock check request", inventoryId);
-                   InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
-                           .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
-                   if(inventoryItem.getStatus().equals(ItemStatus.AVAILABLE)) {
-                       inventoryItems.add(inventoryItem);
-                   }
-               }
-           }
-           for(String inventoryId : checkedCheck) {
-               LOGGER.info("Item with ID {} is checked in stock check request", inventoryId);
-               InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
-                       .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
-               if(inventoryItem.getStatus().equals(ItemStatus.NEED_LIQUID)) {
-                   needLiquidateItems.add(inventoryItem);
-               }
-           }
-       }
+        // Step 2: Process details
+        for (StockCheckRequestDetail detail : stockCheck.getStockCheckRequestDetails()) {
+            List<String> requestCheck = new ArrayList<>(detail.getInventoryItemsId()); // Make a copy
+            List<String> checkedCheck = detail.getCheckedInventoryItemsId();
 
-       for(InventoryItem inventoryItem : inventoryItems) {
-           LOGGER.info("Updating inventory item {} to not counted", inventoryItem.getId());
-           inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
-           inventoryItem.setNote("Không thể tìm thấy khi kiểm đếm");
-           inventoryItem.setStoredLocation(null);
-           inventoryItemRepository.save(inventoryItem);
-           Item item = inventoryItem.getItem();
-           item.setQuantity(item.getQuantity() - 1);
-           item.setMeasurementValue(item.getMeasurementValue() - inventoryItem.getMeasurementValue());
-           itemRepository.save(item);
-       }
+            // Get missing items
+            requestCheck.removeAll(checkedCheck);
+            for (String inventoryId : requestCheck) {
+                LOGGER.info("Item with ID {} is NOT checked in stock check request", inventoryId);
+                InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
+                        .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
 
-       for(InventoryItem inventoryItem : needLiquidateItems) {
-           LOGGER.info("Updating inventory item {} to need liquidate", inventoryItem.getId());
-              inventoryItem.setStatus(ItemStatus.NEED_LIQUID);
-              inventoryItem.setNote("Cần thanh lý");
-              inventoryItem.setNeedToLiquidate(true);
-              inventoryItemRepository.save(inventoryItem);
-              Item item = inventoryItem.getItem();
-              item.setQuantity(item.getQuantity() - 1);
-              item.setMeasurementValue(item.getMeasurementValue() - inventoryItem.getMeasurementValue());
-              itemRepository.save(item);
-       }
+                // Always mark as UNAVAILABLE when not checked
+                inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+                inventoryItem.setNote("Không thể tìm thấy khi kiểm đếm");
+                inventoryItem.setStoredLocation(null);
+                inventoryItemRepository.save(inventoryItem);
 
+                // Always update item stats
+                Item item = inventoryItem.getItem();
+                item.setQuantity(item.getQuantity() - 1);
+                item.setTotalMeasurementValue(item.getTotalMeasurementValue() - inventoryItem.getMeasurementValue());
+                itemRepository.save(item);
+            }
+
+            // Process checked items to liquidate
+            for (String inventoryId : checkedCheck) {
+                LOGGER.info("Item with ID {} is CHECKED in stock check request", inventoryId);
+                InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
+                        .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+
+                if (inventoryItem.getStatus().equals(ItemStatus.NEED_LIQUID)) {
+                    inventoryItem.setNote("Cần thanh lý");
+                    inventoryItem.setNeedToLiquidate(true);
+                    inventoryItemRepository.save(inventoryItem);
+
+                    Item item = inventoryItem.getItem();
+                    item.setQuantity(item.getQuantity() - 1);
+                    item.setTotalMeasurementValue(item.getTotalMeasurementValue() - inventoryItem.getMeasurementValue());
+                    itemRepository.save(item);
+                }
+            }
+        }
+
+        // Step 3: Finalize stock check
         stockCheck.setStatus(RequestStatus.COMPLETED);
+        stockCheck.setExpectedCompletedDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheck.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         return mapToResponse(stockCheckRequestRepository.save(stockCheck));
     }
