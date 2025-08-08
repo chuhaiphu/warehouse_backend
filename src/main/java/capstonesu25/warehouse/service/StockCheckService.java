@@ -119,7 +119,7 @@ public class StockCheckService {
             throw new IllegalStateException("Cannot confirm counted stock check request: Request is not in progress");
         }
 
-        stockCheckRequest.setStatus(RequestStatus.COUNTED);
+        stockCheckRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
     }
