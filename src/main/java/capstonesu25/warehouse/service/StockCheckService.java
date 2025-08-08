@@ -163,9 +163,14 @@ public class StockCheckService {
                    if(inventoryItem.getStatus().equals(ItemStatus.AVAILABLE)) {
                        inventoryItems.add(inventoryItem);
                    }
-                   if(inventoryItem.getStatus().equals(ItemStatus.NEED_LIQUID)) {
-                       needLiquidateItems.add(inventoryItem);
-                   }
+               }
+           }
+           for(String inventoryId : checkedCheck) {
+               LOGGER.info("Item with ID {} is checked in stock check request", inventoryId);
+               InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
+                       .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+               if(inventoryItem.getStatus().equals(ItemStatus.NEED_LIQUID)) {
+                   needLiquidateItems.add(inventoryItem);
                }
            }
        }
