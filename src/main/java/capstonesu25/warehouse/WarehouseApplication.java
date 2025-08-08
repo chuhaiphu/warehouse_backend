@@ -328,6 +328,16 @@ public class WarehouseApplication {
 					.build();
 			accountService.register(admin);
 
+			RegisterRequest manager = RegisterRequest.builder()
+					.username("manager")
+					.email("manager@warehouse.com")
+					.password("12345")
+					.phone("0901234523")
+					.fullName("Đặng Phúc Manager")
+					.role("MANAGER")
+					.build();
+			accountService.register(manager);
+
 			RegisterRequest warehouseManager = RegisterRequest.builder()
 					.username("quanly")
 					.email("quanly@warehouse.com")
