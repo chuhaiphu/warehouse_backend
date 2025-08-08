@@ -68,11 +68,13 @@ public class Mapper {
                 importOrderDetail.getImportOrder().getId(),
                 importOrderDetail.getItem().getId(),
                 importOrderDetail.getItem().getName(),
+                importOrderDetail.getInventoryItemId(),
                 importOrderDetail.getExpectQuantity(),
                 importOrderDetail.getActualQuantity(),
                 importOrderDetail.getExpectMeasurementValue(),
                 importOrderDetail.getActualMeasurementValue(),
                 importOrderDetail.getStatus()
+
         );
     }
 

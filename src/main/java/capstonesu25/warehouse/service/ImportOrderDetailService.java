@@ -105,6 +105,7 @@ public class ImportOrderDetailService {
             InventoryItem inventoryItem = inventoryItemRepository.findById(returnDetail.getInventoryItemId()).orElseThrow(
                     () -> new NoSuchElementException("Inventory Item not found with ID: " + returnDetail.getInventoryItemId()));
             ImportOrderDetail detail = new ImportOrderDetail();
+            detail.setInventoryItemId(returnDetail.getInventoryItemId());
             detail.setImportOrder(importOrder);
             detail.setItem(inventoryItem.getItem());
             detail.setExpectQuantity(1);

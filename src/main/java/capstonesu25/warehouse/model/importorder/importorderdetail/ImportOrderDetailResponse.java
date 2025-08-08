@@ -13,6 +13,7 @@ public class ImportOrderDetailResponse {
     private String importOrderId;
     private String itemId;
     private String itemName;
+    private String inventoryItemId;
     private int expectQuantity;
     private int actualQuantity;
     private Double actualMeasurementValue;
