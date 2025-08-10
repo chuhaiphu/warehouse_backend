@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.model.importorder;
 
+import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
 import lombok.AllArgsConstructor;
@@ -34,4 +35,5 @@ public class ImportOrderResponse {
     private Long paperIds;
     private Long assignedStaffId;
     private String exportRequestId;
+    private ImportType importType;
 }

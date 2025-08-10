@@ -113,6 +113,17 @@ public class ImportOrderDetailService {
             detail.setExpectMeasurementValue(returnDetail.getMeasurementValue());
             detail.setActualMeasurementValue(0.0);
             importOrderDetailRepository.save(detail);
+
+            List<ImportRequestDetail> requestDetails = detail.getImportOrder().getImportRequest().getDetails();
+            for( ImportRequestDetail requestDetail : requestDetails) {
+                if (requestDetail.getItem().getId().equals(detail.getItem().getId())) {
+                    requestDetail.setOrderedQuantity(requestDetail.getOrderedQuantity() + 1);
+                    requestDetail.setOrderedMeasurementValue(
+                            requestDetail.getOrderedMeasurementValue() + returnDetail.getMeasurementValue());
+                    importRequestDetailRepository.save(requestDetail);
+                    break;
+                }
+            }
         }
 
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
@@ -377,30 +388,18 @@ public class ImportOrderDetailService {
         ImportOrderDetail detail = importOrderDetailRepository.findById(importOrderDetailID)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrderDetail not found with ID: " + importOrderDetailID));
 
-        ExportRequest exportRequest = detail.getImportOrder().getExportRequest();
-
-        boolean found = false;
-
-        for (ExportRequestDetail exportRequestDetail : exportRequest.getExportRequestDetails()) {
-            for (InventoryItem inventoryItem : exportRequestDetail.getInventoryItems()) {
-                if (inventoryItem.getId().equals(request.getInventoryItemId())) {
-                    LOGGER.info("Updating actual measurement for inventory item: {}", inventoryItem.getId());
-
-                    detail.setActualQuantity(detail.getActualQuantity() + 1);
-                    detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
-
-                    updateDetailStatusByMeasurementValue(detail);
-                    importOrderDetailRepository.save(detail);
-                    found = true;
-                    break;
-                }
-            }
-            if (found) break;
+        if(!request.getItemId().equals(detail.getInventoryItemId())) {
+            throw new IllegalArgumentException("Item ID does not match for ImportOrderDetail ID: " + importOrderDetailID);
         }
+        LOGGER.info("Updating actual value for inventory item: {}", request.getActualMeasurement());
 
-        if (!found) {
-            throw new NoSuchElementException("Inventory Item not found with ID: " + request.getInventoryItemId());
-        }
+        detail.setActualQuantity(detail.getActualQuantity() + 1);
+        detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
+
+        updateDetailStatusByMeasurementValue(detail);
+        importOrderDetailRepository.save(detail);
+
+
     }
 
     public void resetUpdate (Long importOrderDetailId) {
