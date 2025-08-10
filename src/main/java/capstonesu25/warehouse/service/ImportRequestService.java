@@ -114,6 +114,7 @@ public class ImportRequestService {
                             "InventoryItem not found with ID: " + detail.getInventoryItemId()));
             importRequestDetail.setInventoryItemId(detail.getInventoryItemId());
             importRequestDetail.setExpectMeasurementValue(detail.getMeasurementValue());
+            importRequestDetail.setItem(inventoryItem.getItem());
             importRequestDetail.setExpectQuantity(1);
             importRequestDetail.setActualQuantity(0);
             importRequestDetail.setActualMeasurementValue(0.0);
