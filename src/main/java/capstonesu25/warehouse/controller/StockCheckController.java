@@ -2,6 +2,7 @@ package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
+import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.service.StockCheckService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -95,11 +96,11 @@ public class StockCheckController {
 
     // complete
     @Operation(summary = "Complete stock check request")
-    @PutMapping("/complete/{stockCheckId}")
-    public ResponseEntity<?> completeStockCheck(@PathVariable String stockCheckId) {
-        LOGGER.info("Completing stock check request with ID: {}", stockCheckId);
+    @PutMapping("/complete")
+    public ResponseEntity<?> completeStockCheck(@RequestBody CompleteStockCheckRequest request) {
+        LOGGER.info("Completing stock check request with ID: {}", request);
         return ResponseUtil.getObject(
-                stockCheckService.completeStockCheck(stockCheckId),
+                stockCheckService.completeStockCheck(request),
                 HttpStatus.OK,
                 "Successfully completed stock check request"
         );

@@ -6,6 +6,7 @@ import capstonesu25.warehouse.enums.AccountStatus;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
+import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
 import capstonesu25.warehouse.repository.*;
@@ -19,9 +20,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +32,8 @@ public class StockCheckService {
     private final AccountRepository accountRepository;
     private final InventoryItemRepository inventoryItemRepository;
     private final ItemRepository itemRepository;
+    private final StockCheckRequestDetailRepository stockCheckRequestDetailRepository;
+
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(StockCheckService.class);
 
     public StockCheckRequestResponse getStockCheckRequestById(String id) {
@@ -138,50 +140,50 @@ public class StockCheckService {
     }
 
     @Transactional
-    public StockCheckRequestResponse completeStockCheck(String stockCheckId) {
-        LOGGER.info("Completing stock check request with ID: {}", stockCheckId);
-
-        // Step 1: Validate status
-        StockCheckRequest stockCheck = stockCheckRequestRepository.findById(stockCheckId)
-                .orElseThrow(() -> new NoSuchElementException("Stock check request not found with ID: " + stockCheckId));
-        if (!stockCheck.getStatus().equals(RequestStatus.CONFIRMED)) {
-            throw new IllegalStateException("Cannot complete stock check request: Request is not confirmed");
+    public List<StockCheckRequestResponse> completeStockCheck(CompleteStockCheckRequest request) {
+        LOGGER.info("Completing stock check for details: {}", request.getStockCheckRequestDetailIds());
+        if (request == null || request.getStockCheckRequestDetailIds() == null || request.getStockCheckRequestDetailIds().isEmpty()) {
+            throw new IllegalArgumentException("stockCheckRequestDetailIds must not be empty");
         }
 
-        // Step 2: Process details
-        for (StockCheckRequestDetail detail : stockCheck.getStockCheckRequestDetails()) {
-            List<String> requestCheck = new ArrayList<>(detail.getInventoryItemsId()); // Make a copy
-            List<String> checkedCheck = detail.getCheckedInventoryItemsId();
+        // Load details
+        List<StockCheckRequestDetail> details = stockCheckRequestDetailRepository
+                .findAllById(request.getStockCheckRequestDetailIds());
 
-            // Get missing items
-            requestCheck.removeAll(checkedCheck);
-            for (String inventoryId : requestCheck) {
-                LOGGER.info("Item with ID {} is NOT checked in stock check request", inventoryId);
-                InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
-                        .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+        if (details.size() != request.getStockCheckRequestDetailIds().size()) {
+            throw new NoSuchElementException("Some StockCheckRequestDetail IDs were not found");
+        }
 
-                // Always mark as UNAVAILABLE when not checked
-                inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
-                inventoryItem.setNote("Không thể tìm thấy khi kiểm đếm");
-                inventoryItem.setStoredLocation(null);
-                inventoryItemRepository.save(inventoryItem);
+        // Group selected details by their parent StockCheckRequest
+        Map<StockCheckRequest, List<StockCheckRequestDetail>> detailsByRequest = details.stream()
+                .collect(Collectors.groupingBy(StockCheckRequestDetail::getStockCheckRequest));
 
-                // Always update item stats
-                Item item = inventoryItem.getItem();
-                item.setQuantity(item.getQuantity() - 1);
-                item.setTotalMeasurementValue(item.getTotalMeasurementValue() - inventoryItem.getMeasurementValue());
-                itemRepository.save(item);
-            }
+        List<StockCheckRequestResponse> responses = new ArrayList<>();
 
-            // Process checked items to liquidate
-            for (String inventoryId : checkedCheck) {
-                LOGGER.info("Item with ID {} is CHECKED in stock check request", inventoryId);
-                InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
-                        .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+        for (Map.Entry<StockCheckRequest, List<StockCheckRequestDetail>> entry : detailsByRequest.entrySet()) {
+            StockCheckRequest stockCheck = entry.getKey();
+            List<StockCheckRequestDetail> selectedDetails = entry.getValue();
 
-                if (inventoryItem.getStatus().equals(ItemStatus.NEED_LIQUID)) {
-                    inventoryItem.setNote("Cần thanh lý");
-                    inventoryItem.setNeedToLiquidate(true);
+            String stockCheckId = stockCheck.getId();
+            LOGGER.info("Processing stock check {} for {} selected details", stockCheckId, selectedDetails.size());
+
+            // --- Step 2: Process ONLY the selected details ---
+            for (StockCheckRequestDetail detail : selectedDetails) {
+                List<String> requestCheck = new ArrayList<>(detail.getInventoryItemsId()); // copy to avoid mutating entity list
+                List<String> checkedCheck = detail.getCheckedInventoryItemsId() != null
+                        ? detail.getCheckedInventoryItemsId()
+                        : Collections.emptyList();
+
+                // Missing (not checked) items
+                requestCheck.removeAll(checkedCheck);
+                for (String inventoryId : requestCheck) {
+                    LOGGER.info("Item {} NOT checked in stock check {}", inventoryId, stockCheckId);
+                    InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
+                            .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+
+                    inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+                    inventoryItem.setNote("Không thể tìm thấy khi kiểm đếm");
+                    inventoryItem.setStoredLocation(null);
                     inventoryItemRepository.save(inventoryItem);
 
                     Item item = inventoryItem.getItem();
@@ -189,14 +191,49 @@ public class StockCheckService {
                     item.setTotalMeasurementValue(item.getTotalMeasurementValue() - inventoryItem.getMeasurementValue());
                     itemRepository.save(item);
                 }
+
+                // Checked items: mark for liquidation if needed
+                for (String inventoryId : checkedCheck) {
+                    LOGGER.info("Item {} CHECKED in stock check {}", inventoryId, stockCheckId);
+                    InventoryItem inventoryItem = inventoryItemRepository.findById(inventoryId)
+                            .orElseThrow(() -> new NoSuchElementException("Inventory item not found with ID: " + inventoryId));
+
+                    if (ItemStatus.NEED_LIQUID.equals(inventoryItem.getStatus())) {
+                        inventoryItem.setNote("Cần thanh lý");
+                        inventoryItem.setNeedToLiquidate(true);
+                        inventoryItemRepository.save(inventoryItem);
+
+                        Item item = inventoryItem.getItem();
+                        item.setQuantity(item.getQuantity() - 1);
+                        item.setTotalMeasurementValue(item.getTotalMeasurementValue() - inventoryItem.getMeasurementValue());
+                        itemRepository.save(item);
+                    }
+                }
             }
+
+            // --- Step 3: Finalize stock check (only if ALL details of this request are included) ---
+            Set<Long> allDetailIdsOfRequest = stockCheck.getStockCheckRequestDetails()
+                    .stream().map(StockCheckRequestDetail::getId).collect(Collectors.toSet());
+            Set<Long> selectedDetailIds = selectedDetails
+                    .stream().map(StockCheckRequestDetail::getId).collect(Collectors.toSet());
+
+            boolean allDetailsIncluded = selectedDetailIds.containsAll(allDetailIdsOfRequest);
+
+            if (allDetailsIncluded) {
+                stockCheck.setStatus(RequestStatus.COMPLETED);
+                stockCheck.setExpectedCompletedDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            } else {
+                // leave status as-is; optionally set IN_PROGRESS if you have that state
+                // stockCheck.setStatus(RequestStatus.IN_PROGRESS);
+                LOGGER.info("Stock check {} not fully covered by payload; leaving status as {}", stockCheckId, stockCheck.getStatus());
+            }
+            stockCheck.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+
+            stockCheckRequestRepository.save(stockCheck);
+            responses.add(mapToResponse(stockCheck));
         }
 
-        // Step 3: Finalize stock check
-        stockCheck.setStatus(RequestStatus.COMPLETED);
-        stockCheck.setExpectedCompletedDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
-        stockCheck.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
-        return mapToResponse(stockCheckRequestRepository.save(stockCheck));
+        return responses;
     }
 
     private void setTimeForCountingStaffPerformance(Account account, StockCheckRequest request) {

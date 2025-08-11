@@ -1,10 +1,7 @@
 package capstonesu25.warehouse.controller;
 
 import capstonesu25.warehouse.enums.RequestStatus;
-import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
-import capstonesu25.warehouse.model.exportrequest.ExtendExportRequestRequest;
-import capstonesu25.warehouse.model.exportrequest.RenewExportRequestRequest;
-import capstonesu25.warehouse.model.exportrequest.UpdateExportDateTimeRequest;
+import capstonesu25.warehouse.model.exportrequest.*;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
 import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportSellingRequest;
@@ -261,6 +258,17 @@ public class ExportRequestController {
             exportRequestService.renewExportRequest(request),
             HttpStatus.OK,
             "Successfully renewed export request"
+        );
+    }
+
+    @Operation(summary = "update department")
+    @PutMapping("/update-department")
+    public ResponseEntity<?> updateDepartment(@RequestBody UpdateDepartment request) {
+        LOGGER.info("Updating department of export request");
+        return ResponseUtil.getObject(
+                exportRequestService.updateDepartment(request),
+                HttpStatus.OK,
+                "Successfully updated department of export request"
         );
     }
 

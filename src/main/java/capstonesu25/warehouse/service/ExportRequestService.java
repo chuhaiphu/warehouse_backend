@@ -5,6 +5,7 @@ import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.exportrequest.RenewExportRequestRequest;
+import capstonesu25.warehouse.model.exportrequest.UpdateDepartment;
 import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
 import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportSellingRequest;
@@ -727,7 +728,7 @@ public class ExportRequestService {
         newExportRequest.setDepartmentId(oldExportRequest.getDepartmentId());
         newExportRequest.setCountingStaffId(oldExportRequest.getCountingStaffId());
         newExportRequest.setNote(oldExportRequest.getNote());
-        newExportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
+        newExportRequest.setStatus(RequestStatus.WAITING_EXPORT);
         newExportRequest.setAssignedStaff(oldExportRequest.getAssignedStaff());
         newExportRequest = exportRequestRepository.save(newExportRequest);
 
@@ -784,6 +785,21 @@ public class ExportRequestService {
 
         newExportRequest.setExportRequestDetails(newExportRequestDetails);
         return mapToResponse(exportRequestRepository.save(newExportRequest));
+    }
+
+    public ExportRequestResponse updateDepartment (UpdateDepartment updateDepartment) {
+        ExportRequest exportRequest = exportRequestRepository.findById(updateDepartment.getExportRequestId())
+                .orElseThrow(() -> new NoSuchElementException("Export request not found with ID: " + updateDepartment.getExportRequestId()));
+
+        Department department = departmentRepository.findById(updateDepartment.getDepartmentId())
+                .orElseThrow(() -> new NoSuchElementException("Department not found with ID: " + updateDepartment.getDepartmentId()));
+
+        exportRequest.setDepartmentId(department.getId());
+        exportRequest.setReceiverName(department.getDepartmentResponsible());
+        exportRequest.setReceiverPhone(department.getPhone());
+        exportRequest.setReceiverAddress(department.getLocation());
+
+        return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
     private void updateInventoryItemAndLocationAfterExport(ExportRequest exportRequest) {
