@@ -46,6 +46,18 @@ public class InventoryItemController {
 						page));
 	}
 
+	@Operation(summary = "Get all inventory items by item ID")
+	@GetMapping("/item/{itemId}")
+	public ResponseEntity<?> getAllByItemId(@PathVariable String itemId) {
+		LOGGER.info("Getting all inventory items by item id: {}", itemId);
+		List<InventoryItemResponse> result = inventoryItemService.getAllInventoryItemsByItemId(itemId);
+		return ResponseUtil.getCollection(
+				result,
+				HttpStatus.OK,
+				"Successfully get all inventory items by item ID",
+				null);
+	}
+
 	@Operation(summary = "Get all inventory items that need to return by item ID which not have export detail")
 	@GetMapping("/need-to-return")
 	public ResponseEntity<?> getAllNeedToReturnByItemId(@RequestParam String itemId,
@@ -67,7 +79,6 @@ public class InventoryItemController {
 
 	@Operation(summary = "Get inventory item by ID")
 	@GetMapping("/{inventoryItemId}")
-	
 	public ResponseEntity<?> getById(@PathVariable String inventoryItemId) {
 		LOGGER.info("Getting inventory item by id: {}", inventoryItemId);
 		InventoryItemResponse result = inventoryItemService.getInventoryItemById(inventoryItemId);

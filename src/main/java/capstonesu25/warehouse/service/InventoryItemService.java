@@ -44,6 +44,14 @@ public class InventoryItemService {
                 .map(this::mapToResponse);
     }
 
+    public List<InventoryItemResponse> getAllInventoryItemsByItemId(String itemId) {
+        LOGGER.info("Getting all inventory items by item id: {}", itemId);
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findByItem_Id(itemId);
+        return inventoryItems.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public InventoryItemResponse getInventoryItemById(String id) {
         LOGGER.info("Getting inventory item by id: {}", id);
         InventoryItem inventoryItem = inventoryItemRepository.findById(id)
