@@ -15,6 +15,6 @@ public class ImportOrderDetailUpdateRequest {
 
     private Double actualMeasurement;
 
-    private String InventoryItemId;
+    private String inventoryItemId;
 
 } 
