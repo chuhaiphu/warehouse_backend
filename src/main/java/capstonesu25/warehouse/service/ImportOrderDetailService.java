@@ -388,8 +388,8 @@ public class ImportOrderDetailService {
         ImportOrderDetail detail = importOrderDetailRepository.findById(importOrderDetailID)
                 .orElseThrow(() -> new NoSuchElementException("ImportOrderDetail not found with ID: " + importOrderDetailID));
 
-        if(!request.getItemId().equals(detail.getInventoryItemId())) {
-            throw new IllegalArgumentException("Item ID does not match for ImportOrderDetail ID: " + importOrderDetailID);
+        if(!request.getInventoryItemId().equals(detail.getInventoryItemId())) {
+            throw new IllegalArgumentException("Inventory Item ID does not match for ImportOrderDetail ID: " + importOrderDetailID);
         }
         LOGGER.info("Updating actual value for inventory item: {}", request.getActualMeasurement());
 
