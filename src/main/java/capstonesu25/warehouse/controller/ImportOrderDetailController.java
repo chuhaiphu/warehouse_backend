@@ -112,9 +112,8 @@ public class ImportOrderDetailController {
             @RequestBody ImportOrderDetailUpdateRequest request,
             @PathVariable Long importOrderDetailId) {
         LOGGER.info("Updating actual measurement of import order detail");
-        service.updateActualMeasurement(request, importOrderDetailId);
         return ResponseUtil.getObject(
-                null,
+                service.updateActualMeasurement(request, importOrderDetailId),
                 HttpStatus.OK,
                 "Successfully updated actual measurement of import order detail");
     }

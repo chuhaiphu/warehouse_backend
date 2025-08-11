@@ -378,7 +378,7 @@ public class ImportOrderDetailService {
         importOrderDetailRepository.save(detail);
     }
 
-    public void updateActualMeasurement(ImportOrderDetailUpdateRequest request, Long importOrderDetailID) {
+    public ImportOrderDetailResponse updateActualMeasurement(ImportOrderDetailUpdateRequest request, Long importOrderDetailID) {
         LOGGER.info("Updating actual measurement for ImportOrderDetail ID: {}", importOrderDetailID);
 
         if (request.getInventoryItemId() == null || request.getActualMeasurement() == null) {
@@ -400,9 +400,8 @@ public class ImportOrderDetailService {
             detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
         }
         updateDetailStatusByMeasurementValue(detail);
-        importOrderDetailRepository.save(detail);
 
-
+        return Mapper.mapToImportOrderDetailResponse(importOrderDetailRepository.save(detail));
     }
 
     public void resetUpdate (Long importOrderDetailId) {
