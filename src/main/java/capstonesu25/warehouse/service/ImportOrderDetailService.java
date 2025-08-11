@@ -394,8 +394,11 @@ public class ImportOrderDetailService {
         LOGGER.info("Updating actual value for inventory item: {}", request.getActualMeasurement());
 
         detail.setActualQuantity(detail.getActualQuantity() + 1);
-        detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
-
+        if(detail.getActualMeasurementValue() == null || detail.getActualMeasurementValue() == 0) {
+            detail.setActualMeasurementValue(request.getActualMeasurement());
+        } else {
+            detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
+        }
         updateDetailStatusByMeasurementValue(detail);
         importOrderDetailRepository.save(detail);
 
