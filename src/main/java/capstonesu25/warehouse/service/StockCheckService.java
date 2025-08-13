@@ -1,10 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
-import capstonesu25.warehouse.enums.AccountRole;
-import capstonesu25.warehouse.enums.AccountStatus;
-import capstonesu25.warehouse.enums.ItemStatus;
-import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
@@ -175,6 +172,7 @@ public class StockCheckService {
                         : Collections.emptyList();
 
                 // Missing (not checked) items
+                detail.setIsChecked(Boolean.TRUE);
                 requestCheck.removeAll(checkedCheck);
                 for (String inventoryId : requestCheck) {
                     LOGGER.info("Item {} NOT checked in stock check {}", inventoryId, stockCheckId);
@@ -230,6 +228,22 @@ public class StockCheckService {
             stockCheck.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
 
             stockCheckRequestRepository.save(stockCheck);
+            for(StockCheckRequestDetail detail : stockCheck.getStockCheckRequestDetails()) {
+                if(detail.getCheckedInventoryItemsId() == null && detail.getInventoryItemsId() == null) {
+                    detail.setStatus(DetailStatus.NOT_CHECK);
+                }
+                if(detail.getCheckedInventoryItemsId().isEmpty() && detail.getInventoryItemsId().isEmpty()) {
+                    detail.setStatus(DetailStatus.NOT_CHECK);
+                }
+                if(detail.getCheckedInventoryItemsId().size() == detail.getInventoryItemsId().size()) {
+                    detail.setStatus(DetailStatus.MATCH);
+                }
+                if(detail.getCheckedInventoryItemsId().size() < detail.getInventoryItemsId().size()) {
+                    detail.setStatus(DetailStatus.LACK);
+                }
+                stockCheckRequestDetailRepository.save(detail);
+            }
+
             responses.add(mapToResponse(stockCheck));
         }
 

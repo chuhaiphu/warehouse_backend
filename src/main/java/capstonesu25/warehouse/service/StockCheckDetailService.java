@@ -210,6 +210,7 @@ public class StockCheckDetailService {
                 .actualQuantity(detail.getActualQuantity())
                 .actualMeasurementValue(detail.getActualMeasurementValue())
                 .status(detail.getStatus())
+                .isChecked(detail.getIsChecked())
                 .stockCheckRequestId(detail.getStockCheckRequest().getId())
                 .itemId(detail.getItem().getId())
                 .inventoryItemIds(detail.getInventoryItemsId())

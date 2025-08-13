@@ -34,6 +34,9 @@ public class StockCheckRequestDetail {
     @Column(name = "status")
     private DetailStatus status;
 
+    @Column(name = "is_checked")
+    private Boolean isChecked = false;
+
     @Convert(converter = StringListConverter.class)
     @Column(name = "inventory_item_ids", columnDefinition = "TEXT")
     private List<String> inventoryItemsId = new ArrayList<>();

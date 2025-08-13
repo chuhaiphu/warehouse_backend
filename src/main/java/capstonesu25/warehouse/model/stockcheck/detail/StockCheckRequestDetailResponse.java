@@ -18,6 +18,7 @@ public class StockCheckRequestDetailResponse {
     private Integer actualQuantity;
     private Double actualMeasurementValue;
     private DetailStatus status;
+    private Boolean isChecked ;
     private String stockCheckRequestId;
     private String itemId;
     private List<String> inventoryItemIds;

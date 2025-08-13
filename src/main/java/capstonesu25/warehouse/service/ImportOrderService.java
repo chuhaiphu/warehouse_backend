@@ -576,6 +576,8 @@ public class ImportOrderService {
                 LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
                 if (importOrderDetail.getActualMeasurementValue() == importOrderDetail.getExpectMeasurementValue()) {
                     importOrderDetail.setStatus(DetailStatus.MATCH);
+                } else if(importOrderDetail.getActualMeasurementValue() > importOrderDetail.getExpectMeasurementValue()){
+                    importOrderDetail.setStatus(DetailStatus.EXCESS);
                 } else {
                     importOrderDetail.setStatus(DetailStatus.LACK);
                 }
