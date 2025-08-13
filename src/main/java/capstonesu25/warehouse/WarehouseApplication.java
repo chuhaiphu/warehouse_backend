@@ -298,7 +298,7 @@ public class WarehouseApplication {
 					);
 
 			// Set provider.items for all providers
-			prov1.setItems(List.of(vai1, vai3, vai2));
+			prov1.setItems(List.of(vai1, vai3, vai2, vai4, vai5, vai6, vai7, vai8, vai9, vai10));
 			prov2.setItems(List.of(vai2, vai4, vai1, vai5, vai6, vai7, vai8, vai9, vai10));
 			prov3.setItems(List.of(nut1, nut2, chi3, chi4,  chi1));
 			prov4.setItems(List.of(chi1, chi2, chi3));
@@ -307,15 +307,15 @@ public class WarehouseApplication {
 
 			// Set item.providers for all items
 			vai1.setProviders(List.of(prov1, prov2));
-			vai3.setProviders(List.of(prov1));
+			vai3.setProviders(List.of(prov1, prov2));
 			vai2.setProviders(List.of(prov2, prov1));
-			vai4.setProviders(List.of(prov2));
-			vai5.setProviders(List.of(prov2));
-			vai6.setProviders(List.of(prov2));
-			vai7.setProviders(List.of(prov2));
-			vai8.setProviders(List.of(prov2));
-			vai9.setProviders(List.of(prov2));
-			vai10.setProviders(List.of(prov2));
+			vai4.setProviders(List.of(prov2, prov1));
+			vai5.setProviders(List.of(prov2, prov1));
+			vai6.setProviders(List.of(prov2, prov1));
+			vai7.setProviders(List.of(prov2, prov1));
+			vai8.setProviders(List.of(prov2, prov1));
+			vai9.setProviders(List.of(prov2, prov1));
+			vai10.setProviders(List.of(prov2, prov1));
 
 
 			nut1.setProviders(List.of(prov3, prov6));
