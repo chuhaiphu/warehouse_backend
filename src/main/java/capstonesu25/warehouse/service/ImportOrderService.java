@@ -423,7 +423,6 @@ public class ImportOrderService {
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
-
     public ImportOrderResponse updateImportOrderToReadyToStore (String importOrderId) {
         LOGGER.info("Updating import order to ready to store with ID: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -527,7 +526,7 @@ public class ImportOrderService {
             for (ImportOrderDetail importOrderDetail : importOrder.getImportOrderDetails()) {
                 if (detail.getItem().getId().equals(importOrderDetail.getItem().getId())) {
                     detail.setActualQuantity(detail.getActualQuantity() + importOrderDetail.getActualQuantity());
-                    if (detail.getActualMeasurementValue() == detail.getExpectMeasurementValue()) {
+                    if (Objects.equals(detail.getActualMeasurementValue(), detail.getExpectMeasurementValue())) {
                         detail.setStatus(DetailStatus.MATCH);
                     } else {
                         detail.setStatus(DetailStatus.LACK);
@@ -574,7 +573,7 @@ public class ImportOrderService {
                 LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
                 createReturnInventoryItem(importOrderDetail,i);
                 LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
-                if (importOrderDetail.getActualMeasurementValue() == importOrderDetail.getExpectMeasurementValue()) {
+                if (importOrderDetail.getActualMeasurementValue().equals(importOrderDetail.getExpectMeasurementValue())) {
                     importOrderDetail.setStatus(DetailStatus.MATCH);
                 } else if(importOrderDetail.getActualMeasurementValue() > importOrderDetail.getExpectMeasurementValue()){
                     importOrderDetail.setStatus(DetailStatus.EXCESS);

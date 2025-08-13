@@ -111,8 +111,8 @@ public class StockCheckDetailService {
         }
         if(detail.getActualMeasurementValue() > detail.getMeasurementValue()) {
             detail.setStatus(DetailStatus.EXCESS);
-        } else if(detail.getActualQuantity() == detail.getQuantity()) {
-            detail.setStatus(DetailStatus.LACK);
+        } else if(detail.getActualQuantity().equals(detail.getQuantity())) {
+            detail.setStatus(DetailStatus.MATCH);
         } else {
             detail.setStatus(DetailStatus.LACK);
         }
