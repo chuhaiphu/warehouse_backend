@@ -284,7 +284,7 @@ public class WarehouseApplication {
 					vai1, vai3,
 
 					// Provider 2 - Công ty CP Dệt may Nam Định
-					vai2, vai4,vai5,vai6,vai7,
+					vai2, vai4, vai5, vai6, vai7, vai8, vai9, vai10,
 
 					// Provider 3 - Công ty TNHH Phụ liệu may Việt Nam
 					nut1, nut2, chi3, chi4,
@@ -299,7 +299,7 @@ public class WarehouseApplication {
 
 			// Set provider.items for all providers
 			prov1.setItems(List.of(vai1, vai3, vai2));
-			prov2.setItems(List.of(vai2, vai4, vai1,vai5,vai6,vai7));
+			prov2.setItems(List.of(vai2, vai4, vai1, vai5, vai6, vai7, vai8, vai9, vai10));
 			prov3.setItems(List.of(nut1, nut2, chi3, chi4,  chi1));
 			prov4.setItems(List.of(chi1, chi2, chi3));
 			prov5.setItems(List.of(khoa1, khoa2));
@@ -313,6 +313,9 @@ public class WarehouseApplication {
 			vai5.setProviders(List.of(prov2));
 			vai6.setProviders(List.of(prov2));
 			vai7.setProviders(List.of(prov2));
+			vai8.setProviders(List.of(prov2));
+			vai9.setProviders(List.of(prov2));
+			vai10.setProviders(List.of(prov2));
 
 
 			nut1.setProviders(List.of(prov3, prov6));
