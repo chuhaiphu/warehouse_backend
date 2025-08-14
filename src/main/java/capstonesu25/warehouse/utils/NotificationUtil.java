@@ -13,6 +13,7 @@ public class NotificationUtil {
     public static final String DEPARTMENT_CHANNEL = "private-notifications-DEPARTMENT";
     public static final String ACCOUNTING_CHANNEL = "private-notifications-ACCOUNTING";
     public static final String ADMIN_CHANNEL = "private-notifications-ADMIN";
+    public static final String MANAGER_CHANNEL = "private-notifications-MANAGER";
     public static final String STAFF_CHANNEL = "private-notifications-STAFF-";
 
     public static final String IMPORT_ORDER_CREATED_EVENT = "import-order-created";
@@ -33,6 +34,12 @@ public class NotificationUtil {
     public static final String EXPORT_REQUEST_CANCELLED_EVENT = "export-request-cancelled";
     public static final String EXPORT_REQUEST_EXTENDED_EVENT = "export-request-extended";
     public static final String EXPORT_REQUEST_COMPLETED_EVENT = "export-request-completed";
+
+    public static final String STOCK_CHECK_CREATED_EVENT = "stock-check-created";
+    public static final String STOCK_CHECK_ASSIGNED_EVENT = "stock-check-assigned";
+    public static final String STOCK_CHECK_COUNTED_EVENT = "stock-check-counted";
+    public static final String STOCK_CHECK_CONFIRMED_EVENT = "stock-check-confirmed";
+    public static final String STOCK_CHECK_COMPLETED_EVENT = "stock-check-completed";
 
     public NotificationUtil(Pusher pusher) {
         this.pusher = pusher;

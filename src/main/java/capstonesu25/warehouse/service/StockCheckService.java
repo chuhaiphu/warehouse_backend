@@ -7,6 +7,7 @@ import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
 import capstonesu25.warehouse.repository.*;
+import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class StockCheckService {
     private final InventoryItemRepository inventoryItemRepository;
     private final ItemRepository itemRepository;
     private final StockCheckRequestDetailRepository stockCheckRequestDetailRepository;
+    private final NotificationService notificationService;
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(StockCheckService.class);
 
@@ -82,7 +84,26 @@ public class StockCheckService {
         stockCheckRequest.setCreatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheckRequest.setStockCheckRequestDetails(new ArrayList<>());
-        return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+        
+        StockCheckRequest savedStockCheck = stockCheckRequestRepository.save(stockCheckRequest);
+        
+        notificationService.handleNotification(
+            NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+            NotificationUtil.STOCK_CHECK_CREATED_EVENT,
+            savedStockCheck.getId(),
+            "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+        );
+        
+        notificationService.handleNotification(
+            NotificationUtil.MANAGER_CHANNEL,
+            NotificationUtil.STOCK_CHECK_CREATED_EVENT,
+            savedStockCheck.getId(),
+            "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được tạo",
+            accountRepository.findByRole(AccountRole.MANAGER)
+        );
+        
+        return mapToResponse(savedStockCheck);
     }
 
     @Transactional
@@ -109,7 +130,18 @@ public class StockCheckService {
         stockCheckRequest.setAssignedStaff(account);
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         stockCheckRequest.setStatus(RequestStatus.IN_PROGRESS);
-        return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+        
+        StockCheckRequest savedStockCheck = stockCheckRequestRepository.save(stockCheckRequest);
+        
+        notificationService.handleNotification(
+            NotificationUtil.STAFF_CHANNEL + account.getId(),
+            NotificationUtil.STOCK_CHECK_ASSIGNED_EVENT,
+            savedStockCheck.getId(),
+            "Bạn được phân công cho đơn kiểm kê mã #" + savedStockCheck.getId(),
+            List.of(account)
+        );
+        
+        return mapToResponse(savedStockCheck);
     }
 
     public StockCheckRequestResponse confirmCountedStockCheck(String stockCheckId) {
@@ -133,7 +165,40 @@ public class StockCheckService {
 
         stockCheckRequest.setStatus(status);
         stockCheckRequest.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
-        return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
+        
+        StockCheckRequest savedStockCheck = stockCheckRequestRepository.save(stockCheckRequest);
+        
+        if(status == RequestStatus.COUNTED) {
+            LOGGER.info("Sending notification for COUNTED status");
+            notificationService.handleNotification(
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.STOCK_CHECK_COUNTED_EVENT,
+                savedStockCheck.getId(),
+                "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được kiểm đếm",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+            );
+        }
+        
+        if(status == RequestStatus.COUNT_CONFIRMED) {
+            LOGGER.info("Sending notification for COUNT_CONFIRMED status");
+            notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.STOCK_CHECK_CONFIRMED_EVENT,
+                savedStockCheck.getId(),
+                "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được xác nhận kiểm đếm",
+                accountRepository.findByRole(AccountRole.DEPARTMENT)
+            );
+            
+            notificationService.handleNotification(
+                NotificationUtil.MANAGER_CHANNEL,
+                NotificationUtil.STOCK_CHECK_CONFIRMED_EVENT,
+                savedStockCheck.getId(),
+                "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được xác nhận kiểm đếm",
+                accountRepository.findByRole(AccountRole.MANAGER)
+            );
+        }
+        
+        return mapToResponse(savedStockCheck);
     }
 
     @Transactional
@@ -220,6 +285,15 @@ public class StockCheckService {
             if (allDetailsIncluded) {
                 stockCheck.setStatus(RequestStatus.COMPLETED);
                 stockCheck.setExpectedCompletedDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+                
+                LOGGER.info("Sending notification for COMPLETED status");
+                notificationService.handleNotification(
+                    NotificationUtil.MANAGER_CHANNEL,
+                    NotificationUtil.STOCK_CHECK_COMPLETED_EVENT,
+                    stockCheck.getId(),
+                    "Đơn kiểm kê mã #" + stockCheck.getId() + " đã hoàn thành",
+                    accountRepository.findByRole(AccountRole.MANAGER)
+                );
             } else {
                 // leave status as-is; optionally set IN_PROGRESS if you have that state
                 // stockCheck.setStatus(RequestStatus.IN_PROGRESS);

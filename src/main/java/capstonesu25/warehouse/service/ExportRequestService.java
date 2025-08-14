@@ -425,14 +425,27 @@ public class ExportRequestService {
                 );
             }
         } else if(savedExportRequest.getStatus() == RequestStatus.COUNT_CONFIRMED) {
-            LOGGER.info("Sending notification for COUNT_CONFIRMED status (items are lacking)");
-            notificationService.handleNotification(
-                NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
-                savedExportRequest.getId(),
-                "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm nhưng còn thiếu hàng",
-                accountRepository.findByRole(AccountRole.DEPARTMENT)
-            );
+            if(savedExportRequest.getType().equals(ExportType.SELLING)) {
+                LOGGER.info("Sending notification for COUNT_CONFIRMED status (SELLING - items are lacking)");
+                notificationService.handleNotification(
+                    NotificationUtil.DEPARTMENT_CHANNEL,
+                    NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                    savedExportRequest.getId(),
+                    "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm nhưng còn thiếu hàng",
+                    accountRepository.findByRole(AccountRole.DEPARTMENT)
+                );
+            }
+        } else if(savedExportRequest.getStatus() == RequestStatus.CANCELLED) {
+            if(savedExportRequest.getType().equals(ExportType.INTERNAL)) {
+                LOGGER.info("Sending notification for CANCELLED status (INTERNAL - items are lacking)");
+                notificationService.handleNotification(
+                    NotificationUtil.DEPARTMENT_CHANNEL,
+                    NotificationUtil.EXPORT_REQUEST_CANCELLED_EVENT,
+                    savedExportRequest.getId(),
+                    "Đơn xuất mã #" + savedExportRequest.getId() + " đã bị hủy do thiếu hàng",
+                    accountRepository.findByRole(AccountRole.DEPARTMENT)
+                );
+            }
         }
 
         return mapToResponse(savedExportRequest);
