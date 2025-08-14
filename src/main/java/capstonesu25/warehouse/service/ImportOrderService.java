@@ -191,6 +191,18 @@ public class ImportOrderService {
         }
 
         importOrder.setStatus(RequestStatus.STORED);
+        notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_STORED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã được lưu trữ",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+        notificationService.handleNotification(
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.IMPORT_ORDER_STORED_EVENT,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã được lưu trữ",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
@@ -444,11 +456,12 @@ public class ImportOrderService {
 
         importOrder.setStatus(RequestStatus.READY_TO_STORE);
         notificationService.handleNotification(
-                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
                 NotificationUtil.IMPORT_ORDER_READY_TO_STORE_EVENT,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã sẵn sàng để lưu trữ",
-                accountRepository.findByRole(AccountRole.DEPARTMENT));
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
+
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 

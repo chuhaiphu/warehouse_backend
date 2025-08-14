@@ -24,6 +24,7 @@ public class NotificationUtil {
     public static final String IMPORT_ORDER_EXTENDED_EVENT = "import-order-extended";
     public static final String IMPORT_ORDER_COMPLETED_EVENT = "import-order-completed";
     public static final String IMPORT_ORDER_READY_TO_STORE_EVENT = "import-order-ready-to-store";
+    public static final String IMPORT_ORDER_STORED_EVENT = "import-order-stored";
     public static final String IMPORT_ORDER_COUNT_AGAIN_REQUESTED_EVENT = "import-order-count-again-requested";
     public static final String IMPORT_ORDER_CONFIRMED_COUNT_AGAIN_EVENT = "import-order-confirmed-count-again";
 
