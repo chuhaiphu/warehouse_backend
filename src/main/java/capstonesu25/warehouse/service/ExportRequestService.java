@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -610,13 +611,12 @@ public class ExportRequestService {
     private String createImportRequestId() {
         String prefix = "PN";
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-
-        int todayCount = importRequestRepository.countByCreatedAtBetween(startOfDay, endOfDay);
-
         String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        
+        String todayPrefix = prefix + "-" + datePart + "-";
+        List<ImportRequest> existingRequests = importRequestRepository.findByIdStartingWith(todayPrefix);
+        int todayCount = existingRequests.size();
+
         String sequence = String.format("%03d", todayCount + 1);
 
         return String.format("%s-%s-%s", prefix, datePart, sequence);
@@ -1007,17 +1007,20 @@ public class ExportRequestService {
         long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        ZonedDateTime nowVietnam = ZonedDateTime.now(vietnamZone);
+        LocalDate currentDate = nowVietnam.toLocalDate();
+        LocalTime currentTime = nowVietnam.toLocalTime();
+
         LOGGER.info("Check if date is in the past");
-        if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+        if (date.isBefore(currentDate)) {
             throw new IllegalStateException("Cannot set time for  export request: Date is in the past");
         }
 
         if (time != null) {
             LOGGER.info("Check if time set is too early");
-            if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) &&
-                    LocalTime.now()
-                            .plusMinutes(minutesToAdd)
-                            .isAfter(time)) {
+            if (date.isEqual(currentDate) &&
+                    currentTime.plusMinutes(minutesToAdd).isAfter(time)) {
                 throw new IllegalStateException("Cannot set time for  export request: Time is too early");
             }
 
@@ -1101,15 +1104,13 @@ public class ExportRequestService {
     private String createExportRequestId() {
         String prefix = "PX";
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        
+        String todayPrefix = prefix + "-" + datePart + "-";
+        List<ExportRequest> existingRequests = exportRequestRepository.findByIdStartingWith(todayPrefix);
+        int todayCount = existingRequests.size();
 
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-
-        List<ExportRequest> exportRequests = exportRequestRepository.findByCreatedDateBetween(startOfDay, endOfDay);
-        int todayCount = exportRequests.size();
-
-        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
-        String sequence = String.format("%03d", todayCount + 1);          // 001, 002, ...
+        String sequence = String.format("%03d", todayCount + 1);
 
         return String.format("%s-%s-%s", prefix, datePart, sequence);
     }

@@ -46,4 +46,6 @@ public interface ExportRequestRepository extends JpaRepository<ExportRequest, St
     List<ExportRequest> findByCreatedDateBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    List<ExportRequest> findByIdStartingWith(String idPrefix);
 }
