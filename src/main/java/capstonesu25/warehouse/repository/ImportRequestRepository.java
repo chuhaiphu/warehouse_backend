@@ -22,4 +22,6 @@ public interface ImportRequestRepository extends JpaRepository<ImportRequest, St
     List<ImportRequest> findByCreatedDateBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    List<ImportRequest> findByIdStartingWith(String idPrefix);
 }

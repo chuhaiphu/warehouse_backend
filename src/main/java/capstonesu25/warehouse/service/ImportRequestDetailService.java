@@ -54,13 +54,12 @@ public class ImportRequestDetailService {
         }
 
         List<ImportRequestResponse> createdImportRequestResponses = new ArrayList<>();
-        String baseId = createImportRequestId();
         for (Map.Entry<Long, List<ImportRequestCreateWithDetailRequest>> entry : requestsByProvider.entrySet()) {
             Long providerId = entry.getKey();
             List<ImportRequestCreateWithDetailRequest> requests = entry.getValue();
 
             ImportRequest importRequest = new ImportRequest();
-            String uniqueId = baseId + "-P" + providerId;
+            String uniqueId = createImportRequestId() + "-P" + providerId;
             importRequest.setId(uniqueId);
             importRequest.setImportReason(importReason);
             importRequest.setStatus(RequestStatus.NOT_STARTED);
@@ -185,13 +184,12 @@ public class ImportRequestDetailService {
     private String createImportRequestId() {
         String prefix = "PN";
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
-
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-        List<ImportRequest> existingRequests = importRequestRepository.findByCreatedDateBetween(startOfDay, endOfDay);
+        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        
+        String todayPrefix = prefix + "-" + datePart + "-";
+        List<ImportRequest> existingRequests = importRequestRepository.findByIdStartingWith(todayPrefix);
         int todayCount = existingRequests.size();
 
-        String datePart = today.format(DateTimeFormatter.BASIC_ISO_DATE);
         String sequence = String.format("%03d", todayCount + 1);
 
         return String.format("%s-%s-%s", prefix, datePart, sequence);
