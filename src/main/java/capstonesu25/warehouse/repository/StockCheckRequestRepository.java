@@ -27,4 +27,6 @@ public interface StockCheckRequestRepository extends JpaRepository<StockCheckReq
             Long staffId, LocalDate countingDate);
 
     List<StockCheckRequest> findByAssignedStaff_Id(Long staffId);
+
+    List<StockCheckRequest> findByIdStartingWith(String idPrefix);
 }
