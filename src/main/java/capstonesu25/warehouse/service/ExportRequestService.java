@@ -404,7 +404,38 @@ public class ExportRequestService {
             }
         }
 
-        return mapToResponse(exportRequestRepository.save(exportRequest));
+        ExportRequest savedExportRequest = exportRequestRepository.save(exportRequest);
+
+        if(savedExportRequest.getStatus() == RequestStatus.WAITING_EXPORT) {
+            LOGGER.info("Sending notification for WAITING_EXPORT status after count confirmation");
+            notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                savedExportRequest.getId(),
+                "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm và sẵn sàng xuất",
+                accountRepository.findByRole(AccountRole.DEPARTMENT)
+            );
+            if(savedExportRequest.getAssignedStaff() != null) {
+                notificationService.handleNotification(
+                    NotificationUtil.STAFF_CHANNEL + savedExportRequest.getAssignedStaff().getId(),
+                    NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                    savedExportRequest.getId(),
+                    "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm và sẵn sàng xuất",
+                    List.of(savedExportRequest.getAssignedStaff())
+                );
+            }
+        } else if(savedExportRequest.getStatus() == RequestStatus.COUNT_CONFIRMED) {
+            LOGGER.info("Sending notification for COUNT_CONFIRMED status (items are lacking)");
+            notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                savedExportRequest.getId(),
+                "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm nhưng còn thiếu hàng",
+                accountRepository.findByRole(AccountRole.DEPARTMENT)
+            );
+        }
+
+        return mapToResponse(savedExportRequest);
     }
 
 
@@ -618,6 +649,35 @@ public class ExportRequestService {
                             inventoryItemRepository.save(inventoryItem);
                         });
             }
+        }
+
+        if(status == RequestStatus.COUNTED) {
+            LOGGER.info("Sending notification for COUNTED status");
+            notificationService.handleNotification(
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT,
+                exportRequest.getId(),
+                "Đơn xuất mã #" + exportRequest.getId() + " đã được kiểm đếm",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+            );
+        }
+
+        if(status == RequestStatus.COMPLETED) {
+            LOGGER.info("Sending notification for COMPLETED status");
+            notificationService.handleNotification(
+                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.EXPORT_REQUEST_COMPLETED_EVENT,
+                exportRequest.getId(),
+                "Đơn xuất mã #" + exportRequest.getId() + " đã hoàn thành giao hàng",
+                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
+            );
+            notificationService.handleNotification(
+                NotificationUtil.DEPARTMENT_CHANNEL,
+                NotificationUtil.EXPORT_REQUEST_COMPLETED_EVENT,
+                exportRequest.getId(),
+                "Đơn xuất mã #" + exportRequest.getId() + " đã hoàn thành giao hàng",
+                accountRepository.findByRole(AccountRole.DEPARTMENT)
+            );
         }
 
         exportRequest.setStatus(status);

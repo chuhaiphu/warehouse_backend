@@ -57,4 +57,15 @@ public class NotificationController {
                 "Notification marked as clicked"
         );
     }
+
+    @Operation(summary = "Delete all notifications by receiverId")
+    @DeleteMapping("/receiver/{receiverId}")
+    public ResponseEntity<?> deleteAllNotificationsByReceiverId(@PathVariable Long receiverId) {
+        notificationService.deleteAllNotificationsByReceiverId(receiverId);
+        return ResponseUtil.getObject(
+                null,
+                HttpStatus.OK,
+                "All notifications deleted successfully for receiver"
+        );
+    }
 }

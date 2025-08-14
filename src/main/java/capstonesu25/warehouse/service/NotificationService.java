@@ -80,6 +80,11 @@ public class NotificationService {
         }
     }
 
+    public void deleteAllNotificationsByReceiverId(Long receiverId) {
+        LOGGER.info("Deleting all notifications for receiverId={}", receiverId);
+        notificationRepository.deleteByReceiverId(receiverId);
+    }
+
     private NotificationResponse mapToResponse(Notification notification) {
         NotificationResponse response = new NotificationResponse();
         response.setId(notification.getId());
