@@ -590,20 +590,20 @@ public class ImportOrderService {
                 LOGGER.info("Create inventory item for import order detail id: {}", importOrderDetail.getId());
                 createReturnInventoryItem(importOrderDetail,i);
                 LOGGER.info("Update status for import order detail id: {}", importOrderDetail.getId());
-                // if (importOrderDetail.getActualMeasurementValue().equals(importOrderDetail.getExpectMeasurementValue())) {
-                //     importOrderDetail.setStatus(DetailStatus.MATCH);
-                // } else if(importOrderDetail.getActualMeasurementValue() > importOrderDetail.getExpectMeasurementValue()){
-                //     importOrderDetail.setStatus(DetailStatus.EXCESS);
-                // } else {
-                //     importOrderDetail.setStatus(DetailStatus.LACK);
-                // }
-                if (importOrderDetail.getActualQuantity() == importOrderDetail.getExpectQuantity()) {
+                if (importOrderDetail.getActualMeasurementValue().equals(importOrderDetail.getExpectMeasurementValue())) {
                     importOrderDetail.setStatus(DetailStatus.MATCH);
-                } else if (importOrderDetail.getActualQuantity() > importOrderDetail.getExpectQuantity()) {
+                } else if(importOrderDetail.getActualMeasurementValue() > importOrderDetail.getExpectMeasurementValue()){
                     importOrderDetail.setStatus(DetailStatus.EXCESS);
                 } else {
                     importOrderDetail.setStatus(DetailStatus.LACK);
                 }
+                // if (importOrderDetail.getActualQuantity() == importOrderDetail.getExpectQuantity()) {
+                //     importOrderDetail.setStatus(DetailStatus.MATCH);
+                // } else if (importOrderDetail.getActualQuantity() > importOrderDetail.getExpectQuantity()) {
+                //     importOrderDetail.setStatus(DetailStatus.EXCESS);
+                // } else {
+                //     importOrderDetail.setStatus(DetailStatus.LACK);
+                // }
                 i++;
                 importOrderDetailRepository.save(importOrderDetail);
             }
