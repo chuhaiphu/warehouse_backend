@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -240,16 +241,19 @@ public class ImportOrderService {
         long minutesToAdd = configuration.getCreateRequestTimeAtLeast().getHour() * 60
                 + configuration.getCreateRequestTimeAtLeast().getMinute();
 
+        ZoneId vietnamZone = ZoneId.of("Asia/Ho_Chi_Minh");
+        ZonedDateTime nowVietnam = ZonedDateTime.now(vietnamZone);
+        LocalDate currentDate = nowVietnam.toLocalDate();
+        LocalTime currentTime = nowVietnam.toLocalTime();
+
         LOGGER.info("Check if date is in the past");
-        if (date.isBefore(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")))) {
+        if (date.isBefore(currentDate)) {
             throw new IllegalStateException("Cannot set time for import order: Date is in the past");
         }
 
         LOGGER.info("Check if time set is too early");
-        if (date.isEqual(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))) &&
-                LocalTime.now()
-                        .plusMinutes(minutesToAdd)
-                        .isAfter(time)) {
+        if (date.isEqual(currentDate) &&
+                currentTime.plusMinutes(minutesToAdd).isAfter(time)) {
             throw new IllegalStateException("Cannot set time for import order: Time is too early");
         }
 
