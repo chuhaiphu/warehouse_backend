@@ -194,13 +194,13 @@ public class ImportOrderService {
         importOrder.setStatus(RequestStatus.STORED);
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_STORED_EVENT,
+                NotificationUtil.IMPORT_ORDER_STORED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được lưu trữ",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
         notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_STORED_EVENT,
+                NotificationUtil.IMPORT_ORDER_STORED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được lưu trữ",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
@@ -318,7 +318,7 @@ public class ImportOrderService {
             importOrder.setAssignedStaff(null);
             notificationService.handleNotification(
                     NotificationUtil.STAFF_CHANNEL + staff.getId(),
-                    NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+                    NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT + "-" + importOrderId,
                     importOrder.getId(),
                     "Đơn nhập mã #" + importOrder.getId() + " đã bị hủy",
                     List.of(staff));
@@ -326,14 +326,8 @@ public class ImportOrderService {
 
         importOrder.setStatus(RequestStatus.CANCELLED);
         notificationService.handleNotification(
-                NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
-                importOrderId,
-                "Đơn nhập mã #" + importOrderId + " đã bị hủy",
-                accountRepository.findByRole(AccountRole.DEPARTMENT));
-        notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT,
+                NotificationUtil.IMPORT_ORDER_CANCELLED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã bị hủy",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
@@ -352,7 +346,7 @@ public class ImportOrderService {
         handleImportItems(importOrder);
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT,
+                NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
@@ -373,7 +367,7 @@ public class ImportOrderService {
 
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT,
+                NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
@@ -426,13 +420,13 @@ public class ImportOrderService {
         setTimeForStaffPerformance(importOrder.getAssignedStaff(), importOrder);
         notificationService.handleNotification(
                 NotificationUtil.STAFF_CHANNEL + account.getId(),
-                NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
+                NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT + "-" + importOrderId,
                 importOrder.getId(),
                 "Đơn nhập mã #" + importOrder.getId() + " đã được gia hạn",
                 List.of(account));
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT,
+                NotificationUtil.IMPORT_ORDER_EXTENDED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được gia hạn",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
@@ -461,7 +455,7 @@ public class ImportOrderService {
         importOrder.setStatus(RequestStatus.READY_TO_STORE);
         notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.IMPORT_ORDER_READY_TO_STORE_EVENT,
+                NotificationUtil.IMPORT_ORDER_READY_TO_STORE_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã sẵn sàng để lưu trữ",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
@@ -491,11 +485,17 @@ public class ImportOrderService {
         // Reset the status of the import order
         importOrder.setStatus(RequestStatus.COUNT_AGAIN_REQUESTED);
         notificationService.handleNotification(
-                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.DEPARTMENT_CHANNEL,
                 NotificationUtil.IMPORT_ORDER_COUNT_AGAIN_REQUESTED_EVENT + "-" + importOrderId,
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được yêu cầu đếm lại",
-                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+        notificationService.handleNotification(
+                NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
+                NotificationUtil.IMPORT_ORDER_COUNT_AGAIN_REQUESTED_EVENT + "-" + importOrderId,
+                importOrderId,
+                "Đơn nhập mã #" + importOrderId + " đã được yêu cầu đếm lại",
+                List.of(importOrder.getAssignedStaff()));
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
     }
 
