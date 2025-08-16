@@ -84,6 +84,13 @@ public class PaperService {
             paperRepository.save(paper);
             // * Notification
             notificationService.handleNotification(
+                    NotificationUtil.DEPARTMENT_CHANNEL,
+                    NotificationUtil.IMPORT_ORDER_COUNTED_EVENT + "-" + request.getImportOrderId(),
+                    request.getImportOrderId(),
+                    "Đơn nhập mã #" + request.getImportOrderId() + " đã được đếm",
+                    accountRepository.findByRole(AccountRole.DEPARTMENT)
+            );
+            notificationService.handleNotification(
                     NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
                     NotificationUtil.IMPORT_ORDER_COUNTED_EVENT + "-" + request.getImportOrderId(),
                     request.getImportOrderId(),
@@ -105,6 +112,13 @@ public class PaperService {
             paper.setSignReceiverName(request.getSignReceiverName());
             paperRepository.save(paper);
             // * Notification
+            notificationService.handleNotification(
+                    NotificationUtil.DEPARTMENT_CHANNEL,
+                    NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT + "-" + request.getExportRequestId(),
+                    request.getExportRequestId(),
+                    "Đơn xuất mã #" + request.getExportRequestId() + " đã được đếm",
+                    accountRepository.findByRole(AccountRole.DEPARTMENT)
+            );
             notificationService.handleNotification(
                     NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
                     NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT + "-" + request.getExportRequestId(),

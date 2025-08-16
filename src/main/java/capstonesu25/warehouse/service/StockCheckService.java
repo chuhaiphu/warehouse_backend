@@ -172,7 +172,7 @@ public class StockCheckService {
             LOGGER.info("Sending notification for COUNTED status");
             notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.STOCK_CHECK_COUNTED_EVENT,
+                NotificationUtil.STOCK_CHECK_COUNTED_EVENT + "-" + savedStockCheck.getId(),
                 savedStockCheck.getId(),
                 "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được kiểm đếm",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
@@ -183,7 +183,7 @@ public class StockCheckService {
             LOGGER.info("Sending notification for COUNT_CONFIRMED status");
             notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.STOCK_CHECK_CONFIRMED_EVENT,
+                NotificationUtil.STOCK_CHECK_CONFIRMED_EVENT + "-" + savedStockCheck.getId(),
                 savedStockCheck.getId(),
                 "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được xác nhận kiểm đếm",
                 accountRepository.findByRole(AccountRole.DEPARTMENT)
@@ -191,7 +191,7 @@ public class StockCheckService {
             
             notificationService.handleNotification(
                 NotificationUtil.MANAGER_CHANNEL,
-                NotificationUtil.STOCK_CHECK_CONFIRMED_EVENT,
+                NotificationUtil.STOCK_CHECK_CONFIRMED_EVENT + "-" + savedStockCheck.getId(),
                 savedStockCheck.getId(),
                 "Đơn kiểm kê mã #" + savedStockCheck.getId() + " đã được xác nhận kiểm đếm",
                 accountRepository.findByRole(AccountRole.MANAGER)
@@ -289,7 +289,7 @@ public class StockCheckService {
                 LOGGER.info("Sending notification for COMPLETED status");
                 notificationService.handleNotification(
                     NotificationUtil.MANAGER_CHANNEL,
-                    NotificationUtil.STOCK_CHECK_COMPLETED_EVENT,
+                    NotificationUtil.STOCK_CHECK_COMPLETED_EVENT + "-" + stockCheck.getId(),
                     stockCheck.getId(),
                     "Đơn kiểm kê mã #" + stockCheck.getId() + " đã hoàn thành",
                     accountRepository.findByRole(AccountRole.MANAGER)

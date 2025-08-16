@@ -411,7 +411,7 @@ public class ExportRequestService {
             LOGGER.info("Sending notification for WAITING_EXPORT status after count confirmation");
             notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT + "-" + savedExportRequest.getId(),
                 savedExportRequest.getId(),
                 "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm và sẵn sàng xuất",
                 accountRepository.findByRole(AccountRole.DEPARTMENT)
@@ -419,7 +419,7 @@ public class ExportRequestService {
             if(savedExportRequest.getAssignedStaff() != null) {
                 notificationService.handleNotification(
                     NotificationUtil.STAFF_CHANNEL + savedExportRequest.getAssignedStaff().getId(),
-                    NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                    NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT + "-" + savedExportRequest.getId(),
                     savedExportRequest.getId(),
                     "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm và sẵn sàng xuất",
                     List.of(savedExportRequest.getAssignedStaff())
@@ -430,7 +430,7 @@ public class ExportRequestService {
                 LOGGER.info("Sending notification for COUNT_CONFIRMED status (SELLING - items are lacking)");
                 notificationService.handleNotification(
                     NotificationUtil.DEPARTMENT_CHANNEL,
-                    NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT,
+                    NotificationUtil.EXPORT_REQUEST_CONFIRMED_EVENT + "-" + savedExportRequest.getId(),
                     savedExportRequest.getId(),
                     "Đơn xuất mã #" + savedExportRequest.getId() + " đã được xác nhận kiểm đếm nhưng còn thiếu hàng",
                     accountRepository.findByRole(AccountRole.DEPARTMENT)
@@ -441,7 +441,7 @@ public class ExportRequestService {
                 LOGGER.info("Sending notification for CANCELLED status (INTERNAL - items are lacking)");
                 notificationService.handleNotification(
                     NotificationUtil.DEPARTMENT_CHANNEL,
-                    NotificationUtil.EXPORT_REQUEST_CANCELLED_EVENT,
+                    NotificationUtil.EXPORT_REQUEST_CANCELLED_EVENT + "-" + savedExportRequest.getId(),
                     savedExportRequest.getId(),
                     "Đơn xuất mã #" + savedExportRequest.getId() + " đã bị hủy do thiếu hàng",
                     accountRepository.findByRole(AccountRole.DEPARTMENT)
@@ -668,7 +668,7 @@ public class ExportRequestService {
             LOGGER.info("Sending notification for COUNTED status");
             notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT,
+                NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT + "-" + exportRequest.getId(),
                 exportRequest.getId(),
                 "Đơn xuất mã #" + exportRequest.getId() + " đã được kiểm đếm",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
@@ -679,14 +679,14 @@ public class ExportRequestService {
             LOGGER.info("Sending notification for COMPLETED status");
             notificationService.handleNotification(
                 NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
-                NotificationUtil.EXPORT_REQUEST_COMPLETED_EVENT,
+                NotificationUtil.EXPORT_REQUEST_COMPLETED_EVENT + "-" + exportRequest.getId(),
                 exportRequest.getId(),
                 "Đơn xuất mã #" + exportRequest.getId() + " đã hoàn thành giao hàng",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
             );
             notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
-                NotificationUtil.EXPORT_REQUEST_COMPLETED_EVENT,
+                NotificationUtil.EXPORT_REQUEST_COMPLETED_EVENT + "-" + exportRequest.getId(),
                 exportRequest.getId(),
                 "Đơn xuất mã #" + exportRequest.getId() + " đã hoàn thành giao hàng",
                 accountRepository.findByRole(AccountRole.DEPARTMENT)
