@@ -192,9 +192,9 @@ public class InventoryItemController {
 	@PostMapping("/change-inventory-item-export-detail")
 	public ResponseEntity<?> changeInventoryItemOfExportDetail(@RequestBody ChangeInventoryItemOfExportDetailRequest request) {
 		LOGGER.info("Changing export request detail of inventory item");
-		InventoryItemResponse updatedItem = inventoryItemService.changeInventoryItemOfExportDetail(request);
+		 inventoryItemService.changeInventoryItemOfExportDetail(request);
 		return ResponseUtil.getObject(
-				updatedItem,
+				null,
 				HttpStatus.OK,
 				"Successfully changed export request detail of inventory item");
 

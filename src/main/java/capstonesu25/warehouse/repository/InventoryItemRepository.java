@@ -5,6 +5,9 @@ import capstonesu25.warehouse.enums.ItemStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -26,6 +29,15 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     List<InventoryItem> findByExportRequestDetail_Id(Long exportRequestDetailId);
 
     List<InventoryItem> findByItem_IdAndStatus(String itemId, ItemStatus status);
+
+    @Modifying(clearAutomatically = false, flushAutomatically = true)
+    @Query("""
+           UPDATE InventoryItem i
+              SET i.status = capstonesu25.warehouse.enums.ItemStatus.AVAILABLE,
+                  i.exportRequestDetail = null
+            WHERE i.exportRequestDetail.id IN :detailIds
+           """)
+    int releaseByExportDetailIds(@Param("detailIds") List<Long> detailIds);
 
 
 }

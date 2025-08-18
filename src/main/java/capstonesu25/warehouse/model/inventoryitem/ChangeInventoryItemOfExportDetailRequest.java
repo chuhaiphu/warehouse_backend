@@ -6,17 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChangeInventoryItemOfExportDetailRequest {
     @NotNull(message = "cannot be null")
     @NotEmpty(message = "cannot be empty")
-    private String oldInventoryItemId;
+    private List<String> oldInventoryItemIds;
 
     @NotNull(message = "cannot be null")
     @NotEmpty(message = "cannot be empty")
-    private String newInventoryItemId;
+    private List<String> newInventoryItemIds;
 
     @NotNull(message = "cannot be null")
     @NotEmpty(message = "cannot be empty")

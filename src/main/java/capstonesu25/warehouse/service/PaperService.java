@@ -60,11 +60,8 @@ public class PaperService {
     }
     public void createPaper(PaperRequest request) throws IOException {
         LOGGER.info("Creating paper");
-        String signProviderUrl = cloudinaryUtil.uploadImage(request.getSignProviderUrl());
-        String signReceiverName = cloudinaryUtil.uploadImage(request.getSignReceiverUrl());
+
         Paper paper = convertToEntity(request);
-        paper.setSignProviderUrl(signProviderUrl);
-        paper.setSignReceiverUrl(signReceiverName);
 
         if(request.getImportOrderId() != null) {
             //update status
@@ -74,11 +71,18 @@ public class PaperService {
 
             LOGGER.info("Updating import order status at creating paper");
             ImportOrder importOrder = importOrderRepository.findById(request.getImportOrderId()).orElseThrow();
+            if(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).isBefore(importOrder.getDateReceived())) {
+                throw new IllegalArgumentException("Cannot confirm import order before expected date received");
+            }
             importOrder.setStatus(RequestStatus.COUNTED);
+            String signProviderUrl = cloudinaryUtil.uploadImage(request.getSignProviderUrl());
+            String signReceiverName = cloudinaryUtil.uploadImage(request.getSignReceiverUrl());
             importOrder.setActualDateReceived(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
             importOrder.setActualTimeReceived(LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
             importOrderRepository.save(importOrder);
             paper.setImportOrder(importOrder);
+            paper.setSignProviderUrl(signProviderUrl);
+            paper.setSignReceiverUrl(signReceiverName);
             paper.setSignProviderName(request.getSignProviderName());
             paper.setSignReceiverName(importOrder.getAssignedStaff().getFullName());
             paperRepository.save(paper);
@@ -106,8 +110,15 @@ public class PaperService {
             LOGGER.info("Updating export request status at creating paper");
             ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
             exportRequest.setStatus(RequestStatus.COUNTED);
+            if(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).isBefore(exportRequest.getExportDate())) {
+                throw new IllegalArgumentException("Cannot confirm export request before export date received");
+            }
+            String signProviderUrl = cloudinaryUtil.uploadImage(request.getSignProviderUrl());
+            String signReceiverName = cloudinaryUtil.uploadImage(request.getSignReceiverUrl());
             exportRequestRepository.save(exportRequest);
             paper.setExportRequest(exportRequest);
+            paper.setSignProviderUrl(signProviderUrl);
+            paper.setSignReceiverUrl(signReceiverName);
             paper.setSignProviderName(exportRequest.getAssignedStaff().getFullName());
             paper.setSignReceiverName(request.getSignReceiverName());
             paperRepository.save(paper);
@@ -131,8 +142,12 @@ public class PaperService {
             LOGGER.info("Updating stock check request status at creating paper");
             StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(request.getStockCheckRequestId()).orElseThrow();
             stockCheckRequest.setStatus(RequestStatus.COUNTED);
+            String signProviderUrl = cloudinaryUtil.uploadImage(request.getSignProviderUrl());
+            String signReceiverName = cloudinaryUtil.uploadImage(request.getSignReceiverUrl());
             stockCheckRequestRepository.save(stockCheckRequest);
             paper.setStockCheckRequest(stockCheckRequest);
+            paper.setSignProviderUrl(signProviderUrl);
+            paper.setSignReceiverUrl(signReceiverName);
             paper.setSignProviderName(stockCheckRequest.getAssignedStaff().getFullName());
             paper.setSignReceiverName(request.getSignReceiverName());
             paperRepository.save(paper);
