@@ -154,6 +154,19 @@ public class AccountController {
         );
     }
 
+    @Operation(summary = "get account by department id")
+    @GetMapping("/by-department/{departmentId}")
+    public ResponseEntity<?> getAccountsByDepartmentId(@PathVariable Long departmentId) {
+        LOGGER.info("Getting accounts by department id: {}", departmentId);
+        List<AccountResponse> accounts = accountService.getAccountsByDepartmentId(departmentId);
+        return ResponseUtil.getCollection(
+                accounts,
+                HttpStatus.OK,
+                "Successfully retrieved accounts by department id",
+                null
+        );
+    }
+
     @Operation(summary = "Get all active staff accounts with date")
     @PostMapping("/active-staff-in-day")
     public ResponseEntity<?> getActiveStaffsInDay(@RequestBody @Valid ActiveAccountRequest request) {

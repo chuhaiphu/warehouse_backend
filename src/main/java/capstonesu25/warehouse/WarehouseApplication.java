@@ -343,94 +343,432 @@ public class WarehouseApplication {
 				storedLocationService.create(locationRequests);
 			}
 
+			// === REGISTER STAFF (2 per department) ===
+			RegisterRequest staff16 = RegisterRequest.builder()
+					.username("nhanvien16")
+					.email("nhanvien16@warehouse.com")
+					.password("12345")
+					.phone("0978901245")
+					.fullName("Nguyễn Minh An")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff16);
+
+			RegisterRequest staff17 = RegisterRequest.builder()
+					.username("nhanvien17")
+					.email("nhanvien17@warehouse.com")
+					.password("12345")
+					.phone("0978901246")
+					.fullName("Trần Thị Ánh")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff17);
+
+			RegisterRequest staff18 = RegisterRequest.builder()
+					.username("nhanvien18")
+					.email("nhanvien18@warehouse.com")
+					.password("12345")
+					.phone("0978901247")
+					.fullName("Lê Văn Bình")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff18);
+
+			RegisterRequest staff19 = RegisterRequest.builder()
+					.username("nhanvien19")
+					.email("nhanvien19@warehouse.com")
+					.password("12345")
+					.phone("0978901248")
+					.fullName("Phạm Thị Bích")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff19);
+
+			RegisterRequest staff20 = RegisterRequest.builder()
+					.username("nhanvien20")
+					.email("nhanvien20@warehouse.com")
+					.password("12345")
+					.phone("0978901249")
+					.fullName("Võ Quốc Chí")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff20);
+
+			RegisterRequest staff21 = RegisterRequest.builder()
+					.username("nhanvien21")
+					.email("nhanvien21@warehouse.com")
+					.password("12345")
+					.phone("0978901250")
+					.fullName("Đỗ Thị Châu")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff21);
+
+			RegisterRequest staff22 = RegisterRequest.builder()
+					.username("nhanvien22")
+					.email("nhanvien22@warehouse.com")
+					.password("12345")
+					.phone("0978901251")
+					.fullName("Nguyễn Hoàng Dũng")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff22);
+
+			RegisterRequest staff23 = RegisterRequest.builder()
+					.username("nhanvien23")
+					.email("nhanvien23@warehouse.com")
+					.password("12345")
+					.phone("0978901252")
+					.fullName("Phạm Thị Diễm")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff23);
+
+			RegisterRequest staff24 = RegisterRequest.builder()
+					.username("nhanvien24")
+					.email("nhanvien24@warehouse.com")
+					.password("12345")
+					.phone("0978901253")
+					.fullName("Trần Văn Em")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff24);
+
+			RegisterRequest staff25 = RegisterRequest.builder()
+					.username("nhanvien25")
+					.email("nhanvien25@warehouse.com")
+					.password("12345")
+					.phone("0978901254")
+					.fullName("Lê Thị Êm")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff25);
+
+			RegisterRequest staff26 = RegisterRequest.builder()
+					.username("nhanvien26")
+					.email("nhanvien26@warehouse.com")
+					.password("12345")
+					.phone("0978901255")
+					.fullName("Bùi Đức Phúc")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff26);
+
+			RegisterRequest staff27 = RegisterRequest.builder()
+					.username("nhanvien27")
+					.email("nhanvien27@warehouse.com")
+					.password("12345")
+					.phone("0978901256")
+					.fullName("Vũ Thị Phương")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff27);
+
+			RegisterRequest staff28 = RegisterRequest.builder()
+					.username("nhanvien28")
+					.email("nhanvien28@warehouse.com")
+					.password("12345")
+					.phone("0978901257")
+					.fullName("Ngô Minh Giang")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff28);
+
+			RegisterRequest staff29 = RegisterRequest.builder()
+					.username("nhanvien29")
+					.email("nhanvien29@warehouse.com")
+					.password("12345")
+					.phone("0978901258")
+					.fullName("Mai Thị Giao")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff29);
+
+			RegisterRequest staff30 = RegisterRequest.builder()
+					.username("nhanvien30")
+					.email("nhanvien30@warehouse.com")
+					.password("12345")
+					.phone("0978901259")
+					.fullName("Phan Tấn Hùng")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff30);
+
+			RegisterRequest staff31 = RegisterRequest.builder()
+					.username("nhanvien31")
+					.email("nhanvien31@warehouse.com")
+					.password("12345")
+					.phone("0978901260")
+					.fullName("Vũ Thị Hạnh")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff31);
+
+			RegisterRequest staff32 = RegisterRequest.builder()
+					.username("nhanvien32")
+					.email("nhanvien32@warehouse.com")
+					.password("12345")
+					.phone("0978901261")
+					.fullName("Đặng Trung Kiên")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff32);
+
+			RegisterRequest staff33 = RegisterRequest.builder()
+					.username("nhanvien33")
+					.email("nhanvien33@warehouse.com")
+					.password("12345")
+					.phone("0978901262")
+					.fullName("Trịnh Thị Khánh")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff33);
+
+			RegisterRequest staff34 = RegisterRequest.builder()
+					.username("nhanvien34")
+					.email("nhanvien34@warehouse.com")
+					.password("12345")
+					.phone("0978901263")
+					.fullName("Đỗ Nhật Lâm")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff34);
+
+			RegisterRequest staff35 = RegisterRequest.builder()
+					.username("nhanvien35")
+					.email("nhanvien35@warehouse.com")
+					.password("12345")
+					.phone("0978901264")
+					.fullName("Hoàng Thị Lan")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff35);
+
+			RegisterRequest staff36 = RegisterRequest.builder()
+					.username("nhanvien36")
+					.email("nhanvien36@warehouse.com")
+					.password("12345")
+					.phone("0978901265")
+					.fullName("Nguyễn Văn Minh")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff36);
+
+			RegisterRequest staff37 = RegisterRequest.builder()
+					.username("nhanvien37")
+					.email("nhanvien37@warehouse.com")
+					.password("12345")
+					.phone("0978901266")
+					.fullName("Phạm Thị My")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff37);
+
+			RegisterRequest staff38 = RegisterRequest.builder()
+					.username("nhanvien38")
+					.email("nhanvien38@warehouse.com")
+					.password("12345")
+					.phone("0978901267")
+					.fullName("Lê Anh Nam")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff38);
+
+			RegisterRequest staff39 = RegisterRequest.builder()
+					.username("nhanvien39")
+					.email("nhanvien39@warehouse.com")
+					.password("12345")
+					.phone("0978901268")
+					.fullName("Trần Thị Ngọc")
+					.role("MANAGER")
+					.build();
+			accountService.register(staff39);
+
 			// Initialize Departments
 			Department department1 = new Department(
 					null,
 					"Phòng ban A",
 					"Nguyễn Văn A",
 					"123 Đường Số 1, Quận 1, TP.HCM",
-					"0901234567");
+					"0901234567",
+					null);
 
 			Department department2 = new Department(
 					null,
 					"Phòng ban B",
 					"Trần Thị B",
 					"456 Đường Số 2, Quận 2, TP.HCM",
-					"0912345678");
+					"0912345678",null);
 			Department department3 = new Department(
 					null,
 					"Phòng ban C",
 					"Lê Văn C",
 					"789 Đường Số 3, Quận 3, TP.HCM",
-					"0923456789");
+					"0923456789",null);
 
 			Department department4 = new Department(
 					null,
 					"Phòng ban D",
 					"Phạm Thị D",
 					"101 Đường Số 4, Quận 4, TP.HCM",
-					"0934567890");
+					"0934567890",null);
 
 			Department department5 = new Department(
 					null,
 					"Phòng ban E",
 					"Hoàng Văn E",
 					"202 Đường Số 5, Quận 5, TP.HCM",
-					"0945678901");
+					"0945678901",null);
 
 			Department department6 = new Department(
 					null,
 					"Phòng ban F",
 					"Đặng Thị F",
 					"303 Đường Số 6, Quận 6, TP.HCM",
-					"0956789012");
+					"0956789012",null);
 
 			Department department7 = new Department(
 					null,
 					"Phòng ban G",
 					"Ngô Văn G",
 					"404 Đường Số 7, Quận 7, TP.HCM",
-					"0967890123");
+					"0967890123",null);
 
 			Department department8 = new Department(
 					null,
 					"Phòng ban H",
 					"Vũ Thị H",
 					"505 Đường Số 8, Quận 8, TP.HCM",
-					"0978901234");
+					"0978901234",null);
 
 			Department department9 = new Department(
 					null,
 					"Phòng ban I",
 					"Bùi Văn I",
 					"606 Đường Số 9, Quận 9, TP.HCM",
-					"0989012345");
+					"0989012345",null);
 
 			Department department10 = new Department(
 					null,
 					"Phòng ban J",
 					"Đỗ Thị J",
 					"707 Đường Số 10, Quận 10, TP.HCM",
-					"0990123456");
+					"0990123456",null);
 
 			Department department11 = new Department(
 					null,
 					"Phòng ban K",
 					"Trịnh Văn K",
 					"808 Đường Số 11, Quận 11, TP.HCM",
-					"0901122334");
+					"0901122334",null);
 
 			Department department12 = new Department(
 					null,
 					"Phòng ban L",
 					"Mai Thị L",
 					"909 Đường Số 12, Quận 12, TP.HCM",
-					"0911223344");
+					"0911223344",null);
 
 			departmentRepo.saveAll(List.of(
 					department1, department2, department3, department4,
 					department5, department6, department7, department8,
 					department9, department10, department11, department12));
+
+			Account acc16 = accountRepo.findByUsername("nhanvien16").orElseThrow();
+			acc16.setDepartment(department1);
+			accountRepo.save(acc16);
+
+			Account acc17 = accountRepo.findByUsername("nhanvien17").orElseThrow();
+			acc17.setDepartment(department1);
+			accountRepo.save(acc17);
+
+			Account acc18 = accountRepo.findByUsername("nhanvien18").orElseThrow();
+			acc18.setDepartment(department2);
+			accountRepo.save(acc18);
+
+			Account acc19 = accountRepo.findByUsername("nhanvien19").orElseThrow();
+			acc19.setDepartment(department2);
+			accountRepo.save(acc19);
+
+			Account acc20 = accountRepo.findByUsername("nhanvien20").orElseThrow();
+			acc20.setDepartment(department3);
+			accountRepo.save(acc20);
+
+			Account acc21 = accountRepo.findByUsername("nhanvien21").orElseThrow();
+			acc21.setDepartment(department3);
+			accountRepo.save(acc21);
+
+			Account acc22 = accountRepo.findByUsername("nhanvien22").orElseThrow();
+			acc22.setDepartment(department4);
+			accountRepo.save(acc22);
+
+			Account acc23 = accountRepo.findByUsername("nhanvien23").orElseThrow();
+			acc23.setDepartment(department4);
+			accountRepo.save(acc23);
+
+			Account acc24 = accountRepo.findByUsername("nhanvien24").orElseThrow();
+			acc24.setDepartment(department5);
+			accountRepo.save(acc24);
+
+			Account acc25 = accountRepo.findByUsername("nhanvien25").orElseThrow();
+			acc25.setDepartment(department5);
+			accountRepo.save(acc25);
+
+			Account acc26 = accountRepo.findByUsername("nhanvien26").orElseThrow();
+			acc26.setDepartment(department6);
+			accountRepo.save(acc26);
+
+			Account acc27 = accountRepo.findByUsername("nhanvien27").orElseThrow();
+			acc27.setDepartment(department6);
+			accountRepo.save(acc27);
+
+			Account acc28 = accountRepo.findByUsername("nhanvien28").orElseThrow();
+			acc28.setDepartment(department7);
+			accountRepo.save(acc28);
+
+			Account acc29 = accountRepo.findByUsername("nhanvien29").orElseThrow();
+			acc29.setDepartment(department7);
+			accountRepo.save(acc29);
+
+			Account acc30 = accountRepo.findByUsername("nhanvien30").orElseThrow();
+			acc30.setDepartment(department8);
+			accountRepo.save(acc30);
+
+			Account acc31 = accountRepo.findByUsername("nhanvien31").orElseThrow();
+			acc31.setDepartment(department8);
+			accountRepo.save(acc31);
+
+			Account acc32 = accountRepo.findByUsername("nhanvien32").orElseThrow();
+			acc32.setDepartment(department9);
+			accountRepo.save(acc32);
+
+			Account acc33 = accountRepo.findByUsername("nhanvien33").orElseThrow();
+			acc33.setDepartment(department9);
+			accountRepo.save(acc33);
+
+			Account acc34 = accountRepo.findByUsername("nhanvien34").orElseThrow();
+			acc34.setDepartment(department10);
+			accountRepo.save(acc34);
+
+			Account acc35 = accountRepo.findByUsername("nhanvien35").orElseThrow();
+			acc35.setDepartment(department10);
+			accountRepo.save(acc35);
+
+			Account acc36 = accountRepo.findByUsername("nhanvien36").orElseThrow();
+			acc36.setDepartment(department11);
+			accountRepo.save(acc36);
+
+			Account acc37 = accountRepo.findByUsername("nhanvien37").orElseThrow();
+			acc37.setDepartment(department11);
+			accountRepo.save(acc37);
+
+			Account acc38 = accountRepo.findByUsername("nhanvien38").orElseThrow();
+			acc38.setDepartment(department12);
+			accountRepo.save(acc38);
+
+			Account acc39 = accountRepo.findByUsername("nhanvien39").orElseThrow();
+			acc39.setDepartment(department12);
+			accountRepo.save(acc39);
 
 			// Initialize Accounts
 			RegisterRequest admin = RegisterRequest.builder()

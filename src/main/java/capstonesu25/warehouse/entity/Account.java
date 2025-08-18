@@ -40,6 +40,10 @@ public class Account implements UserDetails {
     @Column(name = "full_name")
     private String fullName;
 
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private AccountStatus status;

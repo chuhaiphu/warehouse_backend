@@ -35,6 +35,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
         List<Account> findByRoleAndStatus(AccountRole accountRole, AccountStatus accountStatus);
 
+        List<Account> findAllByDepartment_Id(Long departmentId);
+
         @Query("SELECT DISTINCT a FROM Account a " +
                         "JOIN a.staffPerformances sp " +
                         "WHERE a.role = :role AND a.status = :status AND sp.date = :date")

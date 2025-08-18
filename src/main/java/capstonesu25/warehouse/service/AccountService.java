@@ -259,6 +259,17 @@ public class AccountService implements LogoutHandler {
                 .map(this::mapToResponse)
                 .toList();
     }
+
+    public List<AccountResponse> getAccountsByDepartmentId (Long departmentId) {
+        LOGGER.info("Getting accounts by department ID: {}", departmentId);
+        List<Account> accounts = accountRepository.findAllByDepartment_Id(departmentId);
+        if (accounts.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No accounts found for the given department");
+        }
+        return accounts.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
     public TaskOfStaffPerDate getTasksOfStaffPerDate(Long staffId, LocalDate date) {
         LOGGER.info("Getting tasks of staff for date: {}", date);
         Account account = accountRepository.findById(staffId)
