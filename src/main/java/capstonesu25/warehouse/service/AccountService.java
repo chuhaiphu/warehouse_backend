@@ -8,6 +8,7 @@ import capstonesu25.warehouse.model.account.*;
 import capstonesu25.warehouse.repository.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -259,6 +258,42 @@ public class AccountService implements LogoutHandler {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+    public TaskOfStaffPerDate getTasksOfStaffPerDate(Long staffId, LocalDate date) {
+        LOGGER.info("Getting tasks of staff for date: {}", date);
+        Account account = accountRepository.findById(staffId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Staff not found"));
+
+        List<ImportOrder> importOrders = importOrderRepository.findByAssignedStaff_IdAndDateReceived(staffId, date);
+        List<ExportRequest> countingExportRequests = exportRequestRepository.findAllByCountingStaffIdAndCountingDate(staffId, date);
+        List<ExportRequest> confirmedExportRequests = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(staffId, date);
+        List<StockCheckRequest> stockCheckRequests = stockCheckRequestRepository.findByAssignedStaff_IdAndCountingDate(staffId, date);
+        List<String> importOrderIds = safeStream(importOrders)
+                .filter(Objects::nonNull)
+                .map(ImportOrder::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<String> exportRequestIds = java.util.stream.Stream.concat(
+                        safeStream(countingExportRequests).filter(Objects::nonNull),
+                        safeStream(confirmedExportRequests).filter(Objects::nonNull)
+                )
+                .map(ExportRequest::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        List<String> stockCheckIds = safeStream(stockCheckRequests)
+                .filter(Objects::nonNull)
+                .map(StockCheckRequest::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        return new TaskOfStaffPerDate(date, staffId, importOrderIds, exportRequestIds, stockCheckIds);
+    }
+
+    private static <T> java.util.stream.Stream<T> safeStream(Collection<T> c) {
+        return c == null ? java.util.stream.Stream.empty() : c.stream();
     }
 
     public List<AccountResponse> getAllActiveStaffsInDate(ActiveAccountRequest request) {

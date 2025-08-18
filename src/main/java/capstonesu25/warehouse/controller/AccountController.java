@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -140,6 +141,19 @@ public class AccountController {
                 null
         );
     }
+
+    @Operation(summary = "get task of date of staff")
+    @GetMapping("/task-of-staff-per-date/{StaffId}")
+    public ResponseEntity<?> getTaskOfStaffPerDate(@PathVariable Long StaffId,
+                                                   @RequestParam LocalDate date) {
+        TaskOfStaffPerDate tasks= accountService.getTasksOfStaffPerDate(StaffId, date);
+        return ResponseUtil.getObject(
+                tasks,
+                HttpStatus.OK,
+                "Successfully retrieved task of staff per date"
+        );
+    }
+
     @Operation(summary = "Get all active staff accounts with date")
     @PostMapping("/active-staff-in-day")
     public ResponseEntity<?> getActiveStaffsInDay(@RequestBody @Valid ActiveAccountRequest request) {
