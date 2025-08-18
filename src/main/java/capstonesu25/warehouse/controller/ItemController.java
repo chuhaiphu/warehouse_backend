@@ -76,7 +76,6 @@ public class ItemController {
 
     @Operation(summary = "Get items by provider ID")
     @GetMapping("/provider/{providerId}")
-    
     public ResponseEntity<?> getItemsByProvider(@PathVariable Long providerId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit) {
@@ -94,9 +93,18 @@ public class ItemController {
                         page));
     }
 
+    @Operation(summary = "get item figures")
+    @GetMapping("/figures")
+    public ResponseEntity<?> getItemFigures() {
+        LOGGER.info("Getting item figures");
+        return ResponseUtil.getObject(
+                itemService.getItemFigures(),
+                HttpStatus.OK,
+                "Successfully retrieved item figures");
+    }
+
     @Operation(summary = "Create a new item")
     @PostMapping
-    
     public ResponseEntity<?> createItem(@RequestBody ItemRequest request) {
         LOGGER.info("Creating item");
         return ResponseUtil.getObject(

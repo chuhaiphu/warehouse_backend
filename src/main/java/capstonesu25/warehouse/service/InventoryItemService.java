@@ -2,10 +2,7 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
-import capstonesu25.warehouse.model.inventoryitem.ChangeInventoryItemOfExportDetailRequest;
-import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
-import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
-import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
+import capstonesu25.warehouse.model.inventoryitem.*;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ExportRequestDetailRepository;
@@ -119,6 +116,47 @@ public class InventoryItemService {
         return inventoryItemRepository.findByStoredLocationId(storedLocationId, pageable)
                 .map(this::mapToResponse);
     }
+
+    @Transactional(readOnly = true)
+    public List<InventoryFigure> getInventoryItemsFigure() {
+        LOGGER.info("Getting inventory items figure");
+
+        List<Item> items = itemRepository.findAll();
+        List<InventoryFigure> figures = new ArrayList<>(items.size());
+
+        for (Item item : items) {
+            List<InventoryItem> list = inventoryItemRepository.findByItem_Id(item.getId());
+
+            long available = list.stream()
+                    // available = free & AVAILABLE (tweak if your rule differs)
+                    .filter(ii -> ii.getStatus() == ItemStatus.AVAILABLE )
+                    .count();
+
+            long needLiquid = list.stream()
+                    // define your own rule here:
+                    // e.g. statuses that imply liquidation OR any custom predicate like expiry, damaged, etc.
+                    .filter(ii -> ii.getStatus() == ItemStatus.NEED_LIQUID)
+                    .count();
+
+            long unavailable = list.stream()
+                    // define your own rule here:
+                    // e.g. statuses that imply liquidation OR any custom predicate like expiry, damaged, etc.
+                    .filter(ii -> ii.getStatus() == ItemStatus.UNAVAILABLE)
+                    .count();
+
+            figures.add(new InventoryFigure(
+                    item.getId(),
+                    (int) available,
+                    (int) unavailable,
+                    (int) needLiquid
+            ));
+        }
+        return figures;
+    }
+
+    /** Centralize your liquidation rule here */
+
+
 
     public List<InventoryItemResponse> getListQrCodes(List<String> inventoryItemIds) {
         LOGGER.info("Getting QR codes by inventory item IDs: {}", inventoryItemIds);

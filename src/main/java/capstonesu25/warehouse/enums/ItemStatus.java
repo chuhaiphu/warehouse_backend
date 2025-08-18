@@ -6,5 +6,6 @@ public enum ItemStatus {
     NEED_LIQUID,
     SAFE,
     ALMOST_OUT_OF_DATE,
-    RETURN
+    RETURN,
+    NO_LONGER_EXIST,
 }

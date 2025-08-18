@@ -159,6 +159,9 @@ public class ExportRequestDetailService {
            exportRequestDetail.setStatus(DetailStatus.MATCH);
        }
        if(exportRequestDetail.getExportRequest().getType().equals(ExportType.INTERNAL)) {
+           if(exportRequestDetail.getActualMeasurementValue() == null) {
+               exportRequestDetail.setActualMeasurementValue(0.0);
+           }
            if(exportRequestDetail.getActualMeasurementValue() >= exportRequestDetail.getMeasurementValue()) {
                exportRequestDetail.setStatus(DetailStatus.MATCH);
            }

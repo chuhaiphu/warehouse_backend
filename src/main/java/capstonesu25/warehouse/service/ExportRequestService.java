@@ -101,6 +101,13 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
+    public List<ExportRequestResponse> getExportRequestsByStatus(RequestStatus status) {
+        List<ExportRequest> exportRequests = exportRequestRepository.findAllByStatus(status);
+        return exportRequests.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     @Transactional
     public ExportRequestResponse createExportSellingRequest(ExportSellingRequest request) {
         LOGGER.info("Creating export selling request");
@@ -882,7 +889,7 @@ public class ExportRequestService {
         for(ExportRequestDetail exportRequestDetail : exportRequestDetails) {
             for(InventoryItem inventoryItem : exportRequestDetail.getInventoryItems()) {
                 LOGGER.info("Updating inventory item id: {}", inventoryItem.getId());
-                inventoryItem.setStatus(ItemStatus.UNAVAILABLE);
+                inventoryItem.setStatus(ItemStatus.NO_LONGER_EXIST);
                 inventoryItemRepository.save(inventoryItem);
 
                 StoredLocation location = inventoryItem.getStoredLocation();

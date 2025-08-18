@@ -58,6 +58,14 @@ public class StockCheckService {
                 .toList();
     }
 
+    public List<StockCheckRequestResponse> getStockCheckRequestsByStatus(RequestStatus status) {
+        LOGGER.info("Fetching stock check requests by status: {}", status);
+        List<StockCheckRequest> stockCheckRequests = stockCheckRequestRepository.findAllByStatus(status);
+        return stockCheckRequests.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     @Transactional
     public StockCheckRequestResponse createStockCheckRequest(StockCheckRequestRequest request) {
         LOGGER.info("Creating stock check request with data: {}", request);

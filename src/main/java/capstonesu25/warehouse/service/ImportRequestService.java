@@ -52,6 +52,14 @@ public class ImportRequestService {
         return importRequests.map(Mapper::mapToImportRequestResponse);
     }
 
+    public List<ImportRequestResponse> getImportRequestsByStatus(RequestStatus status) {
+        LOGGER.info("Get import requests by status: " + status);
+        List<ImportRequest> importRequests = importRequestRepository.findAllByStatus(status);
+        return importRequests.stream()
+                .map(Mapper::mapToImportRequestResponse)
+                .toList();
+    }
+
     public ImportRequestResponse getImportRequestById(String id) {
         LOGGER.info("Get import request by id: " + id);
         ImportRequest importRequest = importRequestRepository.findById(id)

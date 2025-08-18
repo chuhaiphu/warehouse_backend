@@ -23,7 +23,7 @@ public class ExportRequestDetail {
     private Double measurementValue;
 
     @Column(name = "actual_measurement_value")
-    private Double actualMeasurementValue;
+    private Double actualMeasurementValue = 0.0;
 
     @Column(name = "quantity")
     private Integer quantity;

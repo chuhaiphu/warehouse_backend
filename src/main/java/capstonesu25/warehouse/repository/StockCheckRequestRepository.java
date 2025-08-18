@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.repository;
 
 import capstonesu25.warehouse.entity.StockCheckRequest;
+import capstonesu25.warehouse.enums.RequestStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -29,4 +30,6 @@ public interface StockCheckRequestRepository extends JpaRepository<StockCheckReq
     List<StockCheckRequest> findByAssignedStaff_Id(Long staffId);
 
     List<StockCheckRequest> findByIdStartingWith(String idPrefix);
+
+    List<StockCheckRequest> findAllByStatus(RequestStatus status);
 }

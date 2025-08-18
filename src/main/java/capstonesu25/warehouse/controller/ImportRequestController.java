@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -7,6 +8,7 @@ import capstonesu25.warehouse.service.ImportRequestService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -52,6 +54,16 @@ public class ImportRequestController {
                         (int) result.getTotalElements(),
                         page));
 
+    }
+    @Operation(summary = "get import request by status")
+    @GetMapping("/status/{status}")
+    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+        LOGGER.info("Getting import requests by status: {}", status);
+        return ResponseUtil.getCollection(
+                importRequestService.getImportRequestsByStatus(status),
+                HttpStatus.OK,
+                "Successfully retrieved import requests by status",
+                null);
     }
 
     @Operation(summary = "Get import request by import request Id")

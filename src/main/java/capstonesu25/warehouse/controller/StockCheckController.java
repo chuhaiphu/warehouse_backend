@@ -58,6 +58,18 @@ public class StockCheckController {
         );
     }
 
+    @Operation(summary = "Get stock check requests by status")
+    @GetMapping("/status/{status}")
+    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+        LOGGER.info("Getting stock check requests by status: {}", status);
+        return ResponseUtil.getCollection(
+                stockCheckService.getStockCheckRequestsByStatus(status),
+                HttpStatus.OK,
+                "Successfully retrieved stock check requests by status",
+                null
+        );
+    }
+
     @PostMapping("/create")
     @Operation(summary = "Create a new stock check request")
     public ResponseEntity<?> createStockCheckRequest(@RequestBody StockCheckRequestRequest request) {

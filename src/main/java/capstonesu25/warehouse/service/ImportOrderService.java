@@ -285,6 +285,13 @@ public class ImportOrderService {
         return importOrders.map(Mapper::mapToImportOrderResponse);
     }
 
+    public List<ImportOrderResponse> getImportOrdersByStatus(RequestStatus status) {
+        LOGGER.info("Get import orders by status: " + status);
+        List<ImportOrder> importOrders = importOrderRepository.findAllByStatus(status);
+        return importOrders.stream()
+                .map(Mapper::mapToImportOrderResponse)
+                .collect(Collectors.toList());
+    }
     @TransactionLoggable(type = "IMPORT_ORDER", action = "CANCEL", objectIdSource = "importOrderId")
     public ImportOrderResponse cancelImportOrder(String importOrderId) {
         LOGGER.info("Cancelling import order with ID: " + importOrderId);

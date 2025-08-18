@@ -2,6 +2,7 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
+import capstonesu25.warehouse.model.item.ItemFigure;
 import capstonesu25.warehouse.model.item.ItemRequest;
 import capstonesu25.warehouse.model.item.ItemResponse;
 import capstonesu25.warehouse.repository.CategoryRepository;
@@ -81,6 +82,25 @@ public class ItemService {
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<Item> items = itemRepository.findByProviders_Id(providerId, pageable);
         return items.map(this::mapToResponse);
+    }
+
+    public ItemFigure getItemFigures() {
+        LOGGER.info("Getting item figures");
+        List<Item> items = itemRepository.findAll();
+        int totalItems = items.size();
+        ItemFigure itemFigure = new ItemFigure(0, 0 );
+         for(Item item : items) {
+             if(item.getTotalMeasurementValue() == null || item.getTotalMeasurementValue() == 0
+             || item.getTotalMeasurementValue() < item.getMeasurementValue()* item.getMinimumStockQuantity()) {
+                 itemFigure.setTotalOutOfStock(itemFigure.getTotalOutOfStock() + 1);
+             }
+             if(item.getTotalMeasurementValue() >= item.getMeasurementValue()* item.getMinimumStockQuantity()
+                     && item.getTotalMeasurementValue() <= item.getMeasurementValue()* item.getMaximumStockQuantity()) {
+                 itemFigure.setTotalInStock(itemFigure.getTotalInStock() + 1);
+             }
+        }
+
+        return itemFigure;
     }
 
     private ItemResponse mapToResponse(Item item) {

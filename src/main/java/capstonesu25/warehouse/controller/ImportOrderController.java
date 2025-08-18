@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.controller;
 
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.model.importorder.*;
 
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
@@ -139,6 +140,18 @@ public class ImportOrderController {
 						limit,
 						(int) result.getTotalElements(),
 						page));
+	}
+
+	@Operation(summary = "Get import orders by status")
+	@GetMapping("/status/{status}")
+	public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+		LOGGER.info("Getting import orders by status: {}", status);
+		List<ImportOrderResponse> result = importOrderService.getImportOrdersByStatus(status);
+		return ResponseUtil.getCollection(
+				result,
+				HttpStatus.OK,
+				"Successfully retrieved import orders by status",
+				null);
 	}
 
 	@Operation(summary = "Cancel an import order")

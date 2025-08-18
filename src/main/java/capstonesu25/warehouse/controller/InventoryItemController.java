@@ -1,9 +1,6 @@
 package capstonesu25.warehouse.controller;
 
-import capstonesu25.warehouse.model.inventoryitem.ChangeInventoryItemOfExportDetailRequest;
-import capstonesu25.warehouse.model.inventoryitem.InventoryItemRequest;
-import capstonesu25.warehouse.model.inventoryitem.InventoryItemResponse;
-import capstonesu25.warehouse.model.inventoryitem.UpdateInventoryLocationRequest;
+import capstonesu25.warehouse.model.inventoryitem.*;
 import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.InventoryItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
@@ -153,6 +150,18 @@ public class InventoryItemController {
 						limit,
 						(int) result.getTotalElements(),
 						page));
+	}
+
+	@Operation(summary = "Get inventory items figure")
+	@GetMapping("/figure")
+	public ResponseEntity<?> getInventoryItemsFigure() {
+		LOGGER.info("Getting inventory items figure");
+		List<InventoryFigure> result = inventoryItemService.getInventoryItemsFigure();
+		return ResponseUtil.getCollection(
+				result,
+				HttpStatus.OK,
+				"Successfully retrieved inventory items figure",
+				null);
 	}
 
 	@Operation(summary = "Get QR codes by inventory item IDs")

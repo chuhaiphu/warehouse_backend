@@ -76,6 +76,18 @@ public class ExportRequestController {
         );
     }
 
+    @Operation(summary = "Get export requests by status")
+    @GetMapping("/status/{status}")
+    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+        LOGGER.info("Getting export requests by status: {}", status);
+        return ResponseUtil.getCollection(
+            exportRequestService.getExportRequestsByStatus(status),
+            HttpStatus.OK,
+            "Successfully retrieved export requests by status",
+            null
+        );
+    }
+
     @Operation(summary = "Get list export request by staff Id")
     @GetMapping("/staff/{staffId}")
     public ResponseEntity<?> getByStaffId(@PathVariable Long staffId,
