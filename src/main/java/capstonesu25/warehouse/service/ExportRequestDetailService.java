@@ -143,9 +143,11 @@ public class ExportRequestDetailService {
        if(inventoryItem.getIsTrackingForExport() == true) {
            throw new IllegalArgumentException("Inventory item with ID: "+inventoryItemId+" has been tracked");
        }
-        if(exportRequestDetail.getActualQuantity() >= exportRequestDetail.getQuantity()) {
-            throw new IllegalArgumentException("Actual quantity cannot be greater to requested quantity");
-        }
+       if(exportRequest.getType().equals(ExportType.SELLING)) {
+           if (exportRequestDetail.getActualQuantity() >= exportRequestDetail.getQuantity()) {
+               throw new IllegalArgumentException("Actual quantity cannot be greater to requested quantity");
+           }
+       }
        exportRequestDetail.setActualQuantity(exportRequestDetail.getActualQuantity() + 1);
        inventoryItem.setIsTrackingForExport(true);
         exportRequest.getExportRequestDetails().forEach(detail -> {

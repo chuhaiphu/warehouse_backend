@@ -351,6 +351,7 @@ public class InventoryItemService {
         // 8) (Optional) Persist the collection change on the owning side if necessary
         // Depending on your mapping, you might need to refresh or explicitly set the collection:
         exportDetail.setInventoryItems(remaining);
+        exportDetail.setQuantity(remaining.size());
         exportRequestDetailRepository.save(exportDetail);
 
         LOGGER.info("Swapped {} old items with {} new items on ExportRequestDetail {}. Total now: {} (required: {})",
