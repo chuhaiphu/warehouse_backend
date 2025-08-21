@@ -22,5 +22,5 @@ public class StockCheckRequestDetailResponse {
     private String stockCheckRequestId;
     private String itemId;
     private List<String> inventoryItemIds;
-    private List<String> checkedInventoryItemIds;
+    private List<CheckedStockCheck> checkedInventoryItemIds;
 }

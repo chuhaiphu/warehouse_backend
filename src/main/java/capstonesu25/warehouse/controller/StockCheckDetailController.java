@@ -66,9 +66,8 @@ public class StockCheckDetailController {
     @PutMapping("/tracking")
     public ResponseEntity<?> updateStockCheckRequestDetail(@RequestBody UpdateActualStockCheck request) {
         LOGGER.info("Updating stock check request detail with data: {}", request);
-        stockCheckDetailService.updateActualQuantity(request);
         return ResponseUtil.getObject(
-                null,
+                stockCheckDetailService.updateActualQuantity(request),
                 HttpStatus.OK,
                 "Successfully updated stock check request detail"
         );

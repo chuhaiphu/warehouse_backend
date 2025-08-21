@@ -1,6 +1,8 @@
 package capstonesu25.warehouse.entity;
 
 import capstonesu25.warehouse.enums.DetailStatus;
+import capstonesu25.warehouse.model.stockcheck.detail.CheckedStockCheck;
+import capstonesu25.warehouse.utils.CheckedStockCheckListConverter;
 import capstonesu25.warehouse.utils.StringListConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -41,9 +43,9 @@ public class StockCheckRequestDetail {
     @Column(name = "inventory_item_ids", columnDefinition = "TEXT")
     private List<String> inventoryItemsId = new ArrayList<>();
 
-    @Convert(converter = StringListConverter.class)
-    @Column(name = "checked_inventory_item_ids", columnDefinition = "TEXT")
-    private List<String> checkedInventoryItemsId = new ArrayList<>();
+    @Convert(converter = CheckedStockCheckListConverter.class)
+    @Column(name = "checked_inventory_items", columnDefinition = "TEXT")
+    private List<CheckedStockCheck> checkedInventoryItems = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "stock_check_request_id")

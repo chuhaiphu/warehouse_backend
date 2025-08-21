@@ -6,6 +6,7 @@ import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
+import capstonesu25.warehouse.model.stockcheck.detail.CheckedStockCheck;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailRequest;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailResponse;
 import capstonesu25.warehouse.model.stockcheck.detail.UpdateActualStockCheck;
@@ -16,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -85,90 +84,116 @@ public class StockCheckDetailService {
 
     @Transactional
     public StockCheckRequestDetailResponse updateActualQuantity(UpdateActualStockCheck request) {
-        LOGGER.info("Updating actual quantity for stock check request detail with ID: {}", request.getStockCheckDetailId());
+        LOGGER.info("Updating actual measurement for stockCheckDetailId={}, inventoryItemId={}",
+                request.getStockCheckDetailId(), request.getInventoryItemId());
+
+        if (request.getStockCheckDetailId() == null || request.getInventoryItemId() == null) {
+            throw new IllegalArgumentException("stockCheckDetailId and inventoryItemId must not be null");
+        }
+
         StockCheckRequestDetail detail = stockCheckRequestDetailRepository.findById(request.getStockCheckDetailId())
-                .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
+                .orElseThrow(() -> new NoSuchElementException("Stock check request detail not found"));
+
+        if (detail.getCheckedInventoryItems() == null) {
+            detail.setCheckedInventoryItems(new ArrayList<>());
+        }
+
+        boolean alreadyTracked = detail.getCheckedInventoryItems().stream()
+                .anyMatch(c -> Objects.equals(c.getInventoryItemId(), request.getInventoryItemId()));
+        if (alreadyTracked) {
+            throw new IllegalStateException("Inventory item is already being tracked for stock check");
+        }
+
         InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
-                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
-        for(String inventoryItemId : detail.getCheckedInventoryItemsId()) {
-            if (inventoryItemId.equals(request.getInventoryItemId())) {
-                    throw new RuntimeException("Inventory item is already being tracked for stock check");
-            }
+                .orElseThrow(() -> new NoSuchElementException("Inventory item not found"));
+
+        Double mv = request.getActualMeasurementValue();
+        if (mv == null || Double.compare(mv, 0.0) <= 0) {
+            mv = inventoryItem.getMeasurementValue(); // fallback sang giá trị của item
         }
-        boolean flag = false;
-        for(String inventoryItemId : detail.getInventoryItemsId()) {
-            if (inventoryItemId.equals(request.getInventoryItemId())) {
-                detail.setActualQuantity(detail.getActualQuantity() + 1);
-                detail.setActualMeasurementValue(detail.getActualMeasurementValue() + inventoryItem.getMeasurementValue());
-                detail.getCheckedInventoryItemsId().add(inventoryItem.getId());
-                flag = false;
-                break;
-            }
-            flag = true;
-        }
-        if(flag){
-            throw new RuntimeException("Inventory item ID not found in stock check request detail");
-        }
-        if(detail.getActualMeasurementValue() > detail.getMeasurementValue()) {
-            detail.setStatus(DetailStatus.EXCESS);
-        } else if(detail.getActualQuantity().equals(detail.getQuantity())) {
-            detail.setStatus(DetailStatus.MATCH);
-        } else {
-            detail.setStatus(DetailStatus.LACK);
-        }
-        return mapToResponse(stockCheckRequestDetailRepository.save(detail));
+
+        ItemStatus status = request.getStatus() != null ? request.getStatus() : ItemStatus.AVAILABLE;
+
+        CheckedStockCheck checked = new CheckedStockCheck();
+        checked.setInventoryItemId(request.getInventoryItemId());
+        checked.setMeasurementValue(mv);
+        checked.setStatus(status);
+
+        detail.getCheckedInventoryItems().add(checked);
+
+        StockCheckRequestDetail saved = stockCheckRequestDetailRepository.save(detail);
+
+        return mapToResponse(saved);
     }
+
 
     @Transactional
     public StockCheckRequestDetailResponse resetTrackingForStockCheckRequestDetail(UpdateActualStockCheck request) {
-        LOGGER.info("Resetting tracking for stock check request detail with ID: {}", request.getStockCheckDetailId());
+        LOGGER.info("Resetting tracking for stock check detail: detailId={}, inventoryItemId={}",
+                request.getStockCheckDetailId(), request.getInventoryItemId());
+
+        if (request.getStockCheckDetailId() == null || request.getInventoryItemId() == null) {
+            throw new IllegalArgumentException("stockCheckDetailId and inventoryItemId must not be null");
+        }
+
         StockCheckRequestDetail detail = stockCheckRequestDetailRepository.findById(request.getStockCheckDetailId())
-                .orElseThrow(() -> new RuntimeException("Stock check request detail not found"));
-        InventoryItem inventoryItem = inventoryItemRepository.findById(request.getInventoryItemId())
-                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+                .orElseThrow(() -> new NoSuchElementException("Stock check request detail not found"));
 
-        boolean checked = false;
-        for (String inventoryItemId : detail.getCheckedInventoryItemsId()) {
-            if (inventoryItemId.equals(request.getInventoryItemId())) {
-                checked = true;
-                break;
-            }
-        }
-        if(!checked) {
-            throw new RuntimeException("Inventory item is not being tracked for stock check");
-        }
-
-        boolean found = false;
-        for (String inventoryItemId : detail.getInventoryItemsId()) {
-            if (inventoryItemId.equals(request.getInventoryItemId())) {
-                detail.setActualQuantity(detail.getActualQuantity() - 1);
-                detail.setActualMeasurementValue(
-                        detail.getActualMeasurementValue() - inventoryItem.getMeasurementValue()
-                );
-                detail.getCheckedInventoryItemsId().remove(inventoryItem.getId());
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            throw new RuntimeException("Inventory item ID not found in stock check request detail");
+        if (detail.getCheckedInventoryItems() == null) {
+            detail.setCheckedInventoryItems(new ArrayList<>());
         }
 
 
-        if(detail.getActualMeasurementValue() > detail.getMeasurementValue()) {
-            detail.setStatus(DetailStatus.EXCESS);
-        } else if(detail.getActualQuantity() == detail.getQuantity()) {
-            detail.setStatus(DetailStatus.LACK);
+        CheckedStockCheck toRemove = detail.getCheckedInventoryItems().stream()
+                .filter(c -> Objects.equals(c.getInventoryItemId(), request.getInventoryItemId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Inventory item is not being tracked for stock check"));
+
+        int actualQty = Optional.ofNullable(detail.getActualQuantity()).orElse(0);
+        double actualMv = Optional.ofNullable(detail.getActualMeasurementValue()).orElse(0.0);
+
+        actualQty = Math.max(0, actualQty - 1);
+        actualMv = Math.max(0.0, actualMv - Optional.ofNullable(toRemove.getMeasurementValue()).orElse(0.0));
+
+        detail.setActualQuantity(actualQty);
+        detail.setActualMeasurementValue(actualMv);
+
+        // 5) Xoá bản ghi theo dõi khỏi danh sách
+        detail.getCheckedInventoryItems().remove(toRemove);
+
+        // 6) Tính lại status
+        int planQty = Optional.ofNullable(detail.getQuantity()).orElse(0);
+        double planMv = Optional.ofNullable(detail.getMeasurementValue()).orElse(0.0);
+
+        // Need-to-check list (planned)
+        List<String> needIds = Optional.ofNullable(detail.getInventoryItemsId()).orElse(List.of());
+
+// Checked list (actual)
+        List<String> checkedIds = Optional.ofNullable(detail.getCheckedInventoryItems()).orElse(List.of())
+                .stream()
+                .map(CheckedStockCheck::getInventoryItemId)
+                .toList();
+
+        Set<String> needSet = new HashSet<>(needIds);
+        long matchedCount = checkedIds.stream().filter(needSet::contains).count();
+
+        int planCount = needIds.size();
+
+        DetailStatus newStatus;
+        if (matchedCount == 0) {
+            newStatus = null; // chưa có gì kiểm
+        } else if (matchedCount > planCount) {
+            newStatus = DetailStatus.EXCESS;
+        } else if (matchedCount < planCount) {
+            newStatus = DetailStatus.LACK;
         } else {
-            detail.setStatus(DetailStatus.LACK);
+            newStatus = null; // khớp chính xác (nếu bạn có enum MATCHED/OK thì đặt ở đây)
         }
+        detail.setStatus(newStatus);
 
-        if(detail.getActualQuantity() == 0.0 && detail.getActualMeasurementValue() == 0.0) {
-            detail.setStatus(null);
-        }
         return mapToResponse(stockCheckRequestDetailRepository.save(detail));
     }
+
 
     private void autoAssignCountingStaff(StockCheckRequest stockCheckRequest) {
         ActiveAccountRequest activeAccountRequest = ActiveAccountRequest.builder()
@@ -214,7 +239,7 @@ public class StockCheckDetailService {
                 .stockCheckRequestId(detail.getStockCheckRequest().getId())
                 .itemId(detail.getItem().getId())
                 .inventoryItemIds(detail.getInventoryItemsId())
-                .checkedInventoryItemIds(detail.getCheckedInventoryItemsId())
+                .checkedInventoryItemIds(detail.getCheckedInventoryItems())
                 .build();
     }
 }
