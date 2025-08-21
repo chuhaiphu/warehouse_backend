@@ -15,6 +15,7 @@ public class ExportRequestDetailResponse {
     private Long id;
     private Double measurementValue;
     private Integer actualQuantity;
+    private Double actualMeasurementValue;
     private Integer quantity;
     private DetailStatus status;
     private String exportRequestId;

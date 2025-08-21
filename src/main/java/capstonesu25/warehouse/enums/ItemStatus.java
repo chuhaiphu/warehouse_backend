@@ -8,4 +8,5 @@ public enum ItemStatus {
     ALMOST_OUT_OF_DATE,
     RETURN,
     NO_LONGER_EXIST,
+    READY_TO_STORE
 }

@@ -192,6 +192,16 @@ public class ImportOrderService {
         }
 
         importOrder.setStatus(RequestStatus.STORED);
+        handleImportItems(importOrder);
+        List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
+        for (ImportOrderDetail importOrderDetail : importOrderDetails) {
+            for (InventoryItem inventoryItem : importOrderDetail.getInventoryItems()) {
+                inventoryItem.setStatus(ItemStatus.AVAILABLE);
+                inventoryItemRepository.save(inventoryItem);
+            }
+        }
+
+
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
                 NotificationUtil.IMPORT_ORDER_STORED_EVENT + "-" + importOrderId,
@@ -350,7 +360,7 @@ public class ImportOrderService {
         updateImportRequest(importOrder);
         updateImportOrder(importOrder);
         autoFillLocationForImport(importOrder);
-        handleImportItems(importOrder);
+//        handleImportItems(importOrder);
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
                 NotificationUtil.IMPORT_ORDER_COMPLETED_EVENT + "-" + importOrderId,
@@ -370,7 +380,7 @@ public class ImportOrderService {
         importOrder.setStatus(RequestStatus.COMPLETED);
         updateReturnImportRequest(importOrder);
         updateImportOrder(importOrder);
-        handleImportItems(importOrder);
+//        handleImportItems(importOrder);
 
         notificationService.handleNotification(
                 NotificationUtil.DEPARTMENT_CHANNEL,
@@ -717,7 +727,7 @@ public class ImportOrderService {
             inventoryItem.setImportedDate(LocalDateTime.of(importOrderDetail.getImportOrder().getDateReceived(),
                     importOrderDetail.getImportOrder().getTimeReceived()));
             inventoryItem.setMeasurementValue(importOrderDetail.getItem().getMeasurementValue());
-            inventoryItem.setStatus(ItemStatus.AVAILABLE);
+            inventoryItem.setStatus(ItemStatus.READY_TO_STORE);
             inventoryItem.setUpdatedDate(LocalDateTime.now());
             if (importOrderDetail.getItem().getDaysUntilDue() != null) {
                 inventoryItem.setExpiredDate(

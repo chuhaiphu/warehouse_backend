@@ -397,6 +397,7 @@ public class ExportRequestDetailService {
         response.setId(exportRequestDetail.getId());
         response.setMeasurementValue(exportRequestDetail.getMeasurementValue());
         response.setActualQuantity(exportRequestDetail.getActualQuantity());
+        response.setActualMeasurementValue(exportRequestDetail.getActualMeasurementValue());
         response.setQuantity(exportRequestDetail.getQuantity());
         response.setStatus(exportRequestDetail.getStatus());
         response.setExportRequestId(exportRequestDetail.getExportRequest().getId());
