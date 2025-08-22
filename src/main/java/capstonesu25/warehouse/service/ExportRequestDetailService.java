@@ -198,6 +198,12 @@ public class ExportRequestDetailService {
         if(exportRequestDetail.getActualQuantity() < exportRequestDetail.getQuantity()) {
             exportRequestDetail.setStatus(DetailStatus.LACK);
         }
+        if(exportRequestDetail.getExportRequest().getType().equals(ExportType.INTERNAL)) {
+            exportRequestDetail.setActualMeasurementValue(exportRequestDetail.getActualMeasurementValue() - inventoryItem.getMeasurementValue());
+            if(exportRequestDetail.getActualMeasurementValue() < exportRequestDetail.getMeasurementValue()) {
+                exportRequestDetail.setStatus(DetailStatus.LACK);
+            }
+        }
         return mapToResponse(exportRequestDetailRepository.save(exportRequestDetail));
     }
 
