@@ -161,8 +161,10 @@ public class ExportRequestDetailService {
            exportRequestDetail.setStatus(DetailStatus.MATCH);
        }
        if(exportRequestDetail.getExportRequest().getType().equals(ExportType.INTERNAL)) {
-           if(exportRequestDetail.getActualMeasurementValue() == null) {
-               exportRequestDetail.setActualMeasurementValue(0.0);
+           if(exportRequestDetail.getActualMeasurementValue() == null || exportRequestDetail.getActualMeasurementValue() == 0) {
+               exportRequestDetail.setActualMeasurementValue(inventoryItem.getMeasurementValue());
+           }else {
+               exportRequestDetail.setActualMeasurementValue(exportRequestDetail.getActualMeasurementValue() + inventoryItem.getMeasurementValue());
            }
            if(exportRequestDetail.getActualMeasurementValue() >= exportRequestDetail.getMeasurementValue()) {
                exportRequestDetail.setStatus(DetailStatus.MATCH);
