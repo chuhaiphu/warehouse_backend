@@ -1,12 +1,12 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.exportrequest.RenewExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.UpdateDepartment;
-import capstonesu25.warehouse.model.exportrequest.exportborrowing.ExportBorrowingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
 import capstonesu25.warehouse.model.exportrequest.exportpartial.ExportSellingRequest;
 import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequestRequest;
@@ -109,6 +109,7 @@ public class ExportRequestService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "CREATE", objectIdSource = "exportRequestId")
     public ExportRequestResponse createExportSellingRequest(ExportSellingRequest request) {
         LOGGER.info("Creating export selling request");
         if(!checkType(ExportType.SELLING, request.getType())) {
@@ -151,6 +152,7 @@ public class ExportRequestService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "CREATE", objectIdSource = "exportRequestId")
     public ExportRequestResponse createExportLiquidationRequest(ExportLiquidationRequest request) {
         LOGGER.info("Creating export liquidation request");
         if(!checkType(ExportType.LIQUIDATION, request.getType())) {
@@ -176,7 +178,6 @@ public class ExportRequestService {
         exportRequest.setStatus(RequestStatus.NOT_STARTED);
 
         ExportRequest export = exportRequestRepository.save(exportRequest);
-        export = autoAssignCountingStaff(exportRequest);
         notificationService.handleNotification(
             NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
             NotificationUtil.EXPORT_REQUEST_CREATED_EVENT,
@@ -184,10 +185,11 @@ public class ExportRequestService {
             "Đơn xuất mã #" + export.getId() + " đã được tạo",
             accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
         );
-        return mapToResponse(export);
+        return autoAssignCountingStaff(exportRequest);
     }
 
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "CREATE", objectIdSource = "exportRequestId")
     public ExportRequestResponse createExportReturnRequest(ExportReturnRequest request) {
         LOGGER.info("Creating export return request");
         if(!checkType(ExportType.RETURN, request.getType())) {
@@ -240,6 +242,7 @@ public class ExportRequestService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "CREATE", objectIdSource = "exportRequestId")
     public ExportRequestResponse createExportProductionRequest(ExportRequestRequest request) {
         LOGGER.info("Creating export production request");
         if(!checkType(ExportType.INTERNAL, request.getType()) ) {
@@ -293,6 +296,7 @@ public class ExportRequestService {
         return mapToResponse(export);
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "ASSIGN_STAFF", objectIdSource = "exportRequestId")
     public ExportRequestResponse assignStaffToExportRequest(AssignStaffExportRequest request) {
         LOGGER.info("Assigning staff for confirm to export request with ID: " + request.getExportRequestId());
         ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
@@ -343,6 +347,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "ASSIGN_COUNTING_STAFF", objectIdSource = "exportRequestId")
     public ExportRequestResponse assignCountingStaff(AssignStaffExportRequest request) {
         LOGGER.info("Assigning staff for counting to export request with ID: " + request.getExportRequestId());
         ExportRequest exportRequest = exportRequestRepository.findById(request.getExportRequestId()).orElseThrow();
@@ -385,6 +390,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "CONFIRM_COUNTED", objectIdSource = "exportRequestId")
     public ExportRequestResponse confirmCountedExportRequest(String exportRequestId) {
         LOGGER.info("Confirming counted export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
@@ -629,6 +635,7 @@ public class ExportRequestService {
         return String.format("%s-%s-%s", prefix, datePart, sequence);
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "COMPLETE", objectIdSource = "exportRequestId")
     public ExportRequestResponse completeExportRequest(String exportRequestId) {
         LOGGER.info("Completing export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
@@ -640,6 +647,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "UPDATE_STATUS", objectIdSource = "exportRequestId")
     public ExportRequestResponse updateExportStatus (String exportRequestId, RequestStatus status) {
         LOGGER.info("Updating export request status for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
@@ -704,6 +712,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "UPDATE_DATE_TIME", objectIdSource = "exportRequestId")
     public ExportRequestResponse updateExportDateTime(String exportRequestId, LocalDate date) {
         LOGGER.info("Updating export date and time for export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
@@ -727,6 +736,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "EXTEND", objectIdSource = "exportRequestId")
     public ExportRequestResponse extendExportRequest(String exportRequestId, LocalDate extendedDate,
                                                      String extendReason) {
         LOGGER.info("Extending export request with ID: " + exportRequestId);
@@ -777,6 +787,7 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(exportRequest));
     }
 
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "RENEW", objectIdSource = "exportRequestId")
     public ExportRequestResponse renewExportRequest(RenewExportRequestRequest request) {
         ExportRequest oldExportRequest = exportRequestRepository.findById(request.getExportRequestId())
                 .orElseThrow(() -> new NoSuchElementException("Export request not found with ID: " + request.getExportRequestId()));
@@ -867,7 +878,8 @@ public class ExportRequestService {
         return mapToResponse(exportRequestRepository.save(newExportRequest));
     }
 
-    public ExportRequestResponse updateDepartment (UpdateDepartment updateDepartment) {
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "UPDATE_DEPARTMENT", objectIdSource = "exportRequestId")
+    public ExportRequestResponse updateDepartment(UpdateDepartment updateDepartment) {
         ExportRequest exportRequest = exportRequestRepository.findById(updateDepartment.getExportRequestId())
                 .orElseThrow(() -> new NoSuchElementException("Export request not found with ID: " + updateDepartment.getExportRequestId()));
 
@@ -1034,7 +1046,8 @@ public class ExportRequestService {
         }
     }
 
-    private ExportRequest autoAssignCountingStaff(ExportRequest exportRequest) {
+    @TransactionLoggable(type = "EXPORT_REQUEST", action = "ASSIGN_COUNTING_STAFF", objectIdSource = "exportRequestId")
+    private ExportRequestResponse autoAssignCountingStaff(ExportRequest exportRequest) {
         ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
         if(exportRequest.getIsExtended()) {
             activeAccountRequest.setDate(exportRequest.getExtendedDate());
@@ -1057,7 +1070,7 @@ public class ExportRequestService {
             "Bạn được phân công cho đơn xuất mã #" + exportRequest.getId(),
             List.of(account)
         );
-        return exportRequestRepository.save(exportRequest);
+        return mapToResponse(exportRequestRepository.save(exportRequest));
 
     }
 

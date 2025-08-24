@@ -5,7 +5,6 @@ import capstonesu25.warehouse.enums.DetailStatus;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
-import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
 import capstonesu25.warehouse.model.stockcheck.detail.CheckedStockCheck;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailRequest;
 import capstonesu25.warehouse.model.stockcheck.detail.StockCheckRequestDetailResponse;

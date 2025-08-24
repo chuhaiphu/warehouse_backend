@@ -89,7 +89,6 @@ public class ImportOrderDetailService {
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
                 .orElseThrow(() -> new NoSuchElementException("Import Order not found with ID: " + importOrderId));
 
-       ImportRequest importRequest = importOrder.getImportRequest();
         Set<String> requestedItemIds = request.stream()
                 .map(ReturnImportOrderDetail::getInventoryItemId)
                 .collect(Collectors.toSet());
@@ -358,8 +357,6 @@ public class ImportOrderDetailService {
         if(!detail.getInventoryItemId().equals(updateRequest.getInventoryItemId())) {
             LOGGER.info("Inventory Item ID does not match for detail ID: {}", detailId);
         }
-        InventoryItem inventoryItem = inventoryItemRepository.findById(updateRequest.getInventoryItemId())
-                .orElseThrow(() -> new NoSuchElementException("Inventory Item not found with ID: " + updateRequest.getInventoryItemId()));
         if(updateRequest.getActualMeasurement() == 0) {
             detail.setActualMeasurementValue(detail.getExpectMeasurementValue());
             detail.setStatus(DetailStatus.MATCH);

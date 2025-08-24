@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
@@ -18,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -33,8 +32,6 @@ public class ImportRequestService {
     private final ImportRequestRepository importRequestRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestService.class);
     private final ConfigurationRepository configurationRepository;
-    private final ExportRequestRepository exportRequestRepository;
-    private final ImportRequestDetailRepository importRequestDetailRepository;
     private final DepartmentRepository departmentRepository;
     private final InventoryItemRepository inventoryItemRepository;
 
@@ -68,6 +65,7 @@ public class ImportRequestService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "IMPORT_REQUEST", action = "CREATE", objectIdSource = "importRequestId")
     public ImportRequestResponse createReturnImport(ImportRequestCreateRequest request) {
         LOGGER.info("Create new return import request");
         ImportRequest importRequest = new ImportRequest();

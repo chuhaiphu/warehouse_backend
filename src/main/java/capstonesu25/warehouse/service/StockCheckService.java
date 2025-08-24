@@ -1,5 +1,6 @@
 package capstonesu25.warehouse.service;
 
+import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
@@ -27,7 +28,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StockCheckService {
     private final StockCheckRequestRepository stockCheckRequestRepository;
-    private final ConfigurationRepository configurationRepository;
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final AccountRepository accountRepository;
     private final InventoryItemRepository inventoryItemRepository;
@@ -69,6 +69,7 @@ public class StockCheckService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "STOCK_CHECK", action = "CREATE", objectIdSource = "stockCheckId")
     public StockCheckRequestResponse createStockCheckRequest(StockCheckRequestRequest request) {
         LOGGER.info("Creating stock check request with data: {}", request);
         StockCheckRequest stockCheckRequest = new StockCheckRequest();
@@ -117,6 +118,7 @@ public class StockCheckService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "STOCK_CHECK", action = "ASSIGN_STAFF", objectIdSource = "stockCheckId")
     public StockCheckRequestResponse assignStaffToStockCheck(AssignStaffStockCheck request) {
         LOGGER.info("Assigning staff to stock check request with data: {}", request);
         StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(request.getStockCheckId())
@@ -154,6 +156,7 @@ public class StockCheckService {
         return mapToResponse(savedStockCheck);
     }
 
+    @TransactionLoggable(type = "STOCK_CHECK", action = "CONFIRM_COUNTED", objectIdSource = "stockCheckId")
     public StockCheckRequestResponse confirmCountedStockCheck(String stockCheckId) {
         LOGGER.info("Confirming counted stock check request with ID: {}", stockCheckId);
         StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(stockCheckId)
@@ -164,6 +167,7 @@ public class StockCheckService {
         return mapToResponse(stockCheckRequestRepository.save(stockCheckRequest));
     }
 
+    @TransactionLoggable(type = "STOCK_CHECK", action = "UPDATE_STATUS", objectIdSource = "stockCheckId")
     public StockCheckRequestResponse updateStatus(String stockCheckId, RequestStatus status) {
         LOGGER.info("Updating status of stock check request with ID: {}", stockCheckId);
         StockCheckRequest stockCheckRequest = stockCheckRequestRepository.findById(stockCheckId)
@@ -212,6 +216,7 @@ public class StockCheckService {
     }
 
     @Transactional
+    @TransactionLoggable(type = "STOCK_CHECK", action = "COMPLETE", objectIdSource = "stockCheckId")
     public List<StockCheckRequestResponse> completeStockCheck(CompleteStockCheckRequest request) {
         if (request == null || request.getStockCheckRequestDetailIds() == null || request.getStockCheckRequestDetailIds().isEmpty()) {
             throw new IllegalArgumentException("stockCheckRequestDetailIds must not be empty");
