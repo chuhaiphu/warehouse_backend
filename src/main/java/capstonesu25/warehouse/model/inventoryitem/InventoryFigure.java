@@ -14,4 +14,6 @@ public class InventoryFigure {
     private Integer totalInventoryItemAvailable;
     private Integer totalInventoryItemUnAvailable;
     private Integer totalInventoryItemNeedLiquid;
+    private Integer totalInventoryItemReadToStore;
+    private Integer totalInventoryItemNoLongerExist;
 }

@@ -144,11 +144,21 @@ public class InventoryItemService {
                     .filter(ii -> ii.getStatus() == ItemStatus.UNAVAILABLE)
                     .count();
 
+            long readyToStore = list.stream()
+                    .filter(ii -> ii.getStatus() == ItemStatus.READY_TO_STORE)
+                    .count();
+
+            long noLongerExist = list.stream()
+                    .filter(ii -> ii.getStatus() == ItemStatus.NO_LONGER_EXIST)
+                    .count();
+
             figures.add(new InventoryFigure(
                     item.getId(),
                     (int) available,
                     (int) unavailable,
-                    (int) needLiquid
+                    (int) needLiquid,
+                    (int) readyToStore,
+                    (int) noLongerExist
             ));
         }
         return figures;
