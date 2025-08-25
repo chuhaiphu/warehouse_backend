@@ -328,30 +328,17 @@ public class StockCheckService {
             }
 
             // -------- Step 3: Finalize request nếu bao phủ hết mọi detail --------
-            Set<Long> allDetailIds = stockCheck.getStockCheckRequestDetails().stream()
-                    .map(StockCheckRequestDetail::getId).collect(Collectors.toSet());
-            Set<Long> selectedIds = selectedDetails.stream()
-                    .map(StockCheckRequestDetail::getId).collect(Collectors.toSet());
-            boolean allIncluded = selectedIds.containsAll(allDetailIds);
 
-            if (allIncluded) {
-                stockCheck.setStatus(RequestStatus.COMPLETED);
-                stockCheck.setExpectedCompletedDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")));
-                LOGGER.info("Sending notification for COMPLETED status");
-                notificationService.handleNotification(
-                        NotificationUtil.MANAGER_CHANNEL,
-                        NotificationUtil.STOCK_CHECK_COMPLETED_EVENT + "-" + stockCheck.getId(),
-                        stockCheck.getId(),
-                        "Đơn kiểm kê mã #" + stockCheck.getId() + " đã hoàn thành",
-                        accountRepository.findByRole(AccountRole.MANAGER)
-                );
-            } else {
-                LOGGER.info("Stock check {} not fully covered; keep status {}", stockCheckId, stockCheck.getStatus());
-                // stockCheck.setStatus(RequestStatus.IN_PROGRESS); // nếu cần
-            }
             stockCheck.setUpdatedDate(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+            stockCheck.setStatus(RequestStatus.COMPLETED);
             stockCheckRequestRepository.save(stockCheck);
-
+            LOGGER.info("Sending notification for COMPLETED status");
+            notificationService.handleNotification(
+                    NotificationUtil.MANAGER_CHANNEL,
+                    NotificationUtil.STOCK_CHECK_COMPLETED_EVENT + "-" + stockCheck.getId(),
+                    stockCheck.getId(),
+                    "Đơn kiểm kê mã #" + stockCheck.getId() + " đã hoàn thành",
+                    accountRepository.findByRole(AccountRole.MANAGER));
             responses.add(mapToResponse(stockCheck));
         }
 
