@@ -142,7 +142,7 @@ public class ImportOrderController {
 						page));
 	}
 
-	@Operation(summary = "Get import orders by status")
+	@Operation(summary = "Get import orders by status and date range")
 	@GetMapping("/status/{status}")
 	public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
 		LOGGER.info("Getting import orders by status: {}", status);

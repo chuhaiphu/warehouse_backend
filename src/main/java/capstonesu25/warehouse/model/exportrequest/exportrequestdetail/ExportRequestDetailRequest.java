@@ -11,5 +11,5 @@ public class ExportRequestDetailRequest {
     private String itemId;
     private Integer quantity;
     private Double measurementValue;
-    private Long inventoryItemId;
+    private String inventoryItemId;
 }

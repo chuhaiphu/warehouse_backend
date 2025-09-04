@@ -41,12 +41,11 @@ public class InventoryItemService {
                 .map(this::mapToResponse);
     }
 
-    public List<InventoryItemResponse> getAllInventoryItemsByItemId(String itemId) {
+    public Page<InventoryItemResponse> getAllInventoryItemsByItemId(String itemId,int page, int limit) {
         LOGGER.info("Getting all inventory items by item id: {}", itemId);
-        List<InventoryItem> inventoryItems = inventoryItemRepository.findByItem_Id(itemId);
-        return inventoryItems.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        return inventoryItemRepository.findByItem_Id(itemId, pageable)
+                .map(this::mapToResponse);
     }
 
     public InventoryItemResponse getInventoryItemById(String id) {

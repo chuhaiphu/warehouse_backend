@@ -45,14 +45,20 @@ public class InventoryItemController {
 
 	@Operation(summary = "Get all inventory items by item ID")
 	@GetMapping("/item/{itemId}")
-	public ResponseEntity<?> getAllByItemId(@PathVariable String itemId) {
+	public ResponseEntity<?> getAllByItemId(@PathVariable String itemId,@RequestParam(defaultValue = "1") int page,
+											@RequestParam(defaultValue = "10") int limit) {
 		LOGGER.info("Getting all inventory items by item id: {}", itemId);
-		List<InventoryItemResponse> result = inventoryItemService.getAllInventoryItemsByItemId(itemId);
+		Page<InventoryItemResponse> result = inventoryItemService.getAllInventoryItemsByItemId(itemId, page, limit);
 		return ResponseUtil.getCollection(
-				result,
+				result.getContent(),
 				HttpStatus.OK,
-				"Successfully get all inventory items by item ID",
-				null);
+				"Successfully get all inventory items by item id with pagination",
+				new MetaDataDTO(
+						result.hasNext(),
+						result.hasPrevious(),
+						limit,
+						(int) result.getTotalElements(),
+						page));
 	}
 
 	@Operation(summary = "Get all inventory items that need to return by item ID which not have export detail")

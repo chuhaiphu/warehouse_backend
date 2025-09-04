@@ -95,8 +95,6 @@ public class ExportRequestDetailService {
                     () -> new RuntimeException("Item not found with ID: " + request.getItemId())
             );
 
-
-            // Handling for  BORROWING types
             if(exportRequest.getType().equals(ExportType.INTERNAL)) {
                 exportRequestDetail.setMeasurementValue(request.getMeasurementValue());
             }

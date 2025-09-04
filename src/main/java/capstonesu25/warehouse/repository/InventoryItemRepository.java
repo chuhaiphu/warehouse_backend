@@ -18,6 +18,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
     Page<InventoryItem> findByImportOrderDetailId(Long importOrderDetailId, Pageable pageable);
     Page<InventoryItem> findByExportRequestDetailId(Long exportRequestDetailId, Pageable pageable);
     Page<InventoryItem> findByStoredLocationId(Long storedLocationId, Pageable pageable);
+
+    Page<InventoryItem> findByItem_Id(String itemId, Pageable pageable);
     Page<InventoryItem> findByItem_IdAndParentNullAndStatusAndNeedReturnToProvider(String itemId,ItemStatus status, Boolean needReturnToProvider, Pageable pageable);
     List<InventoryItem> findByItem_IdAndParentNullAndStatus(String itemId, ItemStatus status);
     List<InventoryItem> findByItem_IdAndParentNullAndStatusAndNeedReturnToProvider(
