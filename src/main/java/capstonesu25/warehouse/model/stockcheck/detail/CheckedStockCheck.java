@@ -12,4 +12,5 @@ public class CheckedStockCheck {
     private String inventoryItemId;
     private Double measurementValue;
     private ItemStatus status;
+    private String note;
 }

@@ -16,4 +16,5 @@ public class TaskOfStaffPerDate {
     private List<String> importOrderIds;
     private List<String> exportRequestIds;
     private List<String> stockCheckIds;
+    private List<String> priorityTaskIds;
 }

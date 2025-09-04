@@ -117,6 +117,7 @@ public class StockCheckDetailService {
         checked.setInventoryItemId(request.getInventoryItemId());
         checked.setMeasurementValue(mv);
         checked.setStatus(status);
+        checked.setNote(request.getNote());
 
         detail.getCheckedInventoryItems().add(checked);
 

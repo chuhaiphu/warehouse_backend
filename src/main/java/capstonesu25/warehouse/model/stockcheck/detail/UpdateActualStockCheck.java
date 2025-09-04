@@ -17,5 +17,6 @@ public class UpdateActualStockCheck {
     private String inventoryItemId;
 
     private Double actualMeasurementValue;
+    private String note;
     private ItemStatus status;
 }

@@ -3,6 +3,7 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
+import capstonesu25.warehouse.enums.StockCheckType;
 import capstonesu25.warehouse.enums.TokenType;
 import capstonesu25.warehouse.model.account.*;
 import capstonesu25.warehouse.repository.*;
@@ -29,6 +30,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -272,35 +274,117 @@ public class AccountService implements LogoutHandler {
     }
     public TaskOfStaffPerDate getTasksOfStaffPerDate(Long staffId, LocalDate date) {
         LOGGER.info("Getting tasks of staff for date: {}", date);
-        Account account = accountRepository.findById(staffId)
+
+        accountRepository.findById(staffId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Staff not found"));
 
-        List<ImportOrder> importOrders = importOrderRepository.findByAssignedStaff_IdAndDateReceived(staffId, date);
-        List<ExportRequest> countingExportRequests = exportRequestRepository.findAllByCountingStaffIdAndCountingDate(staffId, date);
-        List<ExportRequest> confirmedExportRequests = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(staffId, date);
-        List<StockCheckRequest> stockCheckRequests = stockCheckRequestRepository.findByAssignedStaff_IdAndCountingDate(staffId, date);
+        List<ImportOrder> importOrders =
+                importOrderRepository.findByAssignedStaff_IdAndDateReceived(staffId, date);
+        List<ExportRequest> countingExportRequests =
+                exportRequestRepository.findAllByCountingStaffIdAndCountingDate(staffId, date);
+        List<ExportRequest> confirmedExportRequests =
+                exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(staffId, date);
+        List<StockCheckRequest> stockCheckRequests =
+                stockCheckRequestRepository.findByAssignedStaff_IdAndCountingDate(staffId, date);
+
+        // Giữ các list gốc (ids) như trước, sort theo createdDate tăng dần
         List<String> importOrderIds = safeStream(importOrders)
                 .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(ImportOrder::getCreatedDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(ImportOrder::getId)
                 .filter(Objects::nonNull)
                 .toList();
 
-        List<String> exportRequestIds = java.util.stream.Stream.concat(
-                        safeStream(countingExportRequests).filter(Objects::nonNull),
-                        safeStream(confirmedExportRequests).filter(Objects::nonNull)
-                )
+        Map<String, ExportRequest> exportByIdEarliest = java.util.stream.Stream
+                .concat(safeStream(countingExportRequests), safeStream(confirmedExportRequests))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(
+                        ExportRequest::getId,
+                        e -> e,
+                        (a, b) -> {
+                            var ca = a.getCreatedDate();
+                            var cb = b.getCreatedDate();
+                            if (ca == null && cb == null) return a;
+                            if (ca == null) return b;
+                            if (cb == null) return a;
+                            return ca.isAfter(cb) ? b : a; // lấy cái sớm hơn
+                        },
+                        LinkedHashMap::new
+                ));
+
+        List<ExportRequest> mergedExports = new ArrayList<>(exportByIdEarliest.values());
+        List<String> exportRequestIds = mergedExports.stream()
+                .sorted(Comparator.comparing(ExportRequest::getCreatedDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(ExportRequest::getId)
                 .filter(Objects::nonNull)
-                .distinct()
                 .toList();
 
-        List<String> stockCheckIds = safeStream(stockCheckRequests)
+        List<StockCheckRequest> nonNullStockChecks = safeStream(stockCheckRequests)
                 .filter(Objects::nonNull)
+                .toList();
+
+        List<String> stockCheckIds = nonNullStockChecks.stream()
+                .filter(sc -> sc.getType() != StockCheckType.SPOT_CHECK)
+                .sorted(Comparator.comparing(StockCheckRequest::getCreatedDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(StockCheckRequest::getId)
                 .filter(Objects::nonNull)
                 .toList();
 
-        return new TaskOfStaffPerDate(date, staffId, importOrderIds, exportRequestIds, stockCheckIds);
+        // -------- priorityTaskIds: TRỘN LẪN + ưu tiên SPOT_CHECK, rồi createdDate asc --------
+        record TaskRow(String id, boolean isSpotCheck, Comparable<?> created) {}
+
+        List<TaskRow> mixed = new ArrayList<>();
+
+        // import
+        for (ImportOrder io : safeStream(importOrders).filter(Objects::nonNull).toList()) {
+            mixed.add(new TaskRow(io.getId(), false, io.getCreatedDate()));
+        }
+        // export
+        for (ExportRequest er : mergedExports) {
+            mixed.add(new TaskRow(er.getId(), false, er.getCreatedDate()));
+        }
+        // stockcheck (đánh dấu SPOT_CHECK)
+        for (StockCheckRequest sc : nonNullStockChecks) {
+            mixed.add(new TaskRow(
+                    sc.getId(),
+                    sc.getType() == StockCheckType.SPOT_CHECK,
+                    sc.getCreatedDate()
+            ));
+        }
+
+        // sort: SPOT_CHECK trước, rồi createdDate asc, nullsLast
+        Comparator<TaskRow> byCreatedAsc = (a, b) -> {
+            Comparable ca = a.created();
+            Comparable cb = b.created();
+            if (ca == null && cb == null) return 0;
+            if (ca == null) return 1;   // nulls last
+            if (cb == null) return -1;
+            return ca.compareTo(cb);
+        };
+
+        mixed.sort(
+                Comparator.<TaskRow, Boolean>comparing(TaskRow::isSpotCheck, Comparator.reverseOrder())
+                        .thenComparing(byCreatedAsc)
+        );
+
+        // Nếu sợ trùng id giữa các bảng, có thể distinct theo id (giả định id là unique toàn hệ thống)
+        List<String> priorityTaskIds = mixed.stream()
+                .map(TaskRow::id)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        return new TaskOfStaffPerDate(
+                date,
+                staffId,
+                importOrderIds,
+                exportRequestIds,
+                stockCheckIds,
+                priorityTaskIds
+        );
     }
 
     private static <T> java.util.stream.Stream<T> safeStream(Collection<T> c) {

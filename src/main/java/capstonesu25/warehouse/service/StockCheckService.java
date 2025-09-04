@@ -275,7 +275,9 @@ public class StockCheckService {
 
                         actualQty += 1;
                         actualMv += mv;
-
+                        if(c.getNote() != null) {
+                            inv.setNote(c.getNote());
+                        }
                         if (c.getStatus() != null) {
                             inv.setStatus(c.getStatus());
                         }
