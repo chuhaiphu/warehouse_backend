@@ -32,6 +32,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
 
     List<InventoryItem> findByItem_IdAndStatus(String itemId, ItemStatus status);
 
+    List<InventoryItem> findInventoryItemByParent_Id(String id);
+
     @Modifying(clearAutomatically = false, flushAutomatically = true)
     @Query("""
            UPDATE InventoryItem i

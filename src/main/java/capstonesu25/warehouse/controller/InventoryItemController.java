@@ -43,6 +43,19 @@ public class InventoryItemController {
 						page));
 	}
 
+	@Operation(summary = "Get inventory items history")
+	@GetMapping("/history/{id}")
+	public ResponseEntity<?> getInventoryItemHistoryBYId (@PathVariable String id) {
+		LOGGER.info("Get inventory items history by ID");
+		List<InventoryItemResponse> responses = inventoryItemService.getInventoryItemHistory(id);
+		return ResponseUtil.getCollection(
+				responses,
+				HttpStatus.OK,
+				"Successfully get inventory items history",
+				null
+		);
+	}
+
 	@Operation(summary = "Get all inventory items by item ID")
 	@GetMapping("/item/{itemId}")
 	public ResponseEntity<?> getAllByItemId(@PathVariable String itemId,@RequestParam(defaultValue = "1") int page,
