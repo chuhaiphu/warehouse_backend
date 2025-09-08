@@ -49,10 +49,15 @@ public class ImportRequestService {
         return importRequests.map(Mapper::mapToImportRequestResponse);
     }
 
-    public List<ImportRequestResponse> getImportRequestsByStatus(RequestStatus status) {
+    public List<ImportRequestResponse> getImportRequestsByStatus(RequestStatus status, LocalDate fromDate, LocalDate toDate) {
         LOGGER.info("Get import requests by status: " + status);
         List<ImportRequest> importRequests = importRequestRepository.findAllByStatus(status);
         return importRequests.stream()
+                .filter(er -> {
+                    LocalDate created = er.getCreatedDate().toLocalDate();
+                    return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                            && (created.isEqual(toDate) || created.isBefore(toDate));
+                })
                 .map(Mapper::mapToImportRequestResponse)
                 .toList();
     }

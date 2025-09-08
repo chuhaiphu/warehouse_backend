@@ -63,10 +63,15 @@ public class StockCheckService {
                 .toList();
     }
 
-    public List<StockCheckRequestResponse> getStockCheckRequestsByStatus(RequestStatus status) {
+    public List<StockCheckRequestResponse> getStockCheckRequestsByStatus(RequestStatus status, LocalDate fromDate, LocalDate toDate) {
         LOGGER.info("Fetching stock check requests by status: {}", status);
         List<StockCheckRequest> stockCheckRequests = stockCheckRequestRepository.findAllByStatus(status);
         return stockCheckRequests.stream()
+                .filter(er -> {
+                    LocalDate created = er.getCreatedDate().toLocalDate();
+                    return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                            && (created.isEqual(toDate) || created.isBefore(toDate));
+                })
                 .map(this::mapToResponse)
                 .toList();
     }

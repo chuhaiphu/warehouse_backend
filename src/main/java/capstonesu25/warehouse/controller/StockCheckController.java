@@ -7,6 +7,7 @@ import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.service.StockCheckService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,12 +59,12 @@ public class StockCheckController {
         );
     }
 
-    @Operation(summary = "Get stock check requests by status")
+    @Operation(summary = "Get stock check requests by status and date")
     @GetMapping("/status/{status}")
-    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status, @RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
         LOGGER.info("Getting stock check requests by status: {}", status);
         return ResponseUtil.getCollection(
-                stockCheckService.getStockCheckRequestsByStatus(status),
+                stockCheckService.getStockCheckRequestsByStatus(status, fromDate, toDate),
                 HttpStatus.OK,
                 "Successfully retrieved stock check requests by status",
                 null

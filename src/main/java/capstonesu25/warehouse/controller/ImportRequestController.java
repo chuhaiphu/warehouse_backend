@@ -7,6 +7,7 @@ import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ImportRequestService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Request;
 import org.slf4j.Logger;
@@ -55,12 +56,12 @@ public class ImportRequestController {
                         page));
 
     }
-    @Operation(summary = "get import request by status")
+    @Operation(summary = "get import request by status and date")
     @GetMapping("/status/{status}")
-    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status, @RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
         LOGGER.info("Getting import requests by status: {}", status);
         return ResponseUtil.getCollection(
-                importRequestService.getImportRequestsByStatus(status),
+                importRequestService.getImportRequestsByStatus(status,fromDate, toDate),
                 HttpStatus.OK,
                 "Successfully retrieved import requests by status",
                 null);

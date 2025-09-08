@@ -12,6 +12,7 @@ import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ExportRequestService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,12 +77,12 @@ public class ExportRequestController {
         );
     }
 
-    @Operation(summary = "Get export requests by status")
+    @Operation(summary = "Get export requests by status and date")
     @GetMapping("/status/{status}")
-    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status) {
+    public ResponseEntity<?> getByStatus(@PathVariable RequestStatus status, @RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
         LOGGER.info("Getting export requests by status: {}", status);
         return ResponseUtil.getCollection(
-            exportRequestService.getExportRequestsByStatus(status),
+            exportRequestService.getExportRequestsByStatus(status, fromDate, toDate),
             HttpStatus.OK,
             "Successfully retrieved export requests by status",
             null

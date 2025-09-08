@@ -101,9 +101,15 @@ public class ExportRequestService {
         return mapToResponse(exportRequest);
     }
 
-    public List<ExportRequestResponse> getExportRequestsByStatus(RequestStatus status) {
+    public List<ExportRequestResponse> getExportRequestsByStatus(RequestStatus status, LocalDate fromDate, LocalDate toDate) {
         List<ExportRequest> exportRequests = exportRequestRepository.findAllByStatus(status);
+
         return exportRequests.stream()
+                .filter(er -> {
+                    LocalDate created = er.getCreatedDate().toLocalDate();
+                    return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                            && (created.isEqual(toDate) || created.isBefore(toDate));
+                })
                 .map(this::mapToResponse)
                 .toList();
     }
