@@ -4,8 +4,10 @@ import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailRequest;
+import capstonesu25.warehouse.model.importrequest.OverviewImport;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
+import capstonesu25.warehouse.model.stockcheck.OverviewStockCheck;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestRequest;
 import capstonesu25.warehouse.model.stockcheck.StockCheckRequestResponse;
 import capstonesu25.warehouse.model.stockcheck.detail.CheckedStockCheck;
@@ -74,6 +76,40 @@ public class StockCheckService {
                 })
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    public OverviewStockCheck getNumberFromDate(LocalDate fromDate, LocalDate toDate) {
+        LOGGER.info("get number stock check requests");
+        List<RequestStatus> ongoingStatuses = List.of(
+                RequestStatus.IN_PROGRESS,
+                RequestStatus.EXTENDED,
+                RequestStatus.COUNTED,
+                RequestStatus.COUNT_AGAIN_REQUESTED,
+                RequestStatus.COUNT_CONFIRMED,
+                RequestStatus.WAITING_EXPORT,
+                RequestStatus.CONFIRMED
+        );
+
+        List<RequestStatus> finishStatues = List.of(
+                RequestStatus.COMPLETED,
+                RequestStatus.CANCELLED
+        );
+
+        List<StockCheckRequest> ongoing = stockCheckRequestRepository.findAllByStatusIn(ongoingStatuses).stream().filter(er -> {
+            LocalDate created = er.getCreatedDate().toLocalDate();
+            return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                    && (created.isEqual(toDate) || created.isBefore(toDate));
+        }).toList();
+        List<StockCheckRequest> finish = stockCheckRequestRepository.findAllByStatusIn(finishStatues).stream().filter(er -> {
+            LocalDate created = er.getCreatedDate().toLocalDate();
+            return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                    && (created.isEqual(toDate) || created.isBefore(toDate));
+        }).toList();;
+
+        return OverviewStockCheck.builder()
+                .numberOfOngoingStockCheck(ongoing.size())
+                .numberOfFinishStockCheck(finish.size())
+                .build();
     }
 
     @Transactional

@@ -25,22 +25,16 @@ public class InventoryItemController {
 	private final InventoryItemService inventoryItemService;
 	private static final Logger LOGGER = LoggerFactory.getLogger(InventoryItemController.class);
 
-	@Operation(summary = "Get all inventory items with pagination")
+	@Operation(summary = "Get all inventory items")
 	@GetMapping
-	public ResponseEntity<?> getAll(@RequestParam(defaultValue = "1") int page,
-			@RequestParam(defaultValue = "10") int limit) {
+	public ResponseEntity<?> getAll() {
 		LOGGER.info("Getting all inventory items");
-		Page<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems(page, limit);
+		List<InventoryItemResponse> result = inventoryItemService.getAllInventoryItems();
 		return ResponseUtil.getCollection(
-				result.getContent(),
+				result,
 				HttpStatus.OK,
-				"Successfully get all inventory items with pagination",
-				new MetaDataDTO(
-						result.hasNext(),
-						result.hasPrevious(),
-						limit,
-						(int) result.getTotalElements(),
-						page));
+				"Successfully get all inventory items",
+				null);
 	}
 
 	@Operation(summary = "Get inventory items history")

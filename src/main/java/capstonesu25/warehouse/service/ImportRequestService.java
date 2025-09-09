@@ -4,6 +4,7 @@ import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.enums.RequestStatus;
+import capstonesu25.warehouse.model.importrequest.OverviewImport;
 import capstonesu25.warehouse.model.importrequest.ImportRequestCreateRequest;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.ImportRequestUpdateRequest;
@@ -60,6 +61,40 @@ public class ImportRequestService {
                 })
                 .map(Mapper::mapToImportRequestResponse)
                 .toList();
+    }
+
+    public OverviewImport getNumberFromDate(LocalDate fromDate, LocalDate toDate) {
+        LOGGER.info("get number import requests");
+        List<RequestStatus> ongoingStatuses = List.of(
+                RequestStatus.IN_PROGRESS,
+                RequestStatus.EXTENDED,
+                RequestStatus.COUNTED,
+                RequestStatus.COUNT_AGAIN_REQUESTED,
+                RequestStatus.COUNT_CONFIRMED,
+                RequestStatus.WAITING_EXPORT,
+                RequestStatus.CONFIRMED
+        );
+
+        List<RequestStatus> finishStatues = List.of(
+                RequestStatus.COMPLETED,
+                RequestStatus.CANCELLED
+        );
+
+        List<ImportRequest> ongoing = importRequestRepository.findAllByStatusIn(ongoingStatuses).stream().filter(er -> {
+            LocalDate created = er.getCreatedDate().toLocalDate();
+            return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                    && (created.isEqual(toDate) || created.isBefore(toDate));
+        }).toList();
+        List<ImportRequest> finish = importRequestRepository.findAllByStatusIn(finishStatues).stream().filter(er -> {
+            LocalDate created = er.getCreatedDate().toLocalDate();
+            return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                    && (created.isEqual(toDate) || created.isBefore(toDate));
+        }).toList();;
+
+        return OverviewImport.builder()
+                .numberOfOngoingImport(ongoing.size())
+                .numberOfFinishImport(finish.size())
+                .build();
     }
 
     public ImportRequestResponse getImportRequestById(String id) {

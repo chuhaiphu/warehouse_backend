@@ -89,6 +89,16 @@ public class ExportRequestController {
         );
     }
 
+    @Operation(summary = "get number export request by and date")
+    @GetMapping("/number")
+    public ResponseEntity<?> getNumberByDate(@RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
+        LOGGER.info("Getting export requests from {} to {}", fromDate, toDate);
+        return ResponseUtil.getObject(
+                exportRequestService.getNumberFromDate(fromDate, toDate),
+                HttpStatus.OK,
+                "Successfully retrieved number export requests by and date");
+    }
+
     @Operation(summary = "Get list export request by staff Id")
     @GetMapping("/staff/{staffId}")
     public ResponseEntity<?> getByStaffId(@PathVariable Long staffId,

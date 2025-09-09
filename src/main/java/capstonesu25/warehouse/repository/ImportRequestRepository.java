@@ -27,4 +27,6 @@ public interface ImportRequestRepository extends JpaRepository<ImportRequest, St
     List<ImportRequest> findByIdStartingWith(String idPrefix);
 
     List<ImportRequest> findAllByStatus(RequestStatus status);
+
+    List<ImportRequest> findAllByStatusIn(List<RequestStatus> statuses);
 }

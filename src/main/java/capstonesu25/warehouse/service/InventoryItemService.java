@@ -34,11 +34,12 @@ public class InventoryItemService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InventoryItemService.class);
 
-    public Page<InventoryItemResponse> getAllInventoryItems(int page, int limit) {
-        LOGGER.info("Getting all inventory items with page: {} and limit: {}", page, limit);
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        return inventoryItemRepository.findAll(pageable)
-                .map(this::mapToResponse);
+    public List<InventoryItemResponse> getAllInventoryItems() {
+        LOGGER.info("Getting all inventory items ");
+        return inventoryItemRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)

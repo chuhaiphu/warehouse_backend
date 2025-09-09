@@ -67,6 +67,16 @@ public class ImportRequestController {
                 null);
     }
 
+    @Operation(summary = "get number import request by and date")
+    @GetMapping("/number")
+    public ResponseEntity<?> getNumberByDate(@RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
+        LOGGER.info("Getting import requests from {} to {}", fromDate, toDate);
+        return ResponseUtil.getObject(
+                importRequestService.getNumberFromDate(fromDate, toDate),
+                HttpStatus.OK,
+                "Successfully retrieved number import requests by and date");
+    }
+
     @Operation(summary = "Get import request by import request Id")
     @GetMapping("/{importRequestId}")
     public ResponseEntity<?> getById(@PathVariable String importRequestId) {

@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.repository;
 
 import capstonesu25.warehouse.entity.ExportRequest;
+import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.StockCheckRequest;
 import capstonesu25.warehouse.enums.RequestStatus;
 import org.springframework.data.domain.Page;
@@ -50,4 +51,7 @@ public interface ExportRequestRepository extends JpaRepository<ExportRequest, St
             @Param("end") LocalDateTime end);
 
     List<ExportRequest> findByIdStartingWith(String idPrefix);
+
+    List<ExportRequest> findAllByStatusIn(List<RequestStatus> statuses);
+
 }

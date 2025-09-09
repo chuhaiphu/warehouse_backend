@@ -5,6 +5,7 @@ import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
 import capstonesu25.warehouse.model.account.AccountResponse;
 import capstonesu25.warehouse.model.account.ActiveAccountRequest;
+import capstonesu25.warehouse.model.exportrequest.OverviewExport;
 import capstonesu25.warehouse.model.exportrequest.RenewExportRequestRequest;
 import capstonesu25.warehouse.model.exportrequest.UpdateDepartment;
 import capstonesu25.warehouse.model.exportrequest.exportliquidation.ExportLiquidationRequest;
@@ -13,6 +14,7 @@ import capstonesu25.warehouse.model.exportrequest.exportproduction.ExportRequest
 import capstonesu25.warehouse.model.exportrequest.ExportRequestResponse;
 import capstonesu25.warehouse.model.exportrequest.exportreturn.ExportReturnRequest;
 import capstonesu25.warehouse.model.importrequest.AssignStaffExportRequest;
+import capstonesu25.warehouse.model.importrequest.OverviewImport;
 import capstonesu25.warehouse.repository.*;
 import capstonesu25.warehouse.utils.NotificationUtil;
 import lombok.RequiredArgsConstructor;
@@ -112,6 +114,40 @@ public class ExportRequestService {
                 })
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    public OverviewExport getNumberFromDate (LocalDate fromDate, LocalDate toDate) {
+        LOGGER.info("get number export requests");
+        List<RequestStatus> ongoingStatuses = List.of(
+                RequestStatus.IN_PROGRESS,
+                RequestStatus.EXTENDED,
+                RequestStatus.COUNTED,
+                RequestStatus.COUNT_AGAIN_REQUESTED,
+                RequestStatus.COUNT_CONFIRMED,
+                RequestStatus.WAITING_EXPORT,
+                RequestStatus.CONFIRMED
+        );
+
+        List<RequestStatus> finishStatues = List.of(
+                RequestStatus.COMPLETED,
+                RequestStatus.CANCELLED
+        );
+
+        List<ExportRequest> ongoing = exportRequestRepository.findAllByStatusIn(ongoingStatuses).stream().filter(er -> {
+            LocalDate created = er.getCreatedDate().toLocalDate();
+            return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                    && (created.isEqual(toDate) || created.isBefore(toDate));
+        }).toList();
+        List<ExportRequest> finish = exportRequestRepository.findAllByStatusIn(finishStatues).stream().filter(er -> {
+            LocalDate created = er.getCreatedDate().toLocalDate();
+            return (created.isEqual(fromDate) || created.isAfter(fromDate))
+                    && (created.isEqual(toDate) || created.isBefore(toDate));
+        }).toList();;
+
+        return OverviewExport.builder()
+                .numberOfOngoingExport(ongoing.size())
+                .numberOfFinishExport(finish.size())
+                .build();
     }
 
     @Transactional

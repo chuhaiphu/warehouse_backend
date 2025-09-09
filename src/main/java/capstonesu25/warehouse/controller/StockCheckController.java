@@ -71,6 +71,16 @@ public class StockCheckController {
         );
     }
 
+    @Operation(summary = "get number stock check request by and date")
+    @GetMapping("/number")
+    public ResponseEntity<?> getNumberByDate(@RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
+        LOGGER.info("Getting stock check requests from {} to {}", fromDate, toDate);
+        return ResponseUtil.getObject(
+                stockCheckService.getNumberFromDate(fromDate, toDate),
+                HttpStatus.OK,
+                "Successfully retrieved number stock check requests by and date");
+    }
+
     @PostMapping("/create")
     @Operation(summary = "Create a new stock check request")
     public ResponseEntity<?> createStockCheckRequest(@RequestBody StockCheckRequestRequest request) {
