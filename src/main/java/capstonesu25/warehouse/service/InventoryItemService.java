@@ -272,7 +272,7 @@ public class InventoryItemService {
     }
     @Transactional
     public void changeInventoryItemOfExportDetail(ChangeInventoryItemOfExportDetailRequest request) {
-        // 1) Load & validate request
+        // 1) Validate input
         if (request == null) {
             throw new IllegalArgumentException("Request must not be null");
         }
@@ -280,10 +280,9 @@ public class InventoryItemService {
             throw new IllegalArgumentException("oldInventoryItemIds and newInventoryItemIds must not be null");
         }
 
-        // 2) Load all involved items
+        // 2) Load items
         List<InventoryItem> oldItems = inventoryItemRepository.findAllById(request.getOldInventoryItemIds());
         List<InventoryItem> newItems = inventoryItemRepository.findAllById(request.getNewInventoryItemIds());
-
         if (oldItems.size() != request.getOldInventoryItemIds().size()) {
             throw new NoSuchElementException("Some oldInventoryItemIds do not exist");
         }
@@ -291,15 +290,14 @@ public class InventoryItemService {
             throw new NoSuchElementException("Some newInventoryItemIds do not exist");
         }
 
-        // 3) Validate old items belong to same ExportRequestDetail
+        // 3) All old items must belong to the same detail
         ExportRequestDetail exportDetail = null;
         for (InventoryItem oi : oldItems) {
             if (oi.getExportRequestDetail() == null) {
                 throw new IllegalArgumentException("Old inventory item " + oi.getId() + " has no export request detail");
             }
-            if (exportDetail == null) {
-                exportDetail = oi.getExportRequestDetail();
-            } else if (!exportDetail.getId().equals(oi.getExportRequestDetail().getId())) {
+            if (exportDetail == null) exportDetail = oi.getExportRequestDetail();
+            else if (!exportDetail.getId().equals(oi.getExportRequestDetail().getId())) {
                 throw new IllegalArgumentException("All old items must belong to the same ExportRequestDetail");
             }
         }
@@ -307,22 +305,22 @@ public class InventoryItemService {
             throw new IllegalStateException("Could not resolve ExportRequestDetail from old items");
         }
 
-        // 4) Validate new items are free, AVAILABLE, and same Item type
-        // Use the Item type from the exportDetail (or any of current items)
-        // We'll get current items on the detail for checks
-        List<InventoryItem> currentItems = new ArrayList<>(exportDetail.getInventoryItems()); // ensure a mutable copy
+        // 4) Context + type checks
+        List<InventoryItem> currentItems = new ArrayList<>(exportDetail.getInventoryItems());
         if (currentItems.isEmpty()) {
             throw new IllegalStateException("ExportRequestDetail has no current inventory items");
         }
         String requiredItemId = currentItems.get(0).getItem().getId();
-
-        // (Optional) guard: all current items on the detail must share same Item
         for (InventoryItem ci : currentItems) {
             if (!requiredItemId.equals(ci.getItem().getId())) {
                 throw new IllegalStateException("ExportRequestDetail contains mixed item types; cannot safely swap");
             }
+            if (ci.getMeasurementValue() == null) {
+                throw new IllegalStateException("Current inventory item " + ci.getId() + " has null measurement value");
+            }
         }
 
+        // New items must be free, AVAILABLE, same type, valid measurement
         for (InventoryItem ni : newItems) {
             if (ni.getExportRequestDetail() != null) {
                 throw new IllegalArgumentException("New inventory item " + ni.getId() + " is already assigned");
@@ -338,22 +336,63 @@ public class InventoryItemService {
             }
         }
 
-        // 5) Build the post-swap set: (current - old) + new
-        // Validate that all "old" items are actually in the current detail
+        // 5) Build remaining set: kept (= current - old) + new
+        Set<String> oldIds = new HashSet<>(request.getOldInventoryItemIds());
         Set<String> currentIds = currentItems.stream().map(InventoryItem::getId).collect(Collectors.toSet());
-        for (InventoryItem oi : oldItems) {
-            if (!currentIds.contains(oi.getId())) {
-                throw new IllegalArgumentException("Old inventory item " + oi.getId() + " is not in the export detail");
+        for (String oldId : oldIds) {
+            if (!currentIds.contains(oldId)) {
+                throw new IllegalArgumentException("Old inventory item " + oldId + " is not in the export detail");
             }
         }
 
-        // Remove old
-        List<InventoryItem> remaining = currentItems.stream()
-                .filter(ci -> !request.getOldInventoryItemIds().contains(ci.getId()))
-                .collect(Collectors.toList());
+        // kept items = những cái không nằm trong danh sách đổi
+        List<InventoryItem> keptItems = currentItems.stream()
+                .filter(ci -> !oldIds.contains(ci.getId()))
+                .toList();
 
-        // Add new
-        // Also avoid accidental duplicates if newIds intersect remaining (shouldn't, but guard anyway)
+        // 6) Validate measurement theo rule: sum(kept) + sum(new) >= required
+        double keptTotal = keptItems.stream()
+                .mapToDouble(InventoryItem::getMeasurementValue)
+                .sum();
+
+        double addedTotal = newItems.stream()
+                .mapToDouble(InventoryItem::getMeasurementValue)
+                .sum();
+
+        double postSwapTotal = keptTotal + addedTotal;
+        double required = exportDetail.getMeasurementValue() != null ? exportDetail.getMeasurementValue() : 0d;
+
+        if (postSwapTotal < required) {
+            throw new IllegalStateException(
+                    String.format("Post-swap total measurement %.3f is less than required %.3f", postSwapTotal, required));
+        }
+
+        // 7) Apply updates
+        ItemStatus targetStatus = keptItems.stream()
+                .map(InventoryItem::getStatus)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(ItemStatus.UNAVAILABLE);
+
+        // unlink old
+        oldItems.forEach(oi -> {
+            oi.setExportRequestDetail(null);
+            oi.setStatus(ItemStatus.AVAILABLE);
+            oi.setNote(request.getNote());
+        });
+        inventoryItemRepository.saveAll(oldItems);
+
+        // link new
+        for (InventoryItem ni : newItems) {
+            ni.setExportRequestDetail(exportDetail);
+            ni.setStatus(targetStatus);
+            ni.setNote(request.getNote());
+        }
+        inventoryItemRepository.saveAll(newItems);
+
+        // 8) Update detail collection + quantity
+        List<InventoryItem> remaining = new ArrayList<>(keptItems);
+        // tránh trùng ID (bình thường newItems là free nên không trùng)
         Set<String> remainingIds = remaining.stream().map(InventoryItem::getId).collect(Collectors.toSet());
         for (InventoryItem ni : newItems) {
             if (!remainingIds.contains(ni.getId())) {
@@ -362,60 +401,37 @@ public class InventoryItemService {
             }
         }
 
-        // 6) Check measurement constraint: sum(remaining.measurementValue) >= exportDetail.measurementValue
-        double totalRemaining = remaining.stream()
-                .mapToDouble(InventoryItem::getMeasurementValue)
-                .sum();
-
-        double required = exportDetail.getMeasurementValue() != null ? exportDetail.getMeasurementValue() : 0d;
-        if (Double.compare(totalRemaining, required) < 0) {
-            throw new IllegalStateException(
-                    String.format("Post-swap total measurement %.3f is less than required %.3f",
-                            totalRemaining, required));
-        }
-
-        // 7) Apply updates
-        //   - Unlink old: set exportRequestDetail = null; set status = AVAILABLE
-        //   - Link new: set exportRequestDetail = exportDetail; (optionally copy status from old set, or set RESERVED/ALLOCATED)
-        //     Here we keep the detail’s intended status: if existing items have a uniform status, reuse it; else default to RESERVED.
-        ItemStatus targetStatus = currentItems.stream()
-                .map(InventoryItem::getStatus)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(ItemStatus.UNAVAILABLE);
-
-        for (InventoryItem oi : oldItems) {
-            oi.setExportRequestDetail(null);
-            oi.setStatus(ItemStatus.AVAILABLE);
-            oi.setNote(request.getNote()); // optional: capture reason
-            inventoryItemRepository.save(oi);
-        }
-
-        for (InventoryItem ni : newItems) {
-            ni.setExportRequestDetail(exportDetail);
-            ni.setStatus(targetStatus);
-            ni.setNote(request.getNote());
-            inventoryItemRepository.save(ni);
-        }
-
-        // 8) (Optional) Persist the collection change on the owning side if necessary
-        // Depending on your mapping, you might need to refresh or explicitly set the collection:
         exportDetail.setInventoryItems(remaining);
         exportDetail.setQuantity(remaining.size());
         exportRequestDetailRepository.save(exportDetail);
 
-        LOGGER.info("Swapped {} old items with {} new items on ExportRequestDetail {}. Total now: {} (required: {})",
-                oldItems.size(), newItems.size(), exportDetail.getId(), totalRemaining, required);
-
+        LOGGER.info("Swapped {} old items with {} new items on ExportRequestDetail {}. Post-swap total: {} (required: {})",
+                oldItems.size(), newItems.size(), exportDetail.getId(), postSwapTotal, required);
     }
 
-    public InventoryItemResponse autoChangeInventoryItem(String inventoryItemId) {
+
+    public InventoryItemResponse autoChangeInventoryItem(String inventoryItemId, String note) {
         InventoryItem oldItem = inventoryItemRepository.findById(inventoryItemId)
                 .orElseThrow(() -> new EntityNotFoundException("Old inventory item not found with id: " + inventoryItemId));
+
+        ExportRequest exportRequest = oldItem.getExportRequestDetail().getExportRequest();
+        List<ExportRequestDetail> sameItemDetails = exportRequest.getExportRequestDetails().stream()
+                .filter(detail -> detail.getItem().getId().equals(oldItem.getItem().getId()))
+                .toList();
+
+        Double totalMeasurementValue = sameItemDetails.stream()
+                .map(ExportRequestDetail::getMeasurementValue)
+                .filter(Objects::nonNull)
+                .reduce(0.0, Double::sum);
+
+        Double remainingMeasurementValue = totalMeasurementValue - oldItem.getMeasurementValue();
+
         List<InventoryItem> inventoryItems = inventoryItemRepository.findByItem_Id(oldItem.getItem().getId());
+        inventoryItems.sort(Comparator.comparingDouble(InventoryItem::getMeasurementValue));
+
         InventoryItem newItem = inventoryItems.stream()
                 .filter(i -> !i.getId().equals(oldItem.getId())) // không trùng với old
-                .filter(i -> Double.compare(i.getMeasurementValue(), oldItem.getMeasurementValue()) == 0)
+                .filter(i -> Double.compare(remainingMeasurementValue + i.getMeasurementValue(), totalMeasurementValue) >= 0)
                 .filter(i -> i.getExportRequestDetail() == null)
                 .filter(i -> i.getStatus() == ItemStatus.AVAILABLE)
                 .max(Comparator.comparing(i -> i.getImportOrderDetail().getImportOrder().getDateReceived()))
@@ -425,7 +441,11 @@ public class InventoryItemService {
         InventoryItem savedNewItem = inventoryItemRepository.save(newItem);
 
         oldItem.setExportRequestDetail(null);
-        oldItem.setNote("Hàng bị lỗi, đã tự động chuyển sang hàng mới");
+        if(note == null || note.isEmpty()){
+            oldItem.setNote("Hàng bị lỗi, đã tự động chuyển sang hàng mới");
+        } else {
+            oldItem.setNote(note);
+        }
         oldItem.setStatus(ItemStatus.NEED_LIQUID);
 
         inventoryItemRepository.save(oldItem);

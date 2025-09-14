@@ -223,10 +223,10 @@ public class InventoryItemController {
 	}
 
 	@Operation(summary = "Auto change new suitable inventory item for export request detail")
-	@PutMapping("/auto-change/{inventoryItemId}")
-	public ResponseEntity<?> autoChangeNewSuitableInventoryItem(@PathVariable String inventoryItemId) {
-		LOGGER.info("Auto choosing new suitable inventory item for export request detail with ID: {}", inventoryItemId);
-		InventoryItemResponse result = inventoryItemService.autoChangeInventoryItem(inventoryItemId);
+	@PutMapping("/auto-change")
+	public ResponseEntity<?> autoChangeNewSuitableInventoryItem(@RequestBody AutoChangeForExport autoChangeForExport) {
+		LOGGER.info("Auto choosing new suitable inventory item for export request detail with ID: {}", autoChangeForExport.getInventoryItemId());
+		InventoryItemResponse result = inventoryItemService.autoChangeInventoryItem(autoChangeForExport.getInventoryItemId(), autoChangeForExport.getNote());
 		return ResponseUtil.getObject(
 				result,
 				HttpStatus.OK,
