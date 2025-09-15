@@ -362,10 +362,10 @@ public class InventoryItemService {
         double postSwapTotal = keptTotal + addedTotal;
         double required = exportDetail.getMeasurementValue() != null ? exportDetail.getMeasurementValue() : 0d;
 
-        if (postSwapTotal < required) {
-            throw new IllegalStateException(
-                    String.format("Post-swap total measurement %.3f is less than required %.3f", postSwapTotal, required));
-        }
+//        if (postSwapTotal < required) {
+//            throw new IllegalStateException(
+//                    String.format("Post-swap total measurement %.3f is less than required %.3f", postSwapTotal, required));
+//        }
 
         // 7) Apply updates
         ItemStatus targetStatus = keptItems.stream()
