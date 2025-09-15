@@ -229,8 +229,13 @@ public class ExportRequestDetailService {
                     .findByItem_IdAndParentNullAndStatus(detail.getItem().getId(), ItemStatus.AVAILABLE)
                     .stream()
                     .sorted(Comparator.comparing(InventoryItem::getImportedDate).reversed())
+                    .filter(inventoryItem -> inventoryItem.getMeasurementValue().equals(inventoryItem.getItem().getMeasurementValue()))
                     .limit(quantity)
                     .toList();
+
+            if(sortedInventoryItems.size() < detail.getQuantity()) {
+                throw new IllegalArgumentException("not enough inventory item with full measurement value to export");
+            }
 
             for (InventoryItem inventoryItem : sortedInventoryItems) {
                 inventoryItem.setExportRequestDetail(detail);
