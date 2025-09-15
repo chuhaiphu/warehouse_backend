@@ -103,6 +103,17 @@ public class ItemController {
                 "Successfully retrieved item figures");
     }
 
+    @Operation(summary = "get import-export number of item")
+    @GetMapping("/im-ex/{itemId}")
+    public ResponseEntity<?> getImExNumberOfItem(@PathVariable String itemId) {
+        LOGGER.info("get im-ex number of item");
+        return ResponseUtil.getObject(
+                itemService.getImEXNumberItem(itemId),
+                HttpStatus.OK,
+                "successfully retrieved item im-ex number"
+        );
+    }
+
     @Operation(summary = "Create a new item")
     @PostMapping
     public ResponseEntity<?> createItem(@RequestBody ItemRequest request) {

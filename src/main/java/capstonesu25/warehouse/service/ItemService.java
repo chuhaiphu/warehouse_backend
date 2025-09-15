@@ -2,12 +2,20 @@ package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.ItemStatus;
+import capstonesu25.warehouse.model.item.ImExNumberItem;
 import capstonesu25.warehouse.model.item.ItemFigure;
 import capstonesu25.warehouse.model.item.ItemRequest;
 import capstonesu25.warehouse.model.item.ItemResponse;
 import capstonesu25.warehouse.repository.CategoryRepository;
+import capstonesu25.warehouse.repository.ExportRequestRepository;
+import capstonesu25.warehouse.repository.ImportOrderRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ProviderRepository;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +36,8 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
     private final ProviderRepository providerRepository;
+    private final ImportOrderRepository importOrderRepository;
+    private final ExportRequestRepository exportRequestRepository;
 
     public Page<ItemResponse> getAllItems(int page, int limit) {
         LOGGER.info("Getting all items with page: {}, limit: {}", page, limit);
@@ -101,6 +111,70 @@ public class ItemService {
         }
 
         return itemFigure;
+    }
+
+    public ImExNumberItem getImEXNumberItem(String itemId) {
+        LOGGER.info("getting im ex number");
+
+        List<ImportOrder> importOrders = Optional.ofNullable(importOrderRepository.findAll())
+                .orElse(Collections.emptyList());
+        List<ExportRequest> exportRequests = Optional.ofNullable(exportRequestRepository.findAll())
+                .orElse(Collections.emptyList());
+
+        // helper: trả về list details an toàn
+        Function<ImportOrder, List<ImportOrderDetail>> safeImportDetails =
+                io -> Optional.ofNullable(io)
+                        .map(ImportOrder::getImportOrderDetails)
+                        .orElse(Collections.emptyList());
+
+        Function<ExportRequest, List<ExportRequestDetail>> safeExportDetails =
+                er -> Optional.ofNullable(er)
+                        .map(ExportRequest::getExportRequestDetails)
+                        .orElse(Collections.emptyList());
+
+        Predicate<ImportOrderDetail> matchItemImport =
+                d -> d != null && d.getItem() != null && itemId.equals(d.getItem().getId());
+
+        Predicate<ExportRequestDetail> matchItemExport =
+                d -> d != null && d.getItem() != null && itemId.equals(d.getItem().getId());
+
+        // Lọc orders/requests có ít nhất 1 detail khớp itemId
+        importOrders = importOrders.stream()
+                .filter(Objects::nonNull)
+                .filter(io -> safeImportDetails.apply(io).stream().anyMatch(matchItemImport))
+                .toList();
+
+        exportRequests = exportRequests.stream()
+                .filter(Objects::nonNull)
+                .filter(er -> safeExportDetails.apply(er).stream().anyMatch(matchItemExport))
+                .toList();
+
+        // Tổng measurement input (null -> 0)
+        double measurementInput = importOrders.stream()
+                .flatMap(io -> safeImportDetails.apply(io).stream())
+                .filter(matchItemImport)
+                .mapToDouble(d -> {
+                    Double v = d.getActualMeasurementValue(); // nếu bạn muốn dùng measurement khác thì đổi getter tại đây
+                    return v == null ? 0d : v.doubleValue();
+                })
+                .sum();
+
+        // Tổng measurement output (null -> 0)
+        double measurementOutput = exportRequests.stream()
+                .flatMap(er -> safeExportDetails.apply(er).stream())
+                .filter(matchItemExport)
+                .mapToDouble(d -> {
+                    Double v = d.getActualMeasurementValue();
+                    return v == null ? 0d : v.doubleValue();
+                })
+                .sum();
+
+        ImExNumberItem result = new ImExNumberItem();
+        result.setImportMeasurementValue(measurementInput);
+        result.setExportMeasurementValue(measurementOutput);
+        result.setImportOrderIds(importOrders.stream().map(ImportOrder::getId).filter(Objects::nonNull).toList());
+        result.setExportRequestIds(exportRequests.stream().map(ExportRequest::getId).filter(Objects::nonNull).toList());
+        return result;
     }
 
     private ItemResponse mapToResponse(Item item) {
