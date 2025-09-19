@@ -12,7 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +129,6 @@ public class StoredLocationService {
         }
 
         Map<Long, StoredLocation> touched = new HashMap<>();
-
         List<StoredLocationResponse> results = new ArrayList<>();
 
         for (Map.Entry<Item, List<InventoryItem>> entry : byItem.entrySet()) {
@@ -137,76 +136,65 @@ public class StoredLocationService {
             List<InventoryItem> group = entry.getValue();
             int groupSize = group.size();
 
-            List<StoredLocation> bases = group.stream()
+            // Tập vị trí hiện tại của nhóm (để tính khoảng cách & để loại khỏi ứng viên)
+            Set<StoredLocation> currentLocations = group.stream()
                     .map(InventoryItem::getStoredLocation)
                     .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            // ============== THAY ĐỔI QUAN TRỌNG 1: loại các currentLocations ==============
+            List<StoredLocation> feasible = allCandidates.stream()
+                    .filter(loc -> supportsItem(loc, item))
+                    .filter(loc -> !currentLocations.contains(loc)) // <<-- bắt buộc khác vị trí hiện tại
+                    .filter(loc -> remainingCapacity.getOrDefault(loc.getId(), getRemainingCapacity(loc)) >= groupSize)
                     .toList();
 
-            StoredLocation chosen = allCandidates.stream()
-                    .filter(loc -> supportsItem(loc, item))
-                    .filter(loc -> {
-                        int stayCountAtLoc = (int) group.stream()
-                                .map(InventoryItem::getStoredLocation)
-                                .filter(Objects::nonNull)
-                                .filter(loc::equals)
-                                .count();
+            if (feasible.isEmpty()) {
+                throw new IllegalStateException("No different location can host item " + item.getId()
+                        + " for group size " + groupSize);
+            }
 
-                        int additionalNeeded = groupSize - stayCountAtLoc; // chỉ số cần thêm chỗ
-                        int left = remainingCapacity.getOrDefault(loc.getId(), getRemainingCapacity(loc));
-                        return left >= additionalNeeded;
-                    })
+            // Chọn location tối ưu theo tổng khoảng cách tới các vị trí hiện tại
+            StoredLocation chosen = feasible.stream()
                     .min(Comparator
-                            .comparingInt((StoredLocation loc) -> totalDistanceToMany(loc, bases))
+                            .comparingInt((StoredLocation loc) -> totalDistanceToMany(loc, currentLocations.stream().toList()))
                             .thenComparing(StoredLocation::getId))
-                    .orElseThrow(() ->
-                            new IllegalStateException("No location can host item " + item.getId() + " for group size " + groupSize));
+                    .orElseThrow();
 
-            int stayCount = (int) group.stream()
-                    .map(InventoryItem::getStoredLocation)
-                    .filter(Objects::nonNull)
-                    .filter(chosen::equals)
-                    .count();
-            int moveCount = groupSize - stayCount;
+            int moveCount = groupSize;
 
             for (InventoryItem inv : group) {
                 StoredLocation oldLoc = inv.getStoredLocation();
 
-                if (oldLoc != null && !oldLoc.equals(chosen)) {
+                if (oldLoc != null) {
                     int oldQty = oldLoc.getCurrentCapacity() == null ? 0 : oldLoc.getCurrentCapacity();
                     oldLoc.setCurrentCapacity(Math.max(0, oldQty - 1));
-
-                    oldLoc.setFulled(getRemainingCapacity(oldLoc) <= 0 ? Boolean.TRUE : Boolean.FALSE);
-
+                    oldLoc.setFulled(getRemainingCapacity(oldLoc) <= 0);
                     touched.put(oldLoc.getId(), oldLoc);
-
                     remainingCapacity.put(oldLoc.getId(), getRemainingCapacity(oldLoc));
                 }
 
-                // Gán location mới
                 inv.setStoredLocation(chosen);
             }
 
-            // ---- Cộng ở chosen CHỈ bằng moveCount ----
+            // Tăng capacity ở chosen chỉ bằng moveCount
             if (moveCount > 0) {
                 int chosenQty = chosen.getCurrentCapacity() == null ? 0 : chosen.getCurrentCapacity();
                 chosen.setCurrentCapacity(chosenQty + moveCount);
             }
-
-            // Update isFulled của chosen & cache
-            chosen.setFulled(getRemainingCapacity(chosen) <= 0 ? Boolean.TRUE : Boolean.FALSE);
+            chosen.setFulled(getRemainingCapacity(chosen) <= 0);
             remainingCapacity.put(chosen.getId(), getRemainingCapacity(chosen));
-
             touched.put(chosen.getId(), chosen);
 
             results.add(mapToResponse(chosen));
         }
 
-        // Persist
         inventoryItemRepository.saveAll(inventoryItems);
         storedLocationRepository.saveAll(touched.values());
 
         return results;
     }
+
 
 
     private int totalDistanceToMany(StoredLocation target, List<StoredLocation> bases) {
