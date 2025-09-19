@@ -11,6 +11,7 @@ import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.ImportOrderRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.ProviderRepository;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
@@ -113,13 +114,30 @@ public class ItemService {
         return itemFigure;
     }
 
-    public ImExNumberItem getImEXNumberItem(String itemId) {
+    public ImExNumberItem getImEXNumberItem(String itemId, LocalDate fromDate, LocalDate toDate) {
         LOGGER.info("getting im ex number");
 
         List<ImportOrder> importOrders = Optional.ofNullable(importOrderRepository.findAll())
                 .orElse(Collections.emptyList());
+
+        importOrders =   importOrders.stream()
+                .filter(importOrder ->
+                        importOrder.getCreatedDate() != null &&
+                                importOrder.getCreatedDate().isAfter(fromDate.atStartOfDay()) &&
+                                importOrder.getCreatedDate().isBefore(toDate.atStartOfDay())
+                )
+                .toList();
+
         List<ExportRequest> exportRequests = Optional.ofNullable(exportRequestRepository.findAll())
                 .orElse(Collections.emptyList());
+
+        exportRequests = exportRequests.stream()
+                .filter(importOrder ->
+                        importOrder.getCreatedDate() != null &&
+                                importOrder.getCreatedDate().isAfter(fromDate.atStartOfDay()) &&
+                                importOrder.getCreatedDate().isBefore(toDate.atStartOfDay())
+                )
+                .toList();
 
         // helper: trả về list details an toàn
         Function<ImportOrder, List<ImportOrderDetail>> safeImportDetails =

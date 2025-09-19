@@ -6,6 +6,7 @@ import capstonesu25.warehouse.model.responsedto.MetaDataDTO;
 import capstonesu25.warehouse.service.ItemService;
 import capstonesu25.warehouse.utils.ResponseUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,10 +106,10 @@ public class ItemController {
 
     @Operation(summary = "get import-export number of item")
     @GetMapping("/im-ex/{itemId}")
-    public ResponseEntity<?> getImExNumberOfItem(@PathVariable String itemId) {
+    public ResponseEntity<?> getImExNumberOfItem(@PathVariable String itemId, @RequestParam LocalDate fromDate, @RequestParam LocalDate toDate) {
         LOGGER.info("get im-ex number of item");
         return ResponseUtil.getObject(
-                itemService.getImEXNumberItem(itemId),
+                itemService.getImEXNumberItem(itemId, fromDate, toDate),
                 HttpStatus.OK,
                 "successfully retrieved item im-ex number"
         );
