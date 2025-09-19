@@ -50,6 +50,19 @@ public class InventoryItemController {
 		);
 	}
 
+	@Operation(summary = "search inventory items by scarf id")
+	@GetMapping("/search/{id}")
+	public ResponseEntity<?> searchingByScarfId(@PathVariable String id) {
+		LOGGER.info("Search inventory item by: {} ",id);
+		List<InventoryItemResponse> responses = inventoryItemService.searchByScarfId(id);
+		return ResponseUtil.getCollection(
+				responses,
+				HttpStatus.OK,
+				"Successfully searching inventory items",
+				null
+		);
+	}
+
 	@Operation(summary = "Get all inventory items by item ID")
 	@GetMapping("/item/{itemId}")
 	public ResponseEntity<?> getAllByItemId(@PathVariable String itemId,@RequestParam(defaultValue = "1") int page,

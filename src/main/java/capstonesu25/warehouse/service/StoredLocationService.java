@@ -5,9 +5,14 @@ import capstonesu25.warehouse.entity.Item;
 import capstonesu25.warehouse.entity.StoredLocation;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationRequest;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationResponse;
+import capstonesu25.warehouse.repository.InventoryItemRepository;
 import capstonesu25.warehouse.repository.ItemRepository;
 import capstonesu25.warehouse.repository.StoredLocationRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +32,7 @@ import java.util.stream.Collectors;
 public class StoredLocationService {
     private final StoredLocationRepository storedLocationRepository;
     private final ItemRepository itemRepository;
+    private final InventoryItemRepository inventoryItemRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StoredLocationService.class);
 
@@ -104,6 +110,127 @@ public class StoredLocationService {
     // updateEntityFromRequest(existingLocation, request);
     // return mapToResponse(storedLocationRepository.save(existingLocation));
     // }
+
+
+    @Transactional
+    public List<StoredLocationResponse> autoChooseNearestStoredLocation(List<String> inventoryItemIds) {
+        List<InventoryItem> inventoryItems = inventoryItemRepository.findAllById(inventoryItemIds);
+        if (inventoryItems.isEmpty()) return List.of();
+
+        Map<Item, List<InventoryItem>> byItem = inventoryItems.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(InventoryItem::getItem));
+
+        List<StoredLocation> allCandidates = storedLocationRepository.findByIsFulledFalse();
+
+        Map<Long, Integer> remainingCapacity = new HashMap<>();
+        for (StoredLocation loc : allCandidates) {
+            remainingCapacity.put(loc.getId(), getRemainingCapacity(loc));
+        }
+
+        Map<Long, StoredLocation> touched = new HashMap<>();
+
+        List<StoredLocationResponse> results = new ArrayList<>();
+
+        for (Map.Entry<Item, List<InventoryItem>> entry : byItem.entrySet()) {
+            Item item = entry.getKey();
+            List<InventoryItem> group = entry.getValue();
+            int groupSize = group.size();
+
+            List<StoredLocation> bases = group.stream()
+                    .map(InventoryItem::getStoredLocation)
+                    .filter(Objects::nonNull)
+                    .toList();
+
+            StoredLocation chosen = allCandidates.stream()
+                    .filter(loc -> supportsItem(loc, item))
+                    .filter(loc -> {
+                        int stayCountAtLoc = (int) group.stream()
+                                .map(InventoryItem::getStoredLocation)
+                                .filter(Objects::nonNull)
+                                .filter(loc::equals)
+                                .count();
+
+                        int additionalNeeded = groupSize - stayCountAtLoc; // chỉ số cần thêm chỗ
+                        int left = remainingCapacity.getOrDefault(loc.getId(), getRemainingCapacity(loc));
+                        return left >= additionalNeeded;
+                    })
+                    .min(Comparator
+                            .comparingInt((StoredLocation loc) -> totalDistanceToMany(loc, bases))
+                            .thenComparing(StoredLocation::getId))
+                    .orElseThrow(() ->
+                            new IllegalStateException("No location can host item " + item.getId() + " for group size " + groupSize));
+
+            int stayCount = (int) group.stream()
+                    .map(InventoryItem::getStoredLocation)
+                    .filter(Objects::nonNull)
+                    .filter(chosen::equals)
+                    .count();
+            int moveCount = groupSize - stayCount;
+
+            for (InventoryItem inv : group) {
+                StoredLocation oldLoc = inv.getStoredLocation();
+
+                if (oldLoc != null && !oldLoc.equals(chosen)) {
+                    int oldQty = oldLoc.getCurrentCapacity() == null ? 0 : oldLoc.getCurrentCapacity();
+                    oldLoc.setCurrentCapacity(Math.max(0, oldQty - 1));
+
+                    oldLoc.setFulled(getRemainingCapacity(oldLoc) <= 0 ? Boolean.TRUE : Boolean.FALSE);
+
+                    touched.put(oldLoc.getId(), oldLoc);
+
+                    remainingCapacity.put(oldLoc.getId(), getRemainingCapacity(oldLoc));
+                }
+
+                // Gán location mới
+                inv.setStoredLocation(chosen);
+            }
+
+            // ---- Cộng ở chosen CHỈ bằng moveCount ----
+            if (moveCount > 0) {
+                int chosenQty = chosen.getCurrentCapacity() == null ? 0 : chosen.getCurrentCapacity();
+                chosen.setCurrentCapacity(chosenQty + moveCount);
+            }
+
+            // Update isFulled của chosen & cache
+            chosen.setFulled(getRemainingCapacity(chosen) <= 0 ? Boolean.TRUE : Boolean.FALSE);
+            remainingCapacity.put(chosen.getId(), getRemainingCapacity(chosen));
+
+            touched.put(chosen.getId(), chosen);
+
+            results.add(mapToResponse(chosen));
+        }
+
+        // Persist
+        inventoryItemRepository.saveAll(inventoryItems);
+        storedLocationRepository.saveAll(touched.values());
+
+        return results;
+    }
+
+
+    private int totalDistanceToMany(StoredLocation target, List<StoredLocation> bases) {
+        if (bases == null || bases.isEmpty()) return 0;
+        int sum = 0;
+        for (StoredLocation base : bases) {
+            sum += computeDistance(base, target);
+        }
+        return sum;
+    }
+
+    private int getRemainingCapacity(StoredLocation loc) {
+        int capacity = loc.getMaximumCapacityForItem() == null ? 0 : loc.getMaximumCapacityForItem();
+        int used = loc.getCurrentCapacity() == null ? 0 : loc.getCurrentCapacity();
+        return Math.max(capacity - used, 0);
+    }
+
+
+    private boolean supportsItem(StoredLocation loc, Item item) {
+        List<Item> locItems = loc.getItems();
+        if (locItems == null || locItems.isEmpty()) return true;
+        // If you allow mixing, return true here. If not, require same item:
+        return locItems.contains(item);
+    }
 
     public List<StoredLocationResponse> suggestNearestStoredLocations(String itemId, Long locationId) {
         Item item = itemRepository.findById(itemId).orElseThrow(() ->

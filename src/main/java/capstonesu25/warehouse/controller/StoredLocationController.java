@@ -62,6 +62,19 @@ public class StoredLocationController {
                 "Successfully created stored location");
     }
 
+    @Operation(summary = "auto choose new location")
+    @PostMapping("/import-auto-choose")
+    public ResponseEntity<?> autoChooseLocationForImport(@RequestBody List<String> inventoryItemIds) {
+        LOGGER.info("auto choose location for import");
+        List<StoredLocationResponse> responses = storedLocationService.autoChooseNearestStoredLocation(inventoryItemIds);
+        return ResponseUtil.getCollection(
+                responses,
+                HttpStatus.OK,
+                "success auto choose location for import",
+                null
+        );
+    }
+
     @Operation(summary = "Get available stored locations", description = "Returns a list of all available stored locations")
     @GetMapping("/available")
     public ResponseEntity<?> getAvailableLocations(@RequestParam(defaultValue = "1") int page,

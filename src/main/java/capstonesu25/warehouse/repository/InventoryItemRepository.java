@@ -34,6 +34,8 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, St
 
     List<InventoryItem> findInventoryItemByParent_Id(String id);
 
+    List<InventoryItem> findByIdContaining(String id);
+
     @Modifying(clearAutomatically = false, flushAutomatically = true)
     @Query("""
            UPDATE InventoryItem i

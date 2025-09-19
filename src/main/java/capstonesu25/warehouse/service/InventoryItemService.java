@@ -42,25 +42,49 @@ public class InventoryItemService {
                 .toList();
     }
 
+//    @Transactional(readOnly = true)
+//    public List<InventoryItemResponse> getInventoryItemHistory(String id) {
+//        LOGGER.info("Getting inventory item history with id: {}", id);
+//
+//        // 1. Tìm item hiện tại
+//        InventoryItem current = inventoryItemRepository.findById(id)
+//                .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id));
+//
+//        // 2. Tìm node root (cha xa nhất)
+//        InventoryItem root = current;
+//        while (root.getParent() != null) {
+//            root = root.getParent();
+//        }
+//
+//        // 3. Duyệt preorder để gom list từ cha → con
+//        List<InventoryItemResponse> result = new ArrayList<>();
+//        preorderFlatten(root, result);
+//        return result;
+//    }
+
     @Transactional(readOnly = true)
     public List<InventoryItemResponse> getInventoryItemHistory(String id) {
-        LOGGER.info("Getting inventory item history with id: {}", id);
+        LOGGER.info("Getting inventory item history (child → parent) with id: {}", id);
 
-        // 1. Tìm item hiện tại
+        // 1. Lấy item hiện tại
         InventoryItem current = inventoryItemRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Inventory item not found with id: " + id));
 
-        // 2. Tìm node root (cha xa nhất)
-        InventoryItem root = current;
-        while (root.getParent() != null) {
-            root = root.getParent();
+        // 2. Duyệt ngược từ con lên cha và map sang DTO
+        List<InventoryItemResponse> history = new ArrayList<>();
+        for (InventoryItem node = current; node != null; node = node.getParent()) {
+            history.add(mapToResponse(node));
         }
 
-        // 3. Duyệt preorder để gom list từ cha → con
-        List<InventoryItemResponse> result = new ArrayList<>();
-        preorderFlatten(root, result);
-        return result;
+        return history; // kết quả theo thứ tự: con → ... → gốc
     }
+
+    @Transactional(readOnly = true)
+    public List<InventoryItemResponse> searchByScarfId(String id) {
+        LOGGER.info("Searching inventory item");
+        return inventoryItemRepository.findByIdContaining(id).stream().map(this::mapToResponse).toList();
+    }
+
 
     private void preorderFlatten(InventoryItem entity, List<InventoryItemResponse> acc) {
         // Map sang DTO bằng mapper có sẵn
