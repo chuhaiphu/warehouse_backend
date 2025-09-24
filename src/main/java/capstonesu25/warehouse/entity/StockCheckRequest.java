@@ -37,7 +37,7 @@ public class StockCheckRequest {
     @Column(name = "type")
     private StockCheckType type;
 
-    @Column(name = "export_date")
+    @Column(name = "start_date")
     private LocalDate startDate;
 
     @Column(name = "expected_return_date")

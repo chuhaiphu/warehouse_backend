@@ -352,6 +352,7 @@ public class ImportOrderService {
     }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "COMPLETE", objectIdSource = "importOrderId")
+    @Transactional
     public ImportOrderResponse completeImportOrder(String importOrderId) {
         LOGGER.info("Completing import order with ID: " + importOrderId);
         ImportOrder importOrder = importOrderRepository.findById(importOrderId)
@@ -630,91 +631,117 @@ public class ImportOrderService {
         importOrderRepository.save(importOrder);
     }
 
+    // ImportOrderService.java
+
     private void autoFillLocationForImport(ImportOrder importOrder) {
         LOGGER.info("Auto fill location");
 
-        List<ImportOrderDetail> importOrderDetails = importOrder.getImportOrderDetails();
+        for (ImportOrderDetail detail : importOrder.getImportOrderDetails()) {
+            Item item = detail.getItem();
 
-        for (ImportOrderDetail importOrderDetail : importOrderDetails) {
-            Item item = importOrderDetail.getItem();
-            int requiredQuantity = importOrderDetail.getActualQuantity();
+            // 1) Lấy đúng các item chưa gán vị trí của lô hiện tại
+            List<InventoryItem> unassigned = inventoryItemRepository
+                    .findAllByImportOrderDetailIdAndStoredLocationIsNull(detail.getId());
 
-            List<InventoryItem> inventoryItems = item.getInventoryItems().stream()
-                    .filter(i -> i.getStoredLocation() == null)
-                    .limit(requiredQuantity)
-                    .toList();
-
-            if (inventoryItems.size() < requiredQuantity) {
-                LOGGER.warn("Not enough unassigned inventory items for item: {}", item.getId());
+            if (unassigned.isEmpty()) {
+                LOGGER.info("No unassigned items for detail {}", detail.getId());
                 continue;
             }
 
-            List<StoredLocation> storedLocations = storedLocationRepository.findByIsFulledFalse();
-
-            // Sort by zone, floor, row, line
-            storedLocations.sort(Comparator
-                    .comparing(StoredLocation::getZone)
-                    .thenComparing(loc -> Integer.parseInt(loc.getFloor()))
-                    .thenComparing(loc -> Integer.parseInt(loc.getRow().replace("R", "")))
-                    .thenComparing(loc -> Integer.parseInt(loc.getLine().replace("L", "")))
-            );
-
-            boolean assigned = false;
-
-            // Group by zone
-            Map<String, List<StoredLocation>> groupedByZone = storedLocations.stream()
-                    .collect(Collectors.groupingBy(StoredLocation::getZone, LinkedHashMap::new, Collectors.toList()));
-
-            for (Map.Entry<String, List<StoredLocation>> zoneEntry : groupedByZone.entrySet()) {
-                List<StoredLocation> zoneLocations = zoneEntry.getValue();
-
-                // 1. Ưu tiên location đã chứa item và đủ chỗ
-                Optional<StoredLocation> preferred = zoneLocations.stream()
-                        .filter(loc -> loc.getItems() != null && loc.getItems().contains(item))
-                        .filter(loc -> (loc.getMaximumCapacityForItem() - loc.getCurrentCapacity()) >= requiredQuantity)
-                        .findFirst();
-
-                // 2. Nếu không có, chọn slot đầu tiên còn chỗ
-                if (preferred.isEmpty()) {
-                    preferred = zoneLocations.stream()
-                            .filter(loc -> (loc.getMaximumCapacityForItem() - loc.getCurrentCapacity()) >= requiredQuantity)
-                            .findFirst();
-                }
-
-                if (preferred.isPresent()) {
-                    StoredLocation loc = preferred.get();
-
-                    // Add mapping (many-to-many)
-                    if (loc.getItems() == null) loc.setItems(new ArrayList<>());
-                    if (!loc.getItems().contains(item)) loc.getItems().add(item);
-
-                    if (item.getStoredLocations() == null) item.setStoredLocations(new ArrayList<>());
-                    if (!item.getStoredLocations().contains(loc)) item.getStoredLocations().add(loc);
-
-                    assignItemsToLocation(inventoryItems, loc);
-                    assigned = true;
-                    break;
-                }
+            // 2) Lấy các vị trí còn chỗ (có thể thay bằng truy vấn có khóa/điều kiện)
+            List<StoredLocation> all = storedLocationRepository.findByIsFulledFalse();
+            if (all.isEmpty()) {
+                LOGGER.warn("No candidate locations for detail {}", detail.getId());
+                continue;
             }
 
-            if (!assigned) {
-                LOGGER.warn("Không thể gán vị trí cho item: {}", item.getId());
+            // 3) Sắp xếp theo zone/floor/row/line
+            all.sort(Comparator
+                    .comparing(StoredLocation::getZone, Comparator.nullsLast(String::compareTo))
+                    .thenComparing(loc -> safeInt(loc.getFloor()))
+                    .thenComparing(loc -> safeInt(strip(loc.getRow(), "R")))
+                    .thenComparing(loc -> safeInt(strip(loc.getLine(), "L")))
+            );
+
+            // 4) Ưu tiên location đã chứa cùng item
+            List<StoredLocation> preferred = new ArrayList<>();
+            List<StoredLocation> others = new ArrayList<>();
+            for (StoredLocation loc : all) {
+                int free = freeCapacity(loc);
+                if (free <= 0) continue;
+                if (loc.getItems() != null && loc.getItems().contains(item)) preferred.add(loc);
+                else others.add(loc);
+            }
+
+            int remaining = unassigned.size();
+            int cursor = 0;
+
+            // 5) Thử lấp đầy theo thứ tự ưu tiên rồi đến các slot còn lại
+            for (StoredLocation loc : concat(preferred, others)) {
+                if (remaining == 0) break;
+
+                int free = freeCapacity(loc);
+                if (free <= 0) continue;
+
+                int take = Math.min(free, remaining);
+                List<InventoryItem> batch = unassigned.subList(cursor, cursor + take);
+
+                // Bảo đảm mapping many-to-many
+                if (loc.getItems() == null) loc.setItems(new ArrayList<>());
+                if (!loc.getItems().contains(item)) loc.getItems().add(item);
+                if (item.getStoredLocations() == null) item.setStoredLocations(new ArrayList<>());
+                if (!item.getStoredLocations().contains(loc)) item.getStoredLocations().add(loc);
+
+                // Gán & cập nhật capacity
+                assignItemsToLocation(batch, loc);
+
+                cursor += take;
+                remaining -= take;
+            }
+
+            if (remaining > 0) {
+                LOGGER.warn("Còn {} sản phẩm chưa gán vị trí cho detail {} (thiếu tổng dung lượng).",
+                        remaining, detail.getId());
+            } else {
+                LOGGER.info("Placed all {} items for detail {}", unassigned.size(), detail.getId());
             }
         }
     }
 
+    /** Gán items vào location: set status, batch save, cập nhật capacity/flags. */
     private void assignItemsToLocation(List<InventoryItem> items, StoredLocation location) {
-        for (InventoryItem item : items) {
-            item.setStoredLocation(location);
-            item.setStatus(ItemStatus.AVAILABLE);
-            inventoryItemRepository.save(item);
+        for (InventoryItem it : items) {
+            it.setStoredLocation(location);
+            it.setStatus(ItemStatus.AVAILABLE);
+            it.setUpdatedDate(LocalDateTime.now());
         }
+        inventoryItemRepository.saveAll(items);
 
         location.setCurrentCapacity(location.getCurrentCapacity() + items.size());
         location.setUsed(true);
         location.setFulled(location.getCurrentCapacity() >= location.getMaximumCapacityForItem());
-
         storedLocationRepository.save(location);
+    }
+
+    /** Helper: số chỗ trống của 1 location (chống NPE). */
+    private static int freeCapacity(StoredLocation loc) {
+        Integer max = loc.getMaximumCapacityForItem();
+        Integer cur = loc.getCurrentCapacity();
+        int m = (max == null ? 0 : max);
+        int c = (cur == null ? 0 : cur);
+        return Math.max(0, m - c);
+    }
+
+    private static int safeInt(String s) {
+        try { return Integer.parseInt(s); } catch (Exception e) { return Integer.MAX_VALUE; }
+    }
+    private static String strip(String s, String p) {
+        if (s == null) return "";
+        return s.startsWith(p) ? s.substring(p.length()) : s;
+    }
+    private static <T> List<T> concat(List<T> a, List<T> b) {
+        List<T> r = new ArrayList<>(a.size() + b.size());
+        r.addAll(a); r.addAll(b); return r;
     }
 
     private void createInventoryItem(ImportOrderDetail importOrderDetail) {
