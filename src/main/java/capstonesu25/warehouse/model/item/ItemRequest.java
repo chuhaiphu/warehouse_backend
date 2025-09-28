@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class ItemRequest {
     private String id;
     private String name;
+    private String providerCode;
     private String description;
     private String measurementUnit;
     private Double totalMeasurementValue;

@@ -334,9 +334,15 @@ public class ImportOrderDetailService {
             throw new NoSuchElementException("No ImportOrderDetails found for ImportOrder ID: " + importOrderId);
         }
 
+        if(order.getImportRequest().getType().equals(ImportType.ORDER)) {
+            for(ImportOrderDetailUpdateRequest request: requests) {
+                Item item = itemRepository.findByProviderCode(request.getItemId()) .orElseThrow(() -> new NoSuchElementException("Not found item with provider code: " + request.getItemId()));
+            }
+        }
+
         for (ImportOrderDetail detail : details) {
             requests.stream()
-                    .filter(request -> request.getItemId().equals(detail.getItem().getId()))
+                    .filter(request -> request.getItemId().equals(detail.getItem().getProviderCode()))
                     .findFirst()
                     .ifPresent(request -> {
                         detail.setActualQuantity(request.getActualQuantity());

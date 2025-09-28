@@ -199,6 +199,7 @@ public class ItemService {
         ItemResponse response = new ItemResponse();
         response.setId(item.getId());
         response.setName(item.getName());
+        response.setProviderCode(item.getProviderCode());
         response.setDescription(item.getDescription());
         response.setMeasurementUnit(item.getMeasurementUnit());
         response.setMeasurementValue(item.getMeasurementValue());
@@ -268,6 +269,7 @@ public class ItemService {
             throw new IllegalArgumentException("Item request must not be null");
         }
         existingItem.setName(request.getName());
+        existingItem.setProviderCode(request.getProviderCode());
         existingItem.setDescription(request.getDescription());
         existingItem.setMeasurementUnit(request.getMeasurementUnit());
         existingItem.setMeasurementValue(request.getMeasurementValue());
