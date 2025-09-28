@@ -29,6 +29,10 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
         Boolean existsByUsername(String username);
 
+        Boolean existsByEmailAndIdNot(String email, Long id);
+
+        Boolean existsByPhoneAndIdNot(String phone, Long id);
+
         Optional<Account> findByRefreshToken(String jwt);
 
         Optional<Account> findByVerificationToken(String token);

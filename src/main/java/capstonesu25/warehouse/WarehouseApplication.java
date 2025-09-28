@@ -356,7 +356,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901245")
 					.fullName("Nguyễn Minh An")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff16);
 
@@ -366,7 +366,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901246")
 					.fullName("Trần Thị Ánh")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff17);
 
@@ -376,7 +376,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901247")
 					.fullName("Lê Văn Bình")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff18);
 
@@ -386,7 +386,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901248")
 					.fullName("Phạm Thị Bích")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff19);
 
@@ -396,7 +396,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901249")
 					.fullName("Võ Quốc Chí")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff20);
 
@@ -406,7 +406,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901250")
 					.fullName("Đỗ Thị Châu")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff21);
 
@@ -416,7 +416,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901251")
 					.fullName("Nguyễn Hoàng Dũng")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff22);
 
@@ -426,7 +426,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901252")
 					.fullName("Phạm Thị Diễm")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff23);
 
@@ -436,7 +436,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901253")
 					.fullName("Trần Văn Em")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff24);
 
@@ -446,7 +446,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901254")
 					.fullName("Lê Thị Êm")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff25);
 
@@ -456,7 +456,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901255")
 					.fullName("Bùi Đức Phúc")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff26);
 
@@ -466,7 +466,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901256")
 					.fullName("Vũ Thị Phương")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff27);
 
@@ -476,7 +476,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901257")
 					.fullName("Ngô Minh Giang")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff28);
 
@@ -486,7 +486,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901258")
 					.fullName("Mai Thị Giao")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff29);
 
@@ -496,7 +496,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901259")
 					.fullName("Phan Tấn Hùng")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff30);
 
@@ -506,7 +506,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901260")
 					.fullName("Vũ Thị Hạnh")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff31);
 
@@ -516,7 +516,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901261")
 					.fullName("Đặng Trung Kiên")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff32);
 
@@ -526,7 +526,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901262")
 					.fullName("Trịnh Thị Khánh")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff33);
 
@@ -536,7 +536,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901263")
 					.fullName("Đỗ Nhật Lâm")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff34);
 
@@ -546,7 +546,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901264")
 					.fullName("Hoàng Thị Lan")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff35);
 
@@ -556,7 +556,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901265")
 					.fullName("Nguyễn Văn Minh")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff36);
 
@@ -566,7 +566,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901266")
 					.fullName("Phạm Thị My")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff37);
 
@@ -576,7 +576,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901267")
 					.fullName("Lê Anh Nam")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff38);
 
@@ -586,7 +586,7 @@ public class WarehouseApplication {
 					.password("12345")
 					.phone("0978901268")
 					.fullName("Trần Thị Ngọc")
-					.role("MANAGER")
+					.role("OTHER")
 					.build();
 			accountService.register(staff39);
 

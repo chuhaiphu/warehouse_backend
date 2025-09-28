@@ -24,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
@@ -101,6 +102,56 @@ public class AccountService implements LogoutHandler {
                 .build();
     }
 
+    public AccountResponse updateAccount(UpdateAccountRequest request) {
+        LOGGER.info("Updating account with id: {}", request.getId());
+
+        Account account = accountRepository.findById(request.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+        if (StringUtils.hasText(request.getEmail())) {
+            String email = request.getEmail().trim();
+            if (!email.equalsIgnoreCase(account.getEmail()) &&
+                    accountRepository.existsByEmailAndIdNot(email, account.getId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
+            }
+            account.setEmail(email);
+        }
+
+        if (StringUtils.hasText(request.getPhone())) {
+            String phone = request.getPhone().trim();
+            if (!phone.equals(account.getPhone()) &&
+                    accountRepository.existsByPhoneAndIdNot(phone, account.getId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phone already exists");
+            }
+            account.setPhone(phone);
+        }
+
+        if (StringUtils.hasText(request.getFullName())) {
+            account.setFullName(request.getFullName().trim());
+        }
+
+        if (StringUtils.hasText(request.getStatus())) {
+            try {
+                AccountStatus status = AccountStatus.valueOf(request.getStatus().trim().toUpperCase());
+                account.setStatus(status);
+            } catch (IllegalArgumentException exception) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid status value");
+            }
+        }
+
+        if (request.getIsEnable() != null) {
+            account.setIsEnable(request.getIsEnable());
+        }
+
+        if (StringUtils.hasText(request.getPassword())) {
+            String rawPassword = request.getPassword().trim();
+            account.setPassword(passwordEncoder.encode(rawPassword));
+        }
+
+        Account updatedAccount = accountRepository.save(account);
+        return mapToResponse(updatedAccount);
+    }
+
     public List<AccountResponse> checkAnyKeepersIsAvailableInDate(CheckAnyKeepersIsAvailableInDateRequest request) {
         LOGGER.info("Checking available staff on date: {}", request.getDate());
         LocalDate date = request.getDate();
@@ -145,6 +196,7 @@ public class AccountService implements LogoutHandler {
                 LOGGER.info("Account {} has no performance record on {}", account.getEmail(), date);
                 availableStaffs.add(new AccountResponse(
                         account.getId(),
+                        account.getUsername(),
                         account.getEmail(),
                         account.getPhone(),
                         account.getFullName(),
@@ -176,6 +228,7 @@ public class AccountService implements LogoutHandler {
                 LOGGER.info("Account {} has enough free time: {} minutes", account.getEmail(), freeTime);
                 availableStaffs.add(new AccountResponse(
                         account.getId(),
+                        account.getUsername(),
                         account.getEmail(),
                         account.getPhone(),
                         account.getFullName(),
@@ -428,6 +481,7 @@ public class AccountService implements LogoutHandler {
             }
             AccountResponse accountResponse = new AccountResponse(
                     account.getId(),
+                    account.getUsername(),
                     account.getEmail(),
                     account.getPhone(),
                     account.getFullName(),
@@ -578,6 +632,7 @@ public class AccountService implements LogoutHandler {
     private AccountResponse mapToResponse(Account account) {
         return new AccountResponse(
                 account.getId(),
+                account.getUsername(),
                 account.getEmail(),
                 account.getPhone(),
                 account.getFullName(),

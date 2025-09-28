@@ -6,5 +6,6 @@ public enum AccountRole {
     WAREHOUSE_MANAGER,
     ACCOUNTING,
     ADMIN,
-    MANAGER,;
+    MANAGER,
+    OTHER;
 }

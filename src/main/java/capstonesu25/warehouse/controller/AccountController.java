@@ -38,6 +38,18 @@ public class AccountController {
         );
     }
 
+    @Operation(summary = "Update account information")
+    @PutMapping("/update")
+    public ResponseEntity<?> updateAccount(@Valid @RequestBody UpdateAccountRequest request) {
+        LOGGER.info("Updating account with id: {}", request.getId());
+        AccountResponse response = accountService.updateAccount(request);
+        return ResponseUtil.getObject(
+                response,
+                HttpStatus.OK,
+                "Account updated successfully"
+        );
+    }
+
     @Operation(summary = "Authenticate user")
     @PostMapping("/login")
     public ResponseEntity<?> authenticate(@Valid @RequestBody AuthenticationRequest request) {
