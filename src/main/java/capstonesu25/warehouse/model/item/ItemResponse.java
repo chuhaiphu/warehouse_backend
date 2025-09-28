@@ -12,7 +12,7 @@ import java.util.List;
 public class ItemResponse {
     private String id;
     private String name;
-    private String providerCode;
+    private List<String> providerCode;
     private String description;
     private String measurementUnit;
     private Double measurementValue;

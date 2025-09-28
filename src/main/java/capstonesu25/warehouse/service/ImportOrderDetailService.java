@@ -334,18 +334,30 @@ public class ImportOrderDetailService {
             throw new NoSuchElementException("No ImportOrderDetails found for ImportOrder ID: " + importOrderId);
         }
 
-        if(order.getImportRequest().getType().equals(ImportType.ORDER)) {
-            for(ImportOrderDetailUpdateRequest request: requests) {
-                Item item = itemRepository.findByProviderCode(request.getItemId()) .orElseThrow(() -> new NoSuchElementException("Not found item with provider code: " + request.getItemId()));
+        if (order.getImportRequest().getType().equals(ImportType.ORDER)) {
+            List<Item> allItems = itemRepository.findAll();
+
+            for (ImportOrderDetailUpdateRequest request : requests) {
+                boolean exists = allItems.stream()
+                        .anyMatch(item -> item.getProviderCode() != null
+                                && item.getProviderCode().contains(request.getItemId()));
+
+                if (!exists) {
+                    throw new IllegalArgumentException(
+                            "Provider code not found for itemId: " + request.getItemId()
+                    );
+                }
             }
         }
 
+
         for (ImportOrderDetail detail : details) {
             requests.stream()
-                    .filter(request -> request.getItemId().equals(detail.getItem().getProviderCode()))
+                    .filter(request -> detail.getItem().getProviderCode().contains(request.getItemId()))
                     .findFirst()
                     .ifPresent(request -> {
                         detail.setActualQuantity(request.getActualQuantity());
+                        detail.setActualMeasurementValue(request.getActualQuantity()*detail.getItem().getMeasurementValue());
                         if(order.getImportRequest().getType().equals(ImportType.RETURN)) {
                             detail.setActualMeasurementValue(request.getActualMeasurement());
                         }

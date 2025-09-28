@@ -269,7 +269,7 @@ public class ItemService {
             throw new IllegalArgumentException("Item request must not be null");
         }
         existingItem.setName(request.getName());
-        existingItem.setProviderCode(request.getProviderCode());
+        existingItem.getProviderCode().add(request.getProviderCode());
         existingItem.setDescription(request.getDescription());
         existingItem.setMeasurementUnit(request.getMeasurementUnit());
         existingItem.setMeasurementValue(request.getMeasurementValue());

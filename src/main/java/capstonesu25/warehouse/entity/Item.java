@@ -16,8 +16,8 @@ public class Item {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "provider_code", unique = true)
-    private String providerCode;
+    @Column(name = "provider_code")
+    private List<String> providerCode;
 
     @Column(name = "description")
     private String description;
