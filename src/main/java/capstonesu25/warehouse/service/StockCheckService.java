@@ -3,6 +3,8 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
+import capstonesu25.warehouse.model.account.AccountResponse;
+import capstonesu25.warehouse.model.account.ActiveAccountRequest;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
 import capstonesu25.warehouse.model.stockcheck.OverviewStockCheck;
@@ -37,6 +39,8 @@ public class StockCheckService {
     private final NotificationService notificationService;
     private final ExportRequestRepository exportRequestRepository;
     private final ExportRequestDetailRepository exportRequestDetailRepository;
+    private final ConfigurationRepository configurationRepository;
+    private final AccountService accountService;
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(StockCheckService.class);
 
@@ -157,6 +161,39 @@ public class StockCheckService {
         );
         
         return mapToResponse(savedStockCheck);
+    }
+
+    private void autoAssignConfirmStaff(ExportRequest exportRequest) {
+        LOGGER.info("Auto assigning confirm staff for export request with ID: " + exportRequest.getId());
+        ActiveAccountRequest activeAccountRequest = new ActiveAccountRequest();
+        activeAccountRequest.setDate(exportRequest.getExportDate());
+        Configuration configuration = configurationRepository.findAll().getFirst();
+        List<AccountResponse> accountResponses = accountService.getAllActiveStaffsInDate(activeAccountRequest);
+        List<AccountResponse> responses = new ArrayList<>();
+
+        for(AccountResponse accountResponse : accountResponses) {
+            List<ExportRequest> checkExportRequest = exportRequestRepository.findAllByAssignedStaff_IdAndExportDate(
+                    accountResponse.getId(),
+                    exportRequest.getExportDate()
+            );
+            LOGGER.info("Checking export requests size {} ", checkExportRequest.size());
+            responses.add(accountResponse);
+
+        }
+
+        Account account = accountRepository.findById(responses.get(0).getId())
+                .orElseThrow(() -> new NoSuchElementException("Account not found with ID: " + responses.get(0).getId()));
+
+        exportRequest.setAssignedStaff(account);
+        LOGGER.info("Confirm Account is: {}", account.getEmail());
+        StaffPerformance staffPerformance = new StaffPerformance();
+        staffPerformance.setExpectedWorkingTime(configuration.getTimeToAllowConfirm());
+        staffPerformance.setDate(exportRequest.getExportDate());
+        staffPerformance.setAssignedStaff(account);
+        staffPerformance.setExportCounting(false);
+        staffPerformance.setExportRequestId(exportRequest.getId());
+        staffPerformanceRepository.save(staffPerformance);
+        exportRequestRepository.save(exportRequest);
     }
 
     @Transactional
@@ -426,8 +463,13 @@ public class StockCheckService {
             // -------- Step 3: Map response (bổ sung 2 list) --------
             StockCheckRequestResponse resp = mapToResponse(stockCheck);
             // Giả sử DTO có 2 setter dưới; nếu chưa có, thêm vào DTO:
-            createExportForUnavailableItems(unavailableInventoryItemIds.stream().distinct().toList(), stockCheck);
-            createExportForNeedToLiquidItems(needLiquidateInventoryItemIds.stream().distinct().toList(),stockCheck);
+            if(!unavailableInventoryItemIds.stream().distinct().toList().isEmpty()) {
+                createExportForUnavailableItems(unavailableInventoryItemIds.stream().distinct().toList(), stockCheck);
+            }
+
+            if(!needLiquidateInventoryItemIds.stream().distinct().toList().isEmpty()) {
+                createExportForNeedToLiquidItems(needLiquidateInventoryItemIds.stream().distinct().toList(),stockCheck);
+            }
 
             responses.add(resp);
         }
@@ -532,6 +574,8 @@ public class StockCheckService {
                 inventoryItemRepository.save(inv);
             }
         }
+
+        autoAssignConfirmStaff(newExportRequest);
     }
     private String createExportRequestId() {
         String prefix = "PX";
