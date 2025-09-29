@@ -127,14 +127,14 @@ public class PaperService {
                     NotificationUtil.DEPARTMENT_CHANNEL,
                     NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT + "-" + request.getExportRequestId(),
                     request.getExportRequestId(),
-                    "Đơn xuất mã #" + request.getExportRequestId() + " đã được đếm",
+                    "Đơn xuất mã #" + request.getExportRequestId() + " đã hoàn thành",
                     accountRepository.findByRole(AccountRole.DEPARTMENT)
             );
             notificationService.handleNotification(
                     NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
                     NotificationUtil.EXPORT_REQUEST_COUNTED_EVENT + "-" + request.getExportRequestId(),
                     request.getExportRequestId(),
-                    "Đơn xuất mã #" + request.getExportRequestId() + " đã được đếm",
+                    "Đơn xuất mã #" + request.getExportRequestId() + " đã hoàn thành",
                     accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER)
             );
         }
