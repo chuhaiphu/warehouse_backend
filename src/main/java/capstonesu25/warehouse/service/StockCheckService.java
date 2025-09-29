@@ -344,6 +344,9 @@ public class StockCheckService {
                         if (c.getStatus() != null) {
                             inv.setStatus(c.getStatus());
                         }
+                        if(c.getMeasurementValue() != null) {
+                            inv.setMeasurementValue(c.getMeasurementValue());
+                        }
 
                         // nếu chuyển NEED_LIQUID -> set cờ, lưu lại và trừ Master Inventory
                         if (ItemStatus.NEED_LIQUID.equals(inv.getStatus())) {
