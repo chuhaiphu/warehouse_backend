@@ -71,9 +71,17 @@ public class StockCheckDetailService {
                         .reduce(0.0, Double::sum));
             }
 
-            detail.setInventoryItemsId(inventoryItems.stream()
-                    .map(InventoryItem::getId)
-                    .toList());
+            detail.setInventoryItemsId(
+                    inventoryItems.stream()
+                            .map(inventoryItem -> {
+                                CheckedStockCheck needCheck = new CheckedStockCheck();
+                                needCheck.setInventoryItemId(inventoryItem.getId());
+                                needCheck.setMeasurementValue(inventoryItem.getMeasurementValue());
+                                return needCheck;
+                            })
+                            .toList()
+            );
+            LOGGER.info("view req: {}",detail.getInventoryItemsId());
             requestDetails.add(detail);
         }
         stockCheckRequestDetailRepository.saveAll(requestDetails);
@@ -166,7 +174,11 @@ public class StockCheckDetailService {
         double planMv = Optional.ofNullable(detail.getMeasurementValue()).orElse(0.0);
 
         // Need-to-check list (planned)
-        List<String> needIds = Optional.ofNullable(detail.getInventoryItemsId()).orElse(List.of());
+        List<String> needIds = Optional.ofNullable(detail.getInventoryItemsId())
+                .orElse(List.of())
+                .stream()
+                .map(CheckedStockCheck::getInventoryItemId)
+                .toList();
 
 // Checked list (actual)
         List<String> checkedIds = Optional.ofNullable(detail.getCheckedInventoryItems()).orElse(List.of())

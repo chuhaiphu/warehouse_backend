@@ -21,6 +21,6 @@ public class StockCheckRequestDetailResponse {
     private Boolean isChecked ;
     private String stockCheckRequestId;
     private String itemId;
-    private List<String> inventoryItemIds;
+    private List<CheckedStockCheck> inventoryItemIds;
     private List<CheckedStockCheck> checkedInventoryItemIds;
 }

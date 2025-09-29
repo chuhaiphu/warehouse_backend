@@ -39,9 +39,9 @@ public class StockCheckRequestDetail {
     @Column(name = "is_checked")
     private Boolean isChecked = false;
 
-    @Convert(converter = StringListConverter.class)
+    @Convert(converter = CheckedStockCheckListConverter.class)
     @Column(name = "inventory_item_ids", columnDefinition = "TEXT")
-    private List<String> inventoryItemsId = new ArrayList<>();
+    private List<CheckedStockCheck> inventoryItemsId = new ArrayList<>();
 
     @Convert(converter = CheckedStockCheckListConverter.class)
     @Column(name = "checked_inventory_items", columnDefinition = "TEXT")

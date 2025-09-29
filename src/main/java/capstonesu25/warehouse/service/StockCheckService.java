@@ -3,8 +3,6 @@ package capstonesu25.warehouse.service;
 import capstonesu25.warehouse.annotation.transactionLog.TransactionLoggable;
 import capstonesu25.warehouse.entity.*;
 import capstonesu25.warehouse.enums.*;
-import capstonesu25.warehouse.model.exportrequest.exportrequestdetail.ExportRequestDetailRequest;
-import capstonesu25.warehouse.model.importrequest.OverviewImport;
 import capstonesu25.warehouse.model.stockcheck.AssignStaffStockCheck;
 import capstonesu25.warehouse.model.stockcheck.CompleteStockCheckRequest;
 import capstonesu25.warehouse.model.stockcheck.OverviewStockCheck;
@@ -104,7 +102,7 @@ public class StockCheckService {
             LocalDate created = er.getCreatedDate().toLocalDate();
             return (created.isEqual(fromDate) || created.isAfter(fromDate))
                     && (created.isEqual(toDate) || created.isBefore(toDate));
-        }).toList();;
+        }).toList();
 
         return OverviewStockCheck.builder()
                 .numberOfOngoingStockCheck(ongoing.size())
@@ -300,7 +298,11 @@ public class StockCheckService {
                 detail.setIsChecked(Boolean.TRUE);
 
                 // danh sách item cần có theo kế hoạch (plan)
-                List<String> needIds = Optional.ofNullable(detail.getInventoryItemsId()).orElse(List.of());
+                List<String> needIds = Optional.ofNullable(detail.getInventoryItemsId())
+                        .orElse(List.of())
+                        .stream()
+                        .map(CheckedStockCheck::getInventoryItemId)
+                        .toList();
 
                 // danh sách item thực tế được check (có thể có ghi chú, status, mv)
                 List<CheckedStockCheck> checkedObjs = Optional.ofNullable(detail.getCheckedInventoryItems()).orElse(List.of());
@@ -400,6 +402,11 @@ public class StockCheckService {
                 int planCount = needIds.size();
                 detail.setStatus(computeDetailStatus(planCount, matchedCount, checkedById.isEmpty()));
                 stockCheckRequestDetailRepository.save(detail);
+
+                Item item = detail.getItem();
+                item.setTotalMeasurementValue(detail.getActualMeasurementValue());
+                item.setQuantity(detail.getActualQuantity());
+                itemRepository.save(item);
             }
 
             // -------- Step 2: Finalize StockCheckRequest --------
@@ -419,8 +426,6 @@ public class StockCheckService {
             // -------- Step 3: Map response (bổ sung 2 list) --------
             StockCheckRequestResponse resp = mapToResponse(stockCheck);
             // Giả sử DTO có 2 setter dưới; nếu chưa có, thêm vào DTO:
-            //   List<String> unavailableInventoryItemIds;
-            //   List<String> needLiquidateInventoryItemIds;
             createExportForUnavailableItems(unavailableInventoryItemIds.stream().distinct().toList(), stockCheck);
             createExportForNeedToLiquidItems(needLiquidateInventoryItemIds.stream().distinct().toList(),stockCheck);
 
@@ -437,13 +442,6 @@ public class StockCheckService {
         Map<Item, List<InventoryItem>> unavailableGroupedByItem = unavailableItems.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(InventoryItem::getItem));
-
-        Map<Item, List<String>> unavailableIdsByItem = unavailableItems.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(
-                        InventoryItem::getItem,
-                        Collectors.mapping(InventoryItem::getId, Collectors.toList())
-                ));
 
         ExportRequest newExportRequest = new ExportRequest();
         String id = createExportRequestId();
@@ -494,13 +492,6 @@ public class StockCheckService {
         Map<Item, List<InventoryItem>> needLiquidGroupedByItem = needToLiquidInvItems.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(InventoryItem::getItem));
-
-        Map<Item, List<String>> unavailableIdsByItem = needToLiquidInvItems.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(
-                        InventoryItem::getItem,
-                        Collectors.mapping(InventoryItem::getId, Collectors.toList())
-                ));
 
         ExportRequest newExportRequest = new ExportRequest();
         String id = createExportRequestId();
@@ -611,7 +602,7 @@ public class StockCheckService {
         staffPerformance.setAssignedStaff(account);
         staffPerformance.setExportCounting(true);
         staffPerformanceRepository.save(staffPerformance);
-        LOGGER.info("Expected working time for counting staff: " + expectedWorkingTime);
+        LOGGER.info("Expected working time for counting staff: {}", expectedWorkingTime);
     }
 
     private void validateForTimeDate(LocalDate date) {
