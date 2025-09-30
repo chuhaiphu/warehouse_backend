@@ -332,23 +332,28 @@ public class WarehouseApplication {
 				link.accept(it, prov1, "PROV-2-");
 			}
 
-// -------- Provider 3 primary, Provider 6 secondary
-			for (Item it : List.of(nut1, nut2, chi3, chi4)) {
-				link.accept(it, prov3, "PROV-");
-				link.accept(it, prov6, "PROV-2-");
-			}
+// -------- Provider 3 items with matching secondary providers
+			link.accept(nut1, prov3, "PROV-");
+			link.accept(nut1, prov6, "PROV-2-");
 
-// -------- Provider 4 primary, Provider 3 secondary
-			for (Item it : List.of(chi1, chi2)) {
-				link.accept(it, prov4, "PROV-");
-				link.accept(it, prov3, "PROV-2-");
-			}
+			link.accept(nut2, prov3, "PROV-");
 
-// -------- Provider 5 primary, Provider 3 secondary (choose 3 as secondary for YKK items)
-			for (Item it : List.of(khoa1, khoa2)) {
-				link.accept(it, prov5, "PROV-");
-				link.accept(it, prov3, "PROV-2-");
-			}
+			link.accept(chi3, prov3, "PROV-");
+			link.accept(chi3, prov4, "PROV-2-");
+
+			link.accept(chi4, prov3, "PROV-");
+
+// -------- Provider 4 items with matching secondary providers
+			link.accept(chi1, prov4, "PROV-");
+			link.accept(chi1, prov3, "PROV-2-");
+
+			link.accept(chi2, prov4, "PROV-");
+
+// -------- Provider 5 items with matching secondary providers
+			link.accept(khoa1, prov5, "PROV-");
+
+			link.accept(khoa2, prov5, "PROV-");
+			link.accept(khoa2, prov6, "PROV-2-");
 
 // Persist all ItemProvider rows
 			itemProviderRepo.saveAll(itemProviders);
