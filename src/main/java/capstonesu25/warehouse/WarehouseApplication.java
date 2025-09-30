@@ -355,6 +355,11 @@ public class WarehouseApplication {
 			link.accept(khoa2, prov5, "PROV-");
 			link.accept(khoa2, prov6, "PROV-2-");
 
+// -------- Ensure provider 1 (prov1) supplies all items used in import script
+			for (Item it : List.of(nut1, nut2, chi1, chi2, chi3, chi4, khoa1, khoa2)) {
+				link.accept(it, prov1, "PROV-1-");
+			}
+
 // Persist all ItemProvider rows
 			itemProviderRepo.saveAll(itemProviders);
 
