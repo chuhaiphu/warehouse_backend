@@ -30,6 +30,8 @@ public interface ExportRequestRepository extends JpaRepository<ExportRequest, St
     List<ExportRequest> findByExportDateAndStatusIn(
             LocalDate exportDate, List<RequestStatus> statuses);
 
+    List<ExportRequest> findByStatusIn(List<RequestStatus> statuses);
+
     List<ExportRequest> findByStatusAndExtendedDateLessThanEqual(
             RequestStatus status, LocalDate extendedDate);
 

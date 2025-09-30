@@ -16,7 +16,7 @@ public interface ImportOrderRepository extends JpaRepository<ImportOrder, String
     Page<ImportOrder> findImportOrdersByAssignedStaff_Id(Long staffId, Pageable pageable);
     List<ImportOrder> findByAssignedStaff_IdAndDateReceived(Long staffId, LocalDate dateReceived);
     List<ImportOrder> findByDateReceivedAndStatus(LocalDate dateReceived, RequestStatus status);
-
+    List<ImportOrder> findByStatusIn(List<RequestStatus> statuses);
     List<ImportOrder> findByStatusAndExtendedDateLessThanEqual(RequestStatus status, LocalDate date);
 
     List<ImportOrder> findAllByStatus(RequestStatus status);

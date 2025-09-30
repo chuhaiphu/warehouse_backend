@@ -38,8 +38,10 @@ public class Configuration {
     private LocalTime timeToAllowConfirm;
 
     @Column(name = "time_to_allow_cancel")
-    // time to allow auto cancel when the request is created
     private LocalTime timeToAllowCancel;
+
+    @Column(name = "day_will_be_cancel_request")
+    private Integer dayWillBeCancelRequest;
 
     @Column(name = "days_to_allow_extend")
     private Integer daysToAllowExtend;

@@ -37,22 +37,32 @@ public class ImportOrderJob {
             return;
         }
 
-        List<ImportOrder> importOrders = importOrderRepository
-                .findByDateReceivedAndStatus(today, RequestStatus.IN_PROGRESS);
+        LocalDate dayWillBeCancel = today.plusDays(config.getDayWillBeCancelRequest());
 
-        if (importOrders.isEmpty()) {
+        List<RequestStatus> statuses = List.of(RequestStatus.NOT_STARTED,RequestStatus.IN_PROGRESS, RequestStatus.COUNTED
+                , RequestStatus.COUNT_CONFIRMED, RequestStatus.COUNT_AGAIN_REQUESTED);
+
+        List<ImportOrder> importOrders = importOrderRepository
+                .findByStatusIn(statuses);
+
+        List<ImportOrder> checkOrders = importOrders.stream()
+                .filter(importOrder -> importOrder.getDateReceived() != null
+                        && !importOrder.getDateReceived().isBefore(dayWillBeCancel))
+                .toList();
+
+        if (checkOrders.isEmpty()) {
             lastRunDate = today;
             return;
         }
 
-        importOrders.forEach(order -> {
+        checkOrders.forEach(order -> {
             order.setStatus(RequestStatus.CANCELLED);
             order.setNote("Tự động hủy do quá hạn xác nhận lúc " + now);
         });
 
-        importOrderRepository.saveAll(importOrders);
+        importOrderRepository.saveAll(checkOrders);
         lastRunDate = today;
-        logger.info("Đã tự động hủy " + importOrders.size() + " đơn lúc " + now);
+        logger.info("Đã tự động hủy " + checkOrders.size() + " đơn lúc " + now);
     }
 
     // Run at 00:01 every day

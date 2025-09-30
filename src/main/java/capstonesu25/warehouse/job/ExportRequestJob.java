@@ -5,7 +5,6 @@ import capstonesu25.warehouse.entity.ExportRequest;
 import capstonesu25.warehouse.entity.ExportRequestDetail;
 import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.repository.ConfigurationRepository;
-import capstonesu25.warehouse.repository.ExportRequestDetailRepository;
 import capstonesu25.warehouse.repository.ExportRequestRepository;
 import capstonesu25.warehouse.repository.InventoryItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,38 +25,45 @@ import java.util.logging.Logger;
 public class ExportRequestJob {
     private final ConfigurationRepository configurationRepository;
     private final ExportRequestRepository exportRequestRepository;
-    private final ExportRequestDetailRepository exportRequestDetailRepository;
     private final InventoryItemRepository inventoryItemRepository;
 
     private static final Logger LOGGER = Logger.getLogger(ExportRequestJob.class.getName());
     private LocalDate lastRunDate = null;
     @Scheduled(fixedRate = 60_000, zone = "Asia/Ho_Chi_Minh")
     public void cancelExportRequestJob() {
-        Configuration config = configurationRepository.findAll().get(0);
+        Configuration config = configurationRepository.findAll().getFirst();
         LocalTime cancelTime = config.getTimeToAllowCancel();
         LocalTime now = LocalTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+
 
         if (now.isBefore(cancelTime) || today.equals(lastRunDate)) {
             return;
         }
 
+        LocalDate dayWillBeCancel = today.plusDays(config.getDayWillBeCancelRequest());
+
         List<RequestStatus> statuses = List.of(RequestStatus.IN_PROGRESS, RequestStatus.COUNTED
                 , RequestStatus.COUNT_CONFIRMED, RequestStatus.WAITING_EXPORT, RequestStatus.NOT_STARTED);
-        List<ExportRequest> exportRequests = exportRequestRepository
-                .findByExportDateAndStatusIn(today, statuses);
 
-        if (exportRequests.isEmpty()) {
+        List<ExportRequest> exportRequests= exportRequestRepository.findByStatusIn(statuses);
+        List<ExportRequest> filteredRequests = exportRequests.stream()
+                .filter(exportRequest -> exportRequest.getExportDate() != null
+                        && !exportRequest.getExportDate().isBefore(dayWillBeCancel))
+                .toList();
+
+        if (filteredRequests.isEmpty()) {
             lastRunDate = today;
             return;
         }
 
-        exportRequests.forEach(order -> {
+        filteredRequests.forEach(order -> {
             order.setStatus(RequestStatus.CANCELLED);
             order.setNote("Tự động hủy do quá hạn xác nhận lúc " + now);
         });
 
-        List<Long> detailIds = exportRequests.stream()
+        List<Long> detailIds = filteredRequests.stream()
                 .filter(Objects::nonNull)
                 .flatMap(er -> er.getExportRequestDetails().stream())
                 .map(ExportRequestDetail::getId)
@@ -70,19 +76,21 @@ public class ExportRequestJob {
 
             // 4) Keep in-memory collections consistent (optional but clean):
             //    Clear the items list on each detail since owning side is on InventoryItem.
-            exportRequests.forEach(er -> er.getExportRequestDetails()
+            LOGGER.info("Release {} inventory item of export for today"+ released);
+
+            filteredRequests.forEach(er -> er.getExportRequestDetails()
                     .forEach(d -> d.getInventoryItems().clear()));
         }
 
 
-        exportRequestRepository.saveAll(exportRequests);
+        exportRequestRepository.saveAll(filteredRequests);
         lastRunDate = today;
-        LOGGER.info("Đã tự động hủy " + exportRequests.size() + " đơn lúc " + now);
+        LOGGER.info("Đã tự động hủy " + filteredRequests.size() + " đơn lúc " + now);
     }
 
     @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Ho_Chi_Minh") // Run at 00:01 daily
     public void cancelExtendedOrdersPastDueDays() {
-        Configuration config = configurationRepository.findAll().get(0);
+        Configuration config = configurationRepository.findAll().getFirst();
         int daysAllowed = config.getDaysToAllowExtend();
 
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));

@@ -77,6 +77,7 @@ public class WarehouseApplication {
 					LocalTime.parse("02:00"),
 					LocalTime.parse("01:00"),
 					LocalTime.parse("23:00"),
+					10,
 					7,
 					7,
 					30,
