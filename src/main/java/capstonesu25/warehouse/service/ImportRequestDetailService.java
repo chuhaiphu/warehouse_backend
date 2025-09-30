@@ -29,6 +29,7 @@ public class ImportRequestDetailService {
     private final ConfigurationRepository configurationRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportRequestDetailService.class);
     private final ProviderRepository providerRepository;
+    private final ItemProviderRepository itemProviderRepository;
 
     @TransactionLoggable(type = "IMPORT_REQUEST", action = "CREATE", objectIdSource = "importRequestId")
     public List<ImportRequestResponse> createImportRequestWithDetails(List<ImportRequestCreateWithDetailRequest> detailRequests) {
@@ -127,7 +128,7 @@ public class ImportRequestDetailService {
             }
 
             savedImportRequest.setDetails(savedDetails);
-            ImportRequestResponse response = Mapper.mapToImportRequestResponse(savedImportRequest);
+            ImportRequestResponse response = Mapper.mapToImportRequestResponse(savedImportRequest, itemProviderRepository);
             createdImportRequestResponses.add(response);
         }
 
@@ -145,13 +146,17 @@ public class ImportRequestDetailService {
         List<ImportRequestDetail> importRequestDetails = importRequestDetailRepository
                 .findImportRequestDetailsByImportRequest_Id(importRequestId);
 
-        return importRequestDetails.stream().map(Mapper::mapToImportRequestDetailResponse).toList();
+//        return importRequestDetails.stream().map(Mapper::mapToImportRequestDetailResponse).toList();
+
+        return importRequestDetails.stream().map(
+                d -> Mapper.mapToImportRequestDetailResponse(d,itemProviderRepository))
+                .toList();
     }
 
     public ImportRequestDetailResponse getImportRequestDetailById(Long importRequestDetailId) {
         LOGGER.info("Getting import request detail for ImportRequestDetail ID: {}", importRequestDetailId);
         ImportRequestDetail importRequestDetail = importRequestDetailRepository.findById(importRequestDetailId).orElseThrow();
-        return Mapper.mapToImportRequestDetailResponse(importRequestDetail);
+        return Mapper.mapToImportRequestDetailResponse(importRequestDetail,itemProviderRepository);
     }
 
     private OptionalInt findLatestBatchSuffixForToday() {

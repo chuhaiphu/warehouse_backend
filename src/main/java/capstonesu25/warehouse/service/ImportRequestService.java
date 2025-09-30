@@ -35,11 +35,12 @@ public class ImportRequestService {
     private final ConfigurationRepository configurationRepository;
     private final DepartmentRepository departmentRepository;
     private final InventoryItemRepository inventoryItemRepository;
+    private final ItemProviderRepository itemProviderRepository;
 
     public List<ImportRequestResponse> getAllImportRequests() {
         LOGGER.info("Get all import requests");
         return importRequestRepository.findAll().stream()
-                .map(Mapper::mapToImportRequestResponse)
+                .map(d -> Mapper.mapToImportRequestResponse(d, itemProviderRepository))
                 .toList();
     }
 
@@ -47,7 +48,7 @@ public class ImportRequestService {
         LOGGER.info("Get all import requests by page");
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportRequest> importRequests = importRequestRepository.findAll(pageable);
-        return importRequests.map(Mapper::mapToImportRequestResponse);
+        return importRequests.map(d -> Mapper.mapToImportRequestResponse(d,itemProviderRepository));
     }
 
     public List<ImportRequestResponse> getImportRequestsByStatus(RequestStatus status, LocalDate fromDate, LocalDate toDate) {
@@ -59,7 +60,7 @@ public class ImportRequestService {
                     return (created.isEqual(fromDate) || created.isAfter(fromDate))
                             && (created.isEqual(toDate) || created.isBefore(toDate));
                 })
-                .map(Mapper::mapToImportRequestResponse)
+                .map(d-> Mapper.mapToImportRequestResponse(d,itemProviderRepository))
                 .toList();
     }
 
@@ -89,7 +90,7 @@ public class ImportRequestService {
             LocalDate created = er.getCreatedDate().toLocalDate();
             return (created.isEqual(fromDate) || created.isAfter(fromDate))
                     && (created.isEqual(toDate) || created.isBefore(toDate));
-        }).toList();;
+        }).toList();
 
         return OverviewImport.builder()
                 .numberOfOngoingImport(ongoing.size())
@@ -101,7 +102,7 @@ public class ImportRequestService {
         LOGGER.info("Get import request by id: " + id);
         ImportRequest importRequest = importRequestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("ImportRequest not found with ID: " + id));
-        return Mapper.mapToImportRequestResponse(importRequest);
+        return Mapper.mapToImportRequestResponse(importRequest,itemProviderRepository);
     }
 
     @Transactional
@@ -171,7 +172,7 @@ public class ImportRequestService {
         }
         importRequest.setDetails(detailList);
 
-        return Mapper.mapToImportRequestResponse(importRequest);
+        return Mapper.mapToImportRequestResponse(importRequest,itemProviderRepository);
     }
 
     public ImportRequestResponse updateImportRequest(ImportRequestUpdateRequest request) {
@@ -183,7 +184,7 @@ public class ImportRequestService {
 
         importRequest.setImportReason(request.getImportReason());
 
-        return Mapper.mapToImportRequestResponse(importRequestRepository.save(importRequest));
+        return Mapper.mapToImportRequestResponse(importRequestRepository.save(importRequest),itemProviderRepository);
     }
 
     private String createImportRequestId() {

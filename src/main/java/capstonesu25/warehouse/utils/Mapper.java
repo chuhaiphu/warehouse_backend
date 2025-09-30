@@ -15,17 +15,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class Mapper {
-    private final ItemProviderRepository itemProviderRepository;
 
-    public static ImportRequestDetailResponse mapToImportRequestDetailResponse(ImportRequestDetail importRequestDetail) {
+    public static ImportRequestDetailResponse mapToImportRequestDetailResponse(ImportRequestDetail importRequestDetail, ItemProviderRepository itemProviderRepository) {
+        Long providerId = importRequestDetail.getImportRequest()
+                .getProvider()
+                .getId();
+
+        String itemId = importRequestDetail.getItem().getId();
+
+        ItemProvider itemProvider = itemProviderRepository
+                .findByProvider_IdAndItem_Id(providerId, itemId)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No ItemProvider found for providerId=" + providerId + " and itemId=" + itemId
+                ));
         return new ImportRequestDetailResponse(
                 importRequestDetail.getId(),
                 importRequestDetail.getImportRequest() != null ? importRequestDetail.getImportRequest().getId() : null,
+                itemProvider.getProviderCode(),
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getId() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
                 importRequestDetail.getInventoryItemId(),
@@ -39,12 +49,12 @@ public class Mapper {
         );
     }
     
-    public static ImportRequestResponse mapToImportRequestResponse(ImportRequest importRequest) {
-        List<ImportRequestDetailResponse> details = importRequest.getDetails() != null ?
-                importRequest.getDetails().stream()
-                        .map(Mapper::mapToImportRequestDetailResponse)
-                        .collect(Collectors.toList()) :
-                List.of();
+    public static ImportRequestResponse mapToImportRequestResponse(ImportRequest importRequest, ItemProviderRepository itemProviderRepository) {
+        List<ImportRequestDetailResponse> details = importRequest.getDetails() != null
+                ? importRequest.getDetails().stream()
+                .map(d -> Mapper.mapToImportRequestDetailResponse(d, itemProviderRepository))
+                .toList()
+                : List.of();
 
         return new ImportRequestResponse(
                 importRequest.getId(),
