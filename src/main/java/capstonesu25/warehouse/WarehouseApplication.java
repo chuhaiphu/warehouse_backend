@@ -1,6 +1,7 @@
 package capstonesu25.warehouse;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.entity.pk.ItemProviderPK;
 import capstonesu25.warehouse.model.account.RegisterRequest;
 import capstonesu25.warehouse.model.storedlocation.StoredLocationRequest;
 import capstonesu25.warehouse.repository.*;
@@ -10,7 +11,9 @@ import capstonesu25.warehouse.service.StoredLocationService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import org.apache.logging.log4j.util.TriConsumer;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,7 +48,8 @@ public class WarehouseApplication {
 			ConfigurationRepository configurationRepo,
 			DepartmentRepository departmentRepo,
 			StoredLocationService storedLocationService,
-			ObjectMapper objectMapper) {
+			ObjectMapper objectMapper,
+			ItemProviderRepository itemProviderRepo) {
 		return args -> {
 			if (categoryRepo.count() > 0) {
 				System.out.println("Data already exists, skipping initialization.");
@@ -110,30 +114,19 @@ public class WarehouseApplication {
 			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
 
 			// Items từ Provider 1 - Công ty Dệt may Phong Phú và Provider 2
-			Item vai1 = new Item("VAI-KT-001", "Cây vải Kate", Arrays.asList(
-					"PROV-VAI-KT-001"
-			), "Vải kate 65/35", "mét", 0.0, 200.0, 0, "Cây", 730, 0,
-					2000, 5, configuration, cat1, List.of(prov1, prov2), null, null, null, null, null);
-			Item vai3 = new Item("VAI-KK-001", "Cây vải Kaki", Arrays.asList(
-					"PROV-VAI-KK-001"
-			), "Vải kaki thun", "mét", 0.0, 200.0, 0, "Cây", 730, 0,
-					2500, 5, configuration, cat1, List.of(prov1), null, null, null, null, null);
+			Item vai1 = new Item("VAI-KT-001", "Cây vải Kate",  "Vải kate 65/35", "mét", 0.0, 200.0, 0, "Cây", 730, 0,
+					2000, 5, configuration, cat1, null, null, null, null, null, null);
+			Item vai3 = new Item("VAI-KK-001", "Cây vải Kaki", "Vải kaki thun", "mét", 0.0, 200.0, 0, "Cây", 730, 0,
+					2500, 5, configuration, cat1, null, null, null, null, null, null);
 
 			// Items từ Provider 2 - Công ty CP Dệt may Nam Định và Provider 1
-			Item vai2 = new Item("VAI-JE-001", "Cây vải Jean", Arrays.asList(
-					"PROV-VAI-JE-001"
-			), "Vải jean 100% cotton", "mét", 0.0, 140.0, 0, "Cây", 730,
-					0, 3000, 5, configuration, cat1, List.of(prov2, prov1), null, null, null, null, null);
-			Item vai4 = new Item("VAI-TH-001", "Cây vải Thun", Arrays.asList(
-					"PROV-VAI-TH-001"
-			), "Vải thun cotton 4 chiều", "mét", 0.0, 150.0, 0, "Cây",
-					730, 0, 1500, 5, configuration, cat1, List.of(prov2), null, null, null, null, null);
+			Item vai2 = new Item("VAI-JE-001", "Cây vải Jean", "Vải jean 100% cotton", "mét", 0.0, 140.0, 0, "Cây", 730,
+					0, 3000, 5, configuration, cat1,null, null, null, null, null, null);
+			Item vai4 = new Item("VAI-TH-001", "Cây vải Thun", "Vải thun cotton 4 chiều", "mét", 0.0, 150.0, 0, "Cây",
+					730, 0, 1500, 5, configuration, cat1, null, null, null, null, null, null);
 			Item vai5 = new Item(
 					"VAI-TH-002",
 					"Cây vải Thun Lạnh",
-					Arrays.asList(
-							"PROV-VAI-TH-002"
-					),
 					"Vải thun lạnh co giãn tốt",
 					"mét",
 					0.0,
@@ -146,7 +139,7 @@ public class WarehouseApplication {
 					5,
 					configuration,
 					cat1,
-					List.of(prov2),
+					null,
 					null,
 					null,
 					null,
@@ -157,9 +150,6 @@ public class WarehouseApplication {
 			Item vai6 = new Item(
 					"VAI-TH-003",
 					"Cây vải Thun Poly",
-					Arrays.asList(
-							"PROV-VAI-TH-003"
-					),
 					"Vải thun poly chống nhăn",
 					"mét",
 					0.0,
@@ -172,7 +162,7 @@ public class WarehouseApplication {
 					5,
 					configuration,
 					cat1,
-					List.of(prov2),
+					null,
 					null,
 					null,
 					null,
@@ -183,9 +173,6 @@ public class WarehouseApplication {
 			Item vai7 = new Item(
 					"VAI-TH-004",
 					"Cây vải Thun Rayon",
-					Arrays.asList(
-							"PROV-VAI-TH-004"
-					),
 					"Vải thun rayon mềm mại",
 					"mét",
 					0.0,
@@ -198,7 +185,7 @@ public class WarehouseApplication {
 					5,
 					configuration,
 					cat1,
-					List.of(prov2),
+					null,
 					null,
 					null,
 					null,
@@ -209,9 +196,6 @@ public class WarehouseApplication {
 			Item vai8 = new Item(
 					"VAI-TH-005",
 					"Cây vải Thun Bamboo",
-					Arrays.asList(
-							"PROV-VAI-TH-005"
-					),
 					"Vải thun bamboo kháng khuẩn",
 					"mét",
 					0.0,
@@ -224,7 +208,7 @@ public class WarehouseApplication {
 					5,
 					configuration,
 					cat1,
-					List.of(prov2),
+					null,
 					null,
 					null,
 					null,
@@ -235,9 +219,6 @@ public class WarehouseApplication {
 			Item vai9 = new Item(
 					"VAI-TH-006",
 					"Cây vải Thun Modal",
-					Arrays.asList(
-							"PROV-VAI-TH-006"
-					),
 					"Vải thun modal mịn mát",
 					"mét",
 					0.0,
@@ -250,7 +231,7 @@ public class WarehouseApplication {
 					5,
 					configuration,
 					cat1,
-					List.of(prov2),
+					null,
 					null,
 					null,
 					null,
@@ -261,9 +242,6 @@ public class WarehouseApplication {
 			Item vai10 = new Item(
 					"VAI-TH-007",
 					"Cây vải Thun Spandex",
-					Arrays.asList(
-							"PROV-VAI-TH-007"
-					),
 					"Vải thun spandex đàn hồi cao",
 					"mét",
 					0.0,
@@ -276,7 +254,7 @@ public class WarehouseApplication {
 					5,
 					configuration,
 					cat1,
-					List.of(prov2),
+					null,
 					null,
 					null,
 					null,
@@ -284,42 +262,26 @@ public class WarehouseApplication {
 					null
 			);
 			// Items từ Provider 3 - Công ty TNHH Phụ liệu may Việt Nam và Provider 6
-			Item nut1 = new Item("NUT-NH-001", "Bịch nút nhựa 4 lỗ",Arrays.asList(
-					"PROV-NUT-NH-001"
-			),"Nút nhựa màu trắng", "cái", 0.0, 300.0, 0, "Bịch",
-					365, 0, 200, 5, configuration, cat2, List.of(prov3, prov6), null, null, null, null, null);
-			Item nut2 = new Item("NUT-KL-001", "Bịch nút kim loại",Arrays.asList(
-					"PROV-NUT-KL-001"
-			), "Nút jean kim loại", "cái", 0.0, 250.0, 0, "Bịch",
-					365, 0, 100, 5, configuration, cat2, List.of(prov3), null, null, null, null, null);
-			Item chi3 = new Item("CHI-JE-001", "Cuộn chỉ jean",Arrays.asList(
-					"PROV-CHI-JE-001"
-			), "Chỉ may jean đặc biệt", "mét", 0.0, 300.0, 0, "Cuộn",
-					730, 0, 200, 5, configuration, cat3, List.of(prov3, prov4), null, null, null, null, null);
-			Item chi4 = new Item("CHI-TH-001", "Cuộn chỉ thêu",Arrays.asList(
-					"PROV-CHI-TH-001"
-			), "Chỉ thêu đa màu", "mét", 0.0, 120.0, 0, "Cuộn", 730,
-					0, 150, 5, configuration, cat3, List.of(prov3), null, null, null, null, null);
+			Item nut1 = new Item("NUT-NH-001", "Bịch nút nhựa 4 lỗ","Nút nhựa màu trắng", "cái", 0.0, 300.0, 0, "Bịch",
+					365, 0, 200, 5, configuration, cat2, null, null, null, null, null, null);
+			Item nut2 = new Item("NUT-KL-001", "Bịch nút kim loại", "Nút jean kim loại", "cái", 0.0, 250.0, 0, "Bịch",
+					365, 0, 100, 5, configuration, cat2,null, null, null, null, null, null);
+			Item chi3 = new Item("CHI-JE-001", "Cuộn chỉ jean" ,"Chỉ may jean đặc biệt", "mét", 0.0, 300.0, 0, "Cuộn",
+					730, 0, 200, 5, configuration, cat3, null, null, null, null, null, null);
+			Item chi4 = new Item("CHI-TH-001", "Cuộn chỉ thêu","Chỉ thêu đa màu", "mét", 0.0, 120.0, 0, "Cuộn", 730,
+					0, 150, 5, configuration, cat3, null, null, null, null, null, null);
 
 			// Items từ Provider 4 - Công ty TNHH Thành Công và Provider 3
-			Item chi1 = new Item("CHI-PL-001", "Cuộn chỉ polyester",Arrays.asList(
-					"PROV-CHI-PL-001"
-			), "Chỉ may polyester 40/2", "mét", 0.0, 250.0, 0,
-					"Cuộn", 730, 0, 500, 5, configuration, cat3, List.of(prov4, prov3), null, null, null, null, null);
-			Item chi2 = new Item("CHI-CT-001", "Cuộn chỉ cotton",Arrays.asList(
-					"PROV-NUT-CT-001"
-			), "Chỉ may cotton 100%", "mét", 0.0, 300.0, 0, "Cuộn",
-					730, 0, 300, 5, configuration, cat3, List.of(prov4), null, null, null, null, null);
+			Item chi1 = new Item("CHI-PL-001", "Cuộn chỉ polyester", "Chỉ may polyester 40/2", "mét", 0.0, 250.0, 0,
+					"Cuộn", 730, 0, 500, 5, configuration, cat3, null, null, null, null, null, null);
+			Item chi2 = new Item("CHI-CT-001", "Cuộn chỉ cotton", "Chỉ may cotton 100%", "mét", 0.0, 300.0, 0, "Cuộn",
+					730, 0, 300, 5, configuration, cat3, null, null, null, null, null, null);
 
 			// Items từ Provider 5 - Công ty TNHH YKK Việt Nam
-			Item khoa1 = new Item("KHO-NH-001", "Bịch khóa kéo nhựa",Arrays.asList(
-					"PROV-KHO-NH-001"
-			), "Khóa kéo nhựa 20cm", "cái", 0.0, 150.0, 0,
-					"Bịch", 365, 0, 200, 5, configuration, cat5, List.of(prov5), null, null, null, null, null);
-			Item khoa2 = new Item("KHO-KL-001", "Bịch khóa kéo kim loại",Arrays.asList(
-					"PROV-KHO-KL-001"
-			), "Khóa kéo kim loại 15cm", "cái", 0.0, 100.0,
-					0, "Bịch", 365, 0, 150, 5, configuration, cat5, List.of(prov5, prov6), null, null, null, null,
+			Item khoa1 = new Item("KHO-NH-001", "Bịch khóa kéo nhựa", "Khóa kéo nhựa 20cm", "cái", 0.0, 150.0, 0,
+					"Bịch", 365, 0, 200, 5, configuration, cat5,null, null, null, null, null, null);
+			Item khoa2 = new Item("KHO-KL-001", "Bịch khóa kéo kim loại", "Khóa kéo kim loại 15cm", "cái", 0.0, 100.0,
+					0, "Bịch", 365, 0, 150, 5, configuration, cat5, null, null, null, null, null,
 					null);
 
 			// Lưu tất cả các items
@@ -341,40 +303,90 @@ public class WarehouseApplication {
 
 					);
 
+			List<ItemProvider> itemProviders = new ArrayList<>();
+
+			TriConsumer<Item, Provider, String> link = (item, provider, codePrefix) -> {
+				ItemProviderPK pk = new ItemProviderPK();
+				pk.setItemId(item.getId());
+				pk.setProviderId(provider.getId());
+
+				ItemProvider ip = new ItemProvider();
+				ip.setId(pk);
+				ip.setItem(item);
+				ip.setProvider(provider);
+				ip.setProviderCode(codePrefix + item.getId());
+
+				itemProviders.add(ip);
+			};
+
+// -------- Provider 1 primary, Provider 2 secondary
+			link.accept(vai1, prov1, "PROV-");
+			link.accept(vai1, prov2, "PROV-2-");
+
+			link.accept(vai3, prov1, "PROV-");
+			link.accept(vai3, prov2, "PROV-2-");
+
+// -------- Provider 2 primary, Provider 1 secondary
+			for (Item it : List.of(vai2, vai4, vai5, vai6, vai7, vai8, vai9, vai10)) {
+				link.accept(it, prov2, "PROV-");
+				link.accept(it, prov1, "PROV-2-");
+			}
+
+// -------- Provider 3 primary, Provider 6 secondary
+			for (Item it : List.of(nut1, nut2, chi3, chi4)) {
+				link.accept(it, prov3, "PROV-");
+				link.accept(it, prov6, "PROV-2-");
+			}
+
+// -------- Provider 4 primary, Provider 3 secondary
+			for (Item it : List.of(chi1, chi2)) {
+				link.accept(it, prov4, "PROV-");
+				link.accept(it, prov3, "PROV-2-");
+			}
+
+// -------- Provider 5 primary, Provider 3 secondary (choose 3 as secondary for YKK items)
+			for (Item it : List.of(khoa1, khoa2)) {
+				link.accept(it, prov5, "PROV-");
+				link.accept(it, prov3, "PROV-2-");
+			}
+
+// Persist all ItemProvider rows
+			itemProviderRepo.saveAll(itemProviders);
+
 			// Set provider.items for all providers
-			prov1.setItems(List.of(vai1, vai3, vai2, vai4, vai5, vai6, vai7, vai8, vai9, vai10));
-			prov2.setItems(List.of(vai2, vai4, vai1, vai5, vai6, vai7, vai8, vai9, vai10));
-			prov3.setItems(List.of(nut1, nut2, chi3, chi4,  chi1));
-			prov4.setItems(List.of(chi1, chi2, chi3));
-			prov5.setItems(List.of(khoa1, khoa2));
-			prov6.setItems(List.of( nut1, khoa2));
-
-			// Set item.providers for all items
-			vai1.setProviders(List.of(prov1, prov2));
-			vai3.setProviders(List.of(prov1, prov2));
-			vai2.setProviders(List.of(prov2, prov1));
-			vai4.setProviders(List.of(prov2, prov1));
-			vai5.setProviders(List.of(prov2, prov1));
-			vai6.setProviders(List.of(prov2, prov1));
-			vai7.setProviders(List.of(prov2, prov1));
-			vai8.setProviders(List.of(prov2, prov1));
-			vai9.setProviders(List.of(prov2, prov1));
-			vai10.setProviders(List.of(prov2, prov1));
-
-
-			nut1.setProviders(List.of(prov3, prov6));
-			nut2.setProviders(List.of(prov3));
-			chi3.setProviders(List.of(prov3, prov4));
-			chi4.setProviders(List.of(prov3));
-
-			chi1.setProviders(List.of(prov4, prov3));
-			chi2.setProviders(List.of(prov4));
-
-			khoa1.setProviders(List.of(prov5));
-			khoa2.setProviders(List.of(prov5, prov6));
-
-			// Save all providers with relationships (owning side)
-			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
+//			prov1.setItems(List.of(vai1, vai3, vai2, vai4, vai5, vai6, vai7, vai8, vai9, vai10));
+//			prov2.setItems(List.of(vai2, vai4, vai1, vai5, vai6, vai7, vai8, vai9, vai10));
+//			prov3.setItems(List.of(nut1, nut2, chi3, chi4,  chi1));
+//			prov4.setItems(List.of(chi1, chi2, chi3));
+//			prov5.setItems(List.of(khoa1, khoa2));
+//			prov6.setItems(List.of( nut1, khoa2));
+//
+//			// Set item.providers for all items
+//			vai1.setProviders(List.of(prov1, prov2));
+//			vai3.setProviders(List.of(prov1, prov2));
+//			vai2.setProviders(List.of(prov2, prov1));
+//			vai4.setProviders(List.of(prov2, prov1));
+//			vai5.setProviders(List.of(prov2, prov1));
+//			vai6.setProviders(List.of(prov2, prov1));
+//			vai7.setProviders(List.of(prov2, prov1));
+//			vai8.setProviders(List.of(prov2, prov1));
+//			vai9.setProviders(List.of(prov2, prov1));
+//			vai10.setProviders(List.of(prov2, prov1));
+//
+//
+//			nut1.setProviders(List.of(prov3, prov6));
+//			nut2.setProviders(List.of(prov3));
+//			chi3.setProviders(List.of(prov3, prov4));
+//			chi4.setProviders(List.of(prov3));
+//
+//			chi1.setProviders(List.of(prov4, prov3));
+//			chi2.setProviders(List.of(prov4));
+//
+//			khoa1.setProviders(List.of(prov5));
+//			khoa2.setProviders(List.of(prov5, prov6));
+//
+//			// Save all providers with relationships (owning side)
+//			providerRepo.saveAll(List.of(prov1, prov2, prov3, prov4, prov5, prov6));
 
 			ClassPathResource resource = new ClassPathResource("data/warehouse_location.json");
 

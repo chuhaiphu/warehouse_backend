@@ -169,8 +169,9 @@ public class ImportRequestDetailService {
         for(ImportRequestCreateWithDetailRequest itemOrder : request) {
             Item item = itemRepository.findById(itemOrder.getItemId())
                     .orElseThrow(() -> new NoSuchElementException("Item not found with ID: " + itemOrder.getItemId()));
-            boolean providerMatch = item.getProviders().stream()
-                    .anyMatch(provider -> Objects.equals(provider.getId(), itemOrder.getProviderId()));
+            boolean providerMatch = item.getItemProviders().stream()
+                    .anyMatch(ip -> Objects.equals(ip.getProvider().getId(), itemOrder.getProviderId()));
+
 
             if (!providerMatch) {
                 throw new IllegalArgumentException("Item with ID: " + itemOrder.getItemId() +

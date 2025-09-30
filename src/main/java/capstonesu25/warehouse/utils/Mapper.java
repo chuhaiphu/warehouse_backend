@@ -4,18 +4,24 @@ import capstonesu25.warehouse.entity.ImportRequest;
 import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
+import capstonesu25.warehouse.entity.ItemProvider;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
 import capstonesu25.warehouse.model.importorder.importorderdetail.ImportOrderDetailResponse;
+import capstonesu25.warehouse.repository.ItemProviderRepository;
+import java.util.NoSuchElementException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class Mapper {
-    
+    private final ItemProviderRepository itemProviderRepository;
+
     public static ImportRequestDetailResponse mapToImportRequestDetailResponse(ImportRequestDetail importRequestDetail) {
         return new ImportRequestDetailResponse(
                 importRequestDetail.getId(),
@@ -62,10 +68,27 @@ public class Mapper {
         );
     }
 
-    public static ImportOrderDetailResponse mapToImportOrderDetailResponse(ImportOrderDetail importOrderDetail) {
+    public static ImportOrderDetailResponse mapToImportOrderDetailResponse(
+            ImportOrderDetail importOrderDetail,
+            ItemProviderRepository itemProviderRepository) {
+
+        Long providerId = importOrderDetail.getImportOrder()
+                .getImportRequest()
+                .getProvider()
+                .getId();
+
+        String itemId = importOrderDetail.getItem().getId();
+
+        ItemProvider itemProvider = itemProviderRepository
+                .findByProvider_IdAndItem_Id(providerId, itemId)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No ItemProvider found for providerId=" + providerId + " and itemId=" + itemId
+                ));
+
         return new ImportOrderDetailResponse(
                 importOrderDetail.getId(),
                 importOrderDetail.getImportOrder().getId(),
+                itemProvider.getProviderCode(),
                 importOrderDetail.getItem().getId(),
                 importOrderDetail.getItem().getName(),
                 importOrderDetail.getInventoryItemId(),
@@ -74,15 +97,15 @@ public class Mapper {
                 importOrderDetail.getExpectMeasurementValue(),
                 importOrderDetail.getActualMeasurementValue(),
                 importOrderDetail.getStatus()
-
         );
     }
 
-    public static ImportOrderResponse mapToImportOrderResponse(ImportOrder importOrder) {
+
+    public static ImportOrderResponse mapToImportOrderResponse(ImportOrder importOrder, ItemProviderRepository itemProviderRepository) {
         List<ImportOrderDetailResponse> details = importOrder.getImportOrderDetails() != null
                 ? importOrder.getImportOrderDetails().stream()
-                        .map(Mapper::mapToImportOrderDetailResponse)
-                        .toList()
+                .map(d -> Mapper.mapToImportOrderDetailResponse(d, itemProviderRepository))
+                .toList()
                 : List.of();
 
         return new ImportOrderResponse(

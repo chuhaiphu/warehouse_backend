@@ -41,6 +41,7 @@ public class ImportOrderDetailService {
     private final StaffPerformanceRepository staffPerformanceRepository;
     private final NotificationService notificationService;
     private final InventoryItemRepository inventoryItemRepository;
+    private final ItemProviderRepository itemProviderRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderDetailService.class);
 
@@ -49,13 +50,15 @@ public class ImportOrderDetailService {
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit);
         Page<ImportOrderDetail> importOrderDetailPage = importOrderDetailRepository
                 .findImportOrderDetailByImportOrder_Id(importOrderId, pageable);
-        return importOrderDetailPage.map(Mapper::mapToImportOrderDetailResponse);
+        return importOrderDetailPage.map(detail ->
+                Mapper.mapToImportOrderDetailResponse(detail, itemProviderRepository));
+
     }
 
     public ImportOrderDetailResponse getById(Long importOrderDetailId) {
         LOGGER.info("Getting import order detail by id: {}", importOrderDetailId);
         ImportOrderDetail importOrderDetail = importOrderDetailRepository.findById(importOrderDetailId).orElseThrow();
-        return Mapper.mapToImportOrderDetailResponse(importOrderDetail);
+        return Mapper.mapToImportOrderDetailResponse(importOrderDetail,itemProviderRepository);
     }
 
     public ImportOrderResponse create(ImportOrderDetailRequest request, String importOrderId) {
@@ -154,7 +157,7 @@ public class ImportOrderDetailService {
             }
         }
 
-        return Mapper.mapToImportOrderResponse(importOrder);
+        return Mapper.mapToImportOrderResponse(importOrder, itemProviderRepository);
     }
 
     private void checkSameProvider(ImportOrderDetailRequest request) {
@@ -163,8 +166,9 @@ public class ImportOrderDetailService {
             Item item = itemRepository.findById(importOrderItem.getItemId())
                     .orElseThrow(
                             () -> new NoSuchElementException("Item not found with ID: " + importOrderItem.getItemId()));
-            boolean providerMatch = item.getProviders().stream()
-                    .anyMatch(provider -> Objects.equals(provider.getId(), request.getProviderId()));
+            boolean providerMatch = item.getItemProviders().stream()
+                    .anyMatch(ip -> ip.getProvider() != null &&
+                            Objects.equals(ip.getProvider().getId(), request.getProviderId()));
 
             if (!providerMatch) {
                 throw new IllegalArgumentException("Item with ID: " + importOrderItem.getItemId() +
@@ -236,7 +240,7 @@ public class ImportOrderDetailService {
                 List.of(account));
         importOrder.setStatus(RequestStatus.IN_PROGRESS);
         ImportOrder savedImportOrder = importOrderRepository.save(importOrder);
-        return Mapper.mapToImportOrderResponse(savedImportOrder);
+        return Mapper.mapToImportOrderResponse(savedImportOrder, itemProviderRepository);
     }
 
     private void validateAccountForAssignment(Account account) {
@@ -339,8 +343,10 @@ public class ImportOrderDetailService {
 
             for (ImportOrderDetailUpdateRequest request : requests) {
                 boolean exists = allItems.stream()
-                        .anyMatch(item -> item.getProviderCode() != null
-                                && item.getProviderCode().contains(request.getItemId()));
+                        .flatMap(item -> item.getItemProviders().stream())   // chuyển List<Item> → Stream<ItemProvider>
+                        .anyMatch(ip -> ip.getProviderCode() != null
+                                && ip.getProviderCode().contains(request.getItemId()));
+
 
                 if (!exists) {
                     throw new IllegalArgumentException(
@@ -353,7 +359,10 @@ public class ImportOrderDetailService {
 
         for (ImportOrderDetail detail : details) {
             requests.stream()
-                    .filter(request -> detail.getItem().getProviderCode().contains(request.getItemId()))
+                    .filter(req -> detail.getItem().getItemProviders().stream()
+                            .anyMatch(ip -> ip.getProviderCode() != null &&
+                                    ip.getProviderCode().contains(req.getItemId())))
+
                     .findFirst()
                     .ifPresent(request -> {
                         detail.setActualQuantity(request.getActualQuantity());
@@ -416,7 +425,7 @@ public class ImportOrderDetailService {
         }
         updateDetailStatusByMeasurementValue(detail);
 
-        return Mapper.mapToImportOrderDetailResponse(importOrderDetailRepository.save(detail));
+        return Mapper.mapToImportOrderDetailResponse(importOrderDetailRepository.save(detail),itemProviderRepository);
     }
 
     public void resetUpdate (Long importOrderDetailId) {

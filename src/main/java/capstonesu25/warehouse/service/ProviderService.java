@@ -74,10 +74,17 @@ public class ProviderService {
         response.setAddress(provider.getAddress());
 
         // Convert OneToMany relationship with items to a list of IDs
-        if (provider.getItems() != null) {
-            response.setItemIds(provider.getItems().stream()
-                    .map(Item::getId)
-                    .collect(Collectors.toList()));
+        if (provider.getItemProviders() != null && !provider.getItemProviders().isEmpty()) {
+            response.setItemIds(
+                    provider.getItemProviders().stream()
+                            .map(ip -> ip.getItem().getId())
+                            .collect(Collectors.toList())
+            );
+
+            response.setProviderCodes(
+                    provider.getItemProviders().stream().map(ip -> ip.getProviderCode())
+                            .collect(Collectors.toList())
+            );
         }
 
         if (provider.getImportRequest() != null) {

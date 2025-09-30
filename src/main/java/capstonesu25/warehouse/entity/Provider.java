@@ -1,4 +1,5 @@
 package capstonesu25.warehouse.entity;
+import java.util.ArrayList;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -24,13 +25,8 @@ public class Provider {
     @Column(name = "address")
     private String address;
 
-    @ManyToMany
-    @JoinTable(
-            name = "provider_item", // join table name
-            joinColumns = @JoinColumn(name = "provider_id"), // FK to Provider
-            inverseJoinColumns = @JoinColumn(name = "item_id") // FK to Item
-    )
-    private List<Item> items;
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemProvider> itemProviders = new ArrayList<>();
 
     @OneToMany(mappedBy = "provider", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     private List<ImportRequest> importRequest;

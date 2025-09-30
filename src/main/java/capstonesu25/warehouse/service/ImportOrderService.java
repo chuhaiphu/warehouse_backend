@@ -44,26 +44,32 @@ public class ImportOrderService {
     private final NotificationService notificationService;
     private final AccountService accountService;
     private final ImportOrderDetailService importOrderDetailService;
+    private final ItemProviderRepository itemProviderRepository;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportOrderService.class);
 
     public ImportOrderResponse getImportOrderById(String id) {
         LOGGER.info("Get import order by id: " + id);
         ImportOrder importOrder = importOrderRepository.findById(id).orElseThrow();
-        return Mapper.mapToImportOrderResponse(importOrder);
+        return Mapper.mapToImportOrderResponse(importOrder,itemProviderRepository);
     }
 
     public List<ImportOrderResponse> getAllImportOrdersList() {
         LOGGER.info("Get all import orders list");
         return importOrderRepository.findAll().stream()
-                .map(Mapper::mapToImportOrderResponse)
+                .map(im -> Mapper.mapToImportOrderResponse(im, itemProviderRepository))
                 .toList();
+
     }
 
     public List<ImportOrderResponse> getImportOrdersByImportRequestId(String id) {
         LOGGER.info("Get import orders by import request id: " + id);
         List<ImportOrder> importOrders = importOrderRepository.findImportOrdersByImportRequest_Id(id);
-        return importOrders.stream().map(Mapper::mapToImportOrderResponse).toList();
+        return importOrders.stream()
+                .map(im -> Mapper.mapToImportOrderResponse(im, itemProviderRepository))
+                .toList();
+
+
     }
 
     public ImportOrderResponse create(ImportOrderCreateRequest request) {
@@ -156,7 +162,7 @@ public class ImportOrderService {
                 "Đơn nhập mã #" + savedImportOrder.getId() + " đã được tạo",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
 
-        return Mapper.mapToImportOrderResponse(savedImportOrder);
+        return Mapper.mapToImportOrderResponse(savedImportOrder, itemProviderRepository);
     }
 
     public ImportOrderResponse update(ImportOrderUpdateRequest request) {
@@ -178,7 +184,7 @@ public class ImportOrderService {
             importOrder.setTimeReceived(request.getTimeReceived());
         }
 
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "UPDATE_STORED", objectIdSource = "importOrderId")
@@ -214,7 +220,7 @@ public class ImportOrderService {
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được lưu trữ",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder), itemProviderRepository);
     }
 
     private void validateAccountForAssignment(Account account) {
@@ -285,23 +291,24 @@ public class ImportOrderService {
         LOGGER.info("Get import orders by staff id: " + staffId);
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findImportOrdersByAssignedStaff_Id(staffId, pageable);
-        return importOrders.map(Mapper::mapToImportOrderResponse);
+        return importOrders.map(im -> Mapper.mapToImportOrderResponse(im, itemProviderRepository));
     }
 
     public Page<ImportOrderResponse> getImportOrdersByPage(int page, int limit) {
         LOGGER.info("Get all import orders");
         Pageable pageable = PageRequest.of(page - 1, limit);
         Page<ImportOrder> importOrders = importOrderRepository.findAll(pageable);
-        return importOrders.map(Mapper::mapToImportOrderResponse);
+        return importOrders.map(im -> Mapper.mapToImportOrderResponse(im, itemProviderRepository));
+
     }
 
     public List<ImportOrderResponse> getImportOrdersByStatus(RequestStatus status) {
         LOGGER.info("Get import orders by status: " + status);
         List<ImportOrder> importOrders = importOrderRepository.findAllByStatus(status);
         return importOrders.stream()
-                .map(Mapper::mapToImportOrderResponse)
-                .collect(Collectors.toList());
+                .map(im -> Mapper.mapToImportOrderResponse(im, itemProviderRepository)).toList();
     }
+
     @TransactionLoggable(type = "IMPORT_ORDER", action = "CANCEL", objectIdSource = "importOrderId")
     public ImportOrderResponse cancelImportOrder(String importOrderId) {
         LOGGER.info("Cancelling import order with ID: " + importOrderId);
@@ -348,7 +355,7 @@ public class ImportOrderService {
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã bị hủy",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "COMPLETE", objectIdSource = "importOrderId")
@@ -368,7 +375,7 @@ public class ImportOrderService {
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     @Transactional
@@ -390,7 +397,7 @@ public class ImportOrderService {
                 "Đơn nhập mã #" + importOrderId + " đã hoàn tất",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
 
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "EXTEND", objectIdSource = "importOrderId")
@@ -448,7 +455,7 @@ public class ImportOrderService {
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được gia hạn",
                 accountRepository.findByRole(AccountRole.DEPARTMENT));
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     public ImportOrderResponse updateImportOrderToReadyToStore (String importOrderId) {
@@ -478,7 +485,7 @@ public class ImportOrderService {
                 "Đơn nhập mã #" + importOrderId + " đã sẵn sàng để lưu trữ",
                 accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
 
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     @TransactionLoggable(type = "IMPORT_ORDER", action = "REQUEST_COUNT_AGAIN", objectIdSource = "importOrderId")
@@ -514,7 +521,7 @@ public class ImportOrderService {
                 importOrderId,
                 "Đơn nhập mã #" + importOrderId + " đã được yêu cầu đếm lại",
                 List.of(importOrder.getAssignedStaff()));
-        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder));
+        return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }
 
     private void updateImportRequest(ImportOrder importOrder) {

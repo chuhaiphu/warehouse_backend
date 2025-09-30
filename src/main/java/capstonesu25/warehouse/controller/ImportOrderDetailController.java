@@ -49,7 +49,6 @@ public class ImportOrderDetailController {
 
     @Operation(summary = "Get import order detail by ID")
     @GetMapping("/{importOrderDetailId}")
-
     public ResponseEntity<?> getImportOrderDetail(@PathVariable Long importOrderDetailId) {
         LOGGER.info("Getting import order detail");
         var result = service.getById(importOrderDetailId);

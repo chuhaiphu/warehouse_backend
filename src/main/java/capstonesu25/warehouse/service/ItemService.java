@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.service;
 
 import capstonesu25.warehouse.entity.*;
+import capstonesu25.warehouse.entity.pk.ItemProviderPK;
 import capstonesu25.warehouse.enums.ItemStatus;
 import capstonesu25.warehouse.model.item.ImExNumberItem;
 import capstonesu25.warehouse.model.item.ItemFigure;
@@ -91,7 +92,7 @@ public class ItemService {
     public Page<ItemResponse> getItemsByProviderId(Long providerId, int page, int limit) {
         LOGGER.info("Getting items by provider id: {}, page: {}, limit: {}", providerId, page, limit);
         Pageable pageable = PageRequest.of(page - 1, limit);
-        Page<Item> items = itemRepository.findByProviders_Id(providerId, pageable);
+        Page<Item> items = itemRepository.findByItemProviders_Provider_Id(providerId, pageable);
         return items.map(this::mapToResponse);
     }
 
@@ -199,7 +200,6 @@ public class ItemService {
         ItemResponse response = new ItemResponse();
         response.setId(item.getId());
         response.setName(item.getName());
-        response.setProviderCode(item.getProviderCode());
         response.setDescription(item.getDescription());
         response.setMeasurementUnit(item.getMeasurementUnit());
         response.setMeasurementValue(item.getMeasurementValue());
@@ -215,11 +215,22 @@ public class ItemService {
             response.setCategoryId(item.getCategory().getId());
         }
 
-        if (!item.getProviders().isEmpty()) {
-            response.setProviderIds(item.getProviders().stream()
-                    .map(Provider::getId)
-                    .collect(Collectors.toList()));
+        if(item.getItemProviders() != null) {
+            response.setProviderCode(
+                    item.getItemProviders().stream()
+                            .map(ItemProvider::getProviderCode)
+                            .collect(Collectors.toList())
+            );
         }
+
+        if (!item.getItemProviders().isEmpty()) {
+            response.setProviderIds(
+                    item.getItemProviders().stream()
+                            .map(ip -> ip.getProvider().getId())
+                            .collect(Collectors.toList())
+            );
+        }
+
 
         // Convert OneToMany relationships to lists of IDs
         if (item.getImportOrderDetails() != null) {
@@ -269,7 +280,6 @@ public class ItemService {
             throw new IllegalArgumentException("Item request must not be null");
         }
         existingItem.setName(request.getName());
-        existingItem.getProviderCode().add(request.getProviderCode());
         existingItem.setDescription(request.getDescription());
         existingItem.setMeasurementUnit(request.getMeasurementUnit());
         existingItem.setMeasurementValue(request.getMeasurementValue());
@@ -289,7 +299,19 @@ public class ItemService {
         if (request.getProviderId() != null) {
             Provider provider = providerRepository.findById(request.getProviderId())
                     .orElseThrow(() -> new RuntimeException("Provider not found with id: " + request.getProviderId()));
-            existingItem.setProviders(List.of(provider));
+            ItemProvider itemProvider = new ItemProvider();
+
+            ItemProviderPK pk = new ItemProviderPK();
+            pk.setItemId(existingItem.getId());
+            pk.setProviderId(provider.getId());
+
+            itemProvider.setId(pk);
+            itemProvider.setItem(existingItem);
+            itemProvider.setProvider(provider);
+            itemProvider.setProviderCode(request.getProviderCode()); // nếu cần set providerCode
+
+// thêm vào list
+            existingItem.getItemProviders().add(itemProvider);
         }
 
         return existingItem;
