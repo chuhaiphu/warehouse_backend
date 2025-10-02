@@ -247,10 +247,15 @@ public class ExportRequestService {
             throw new IllegalArgumentException("The import order is not valid for return");
         }
 
+        Provider provider = importOrder.getImportRequest().getProvider();
+
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setId(createExportRequestId());
         exportRequest.setExportReason(request.getExportReason());
-        exportRequest.setProviderId(importOrder.getImportRequest().getProvider().getId());
+        exportRequest.setProviderId(provider.getId());
+        exportRequest.setReceiverName(provider.getName());
+        exportRequest.setReceiverAddress(provider.getAddress());
+        exportRequest.setReceiverPhone(provider.getPhone());
         exportRequest.setType(request.getType());
         exportRequest.setImportOrder(importOrder);
 
