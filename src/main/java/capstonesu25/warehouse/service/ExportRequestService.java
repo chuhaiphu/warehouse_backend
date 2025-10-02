@@ -442,7 +442,6 @@ public class ExportRequestService {
         LOGGER.info("Confirming counted export request with ID: " + exportRequestId);
         ExportRequest exportRequest = exportRequestRepository.findById(exportRequestId).orElseThrow(
                 () -> new NoSuchElementException("Export request not found with ID: " + exportRequestId));
-        exportRequest.setExportDate(LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).plusDays(1));
         exportRequest.setStatus(RequestStatus.COUNT_CONFIRMED);
 
         if(exportRequest.getType().equals(ExportType.SELLING)) {

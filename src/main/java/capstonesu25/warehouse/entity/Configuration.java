@@ -40,6 +40,9 @@ public class Configuration {
     @Column(name = "time_to_allow_cancel")
     private LocalTime timeToAllowCancel;
 
+    @Column(name = "time_to_allow_counting")
+    private LocalTime timeToAllowCounting;
+
     @Column(name = "day_will_be_cancel_request")
     private Integer dayWillBeCancelRequest;
 
@@ -57,6 +60,9 @@ public class Configuration {
 
     @Column(name = "max_percent_of_item_for_export")
     private Integer maxPercentOfItemForExport;
+
+    @Column(name = "warehouse_is_checking")
+    private Boolean warehouseIsChecking;
 
 
 }

@@ -12,6 +12,7 @@ import capstonesu25.warehouse.entity.StockCheckRequest;
 import capstonesu25.warehouse.entity.StockCheckRequestDetail;
 import capstonesu25.warehouse.enums.AccountRole;
 import capstonesu25.warehouse.enums.AccountStatus;
+import capstonesu25.warehouse.enums.RequestStatus;
 import capstonesu25.warehouse.enums.StockCheckType;
 import capstonesu25.warehouse.enums.TokenType;
 import capstonesu25.warehouse.model.account.AccountResponse;
@@ -83,6 +84,19 @@ public class AccountServiceImpl implements AccountService, LogoutHandler {
 
         Account account = accountRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+        Configuration configuration = configurationRepository.findAll().getFirst();
+
+        if (configuration.getWarehouseIsChecking()) {
+            List<StockCheckRequest> stockCheckRequests = account.getStockCheckRequests().stream()
+                    .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.IN_PROGRESS))
+                    .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.COUNTED))
+                    .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.COUNT_CONFIRMED))
+                    .toList();
+
+            if (stockCheckRequests == null) {
+                throw new IllegalArgumentException("System is checking");
+            }
+        }
 
         String accessToken = jwtService.generateAccessToken(account);
         String refreshToken = jwtService.generateRefreshToken(account);
