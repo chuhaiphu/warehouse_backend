@@ -31,17 +31,14 @@ public class NotificationService {
 
     public List<NotificationResponse> getAllNotificationsByAccountId(Long accountId) {
         LOGGER.info("Getting all notifications for accountId={}", accountId);
-        return notificationRepository.findAll().stream()
-                .filter(n -> n.getReceiver() != null && n.getReceiver().getId().equals(accountId))
+        return notificationRepository.findAllByReceiverIdOrderByCreatedDateDesc(accountId).stream()
                 .map(this::mapToResponse)
                 .toList();
     }
 
     public List<NotificationResponse> viewAllNotificationsByAccountId(Long accountId) {
         LOGGER.info("Marking all notifications as viewed for accountId={}", accountId);
-        List<Notification> notifications = notificationRepository.findAll().stream()
-                .filter(n -> n.getReceiver() != null && n.getReceiver().getId().equals(accountId))
-                .toList();
+        List<Notification> notifications = notificationRepository.findAllByReceiverIdOrderByCreatedDateDesc(accountId);
         notifications.forEach(n -> n.setIsViewed(true));
         notificationRepository.saveAll(notifications);
         return notifications.stream().map(this::mapToResponse).toList();
