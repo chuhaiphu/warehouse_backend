@@ -5,6 +5,7 @@ import capstonesu25.warehouse.entity.ImportRequestDetail;
 import capstonesu25.warehouse.entity.ImportOrder;
 import capstonesu25.warehouse.entity.ImportOrderDetail;
 import capstonesu25.warehouse.entity.ItemProvider;
+import capstonesu25.warehouse.enums.ImportType;
 import capstonesu25.warehouse.model.importrequest.ImportRequestResponse;
 import capstonesu25.warehouse.model.importrequest.importrequestdetail.ImportRequestDetailResponse;
 import capstonesu25.warehouse.model.importorder.ImportOrderResponse;
@@ -21,21 +22,25 @@ import java.util.List;
 public class Mapper {
 
     public static ImportRequestDetailResponse mapToImportRequestDetailResponse(ImportRequestDetail importRequestDetail, ItemProviderRepository itemProviderRepository) {
-        Long providerId = importRequestDetail.getImportRequest()
-                .getProvider()
-                .getId();
+        ItemProvider itemProvider = new ItemProvider();
+        if(importRequestDetail.getImportRequest().getType().equals(ImportType.ORDER)) {
+            Long providerId = importRequestDetail.getImportRequest()
+                    .getProvider()
+                    .getId();
 
-        String itemId = importRequestDetail.getItem().getId();
+            String itemId = importRequestDetail.getItem().getId();
 
-        ItemProvider itemProvider = itemProviderRepository
-                .findByProvider_IdAndItem_Id(providerId, itemId)
-                .orElseThrow(() -> new NoSuchElementException(
-                        "No ItemProvider found for providerId=" + providerId + " and itemId=" + itemId
-                ));
+            itemProvider = itemProviderRepository
+                    .findByProvider_IdAndItem_Id(providerId, itemId)
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "No ItemProvider found for providerId=" + providerId + " and itemId=" + itemId
+                    ));
+        }
+
         return new ImportRequestDetailResponse(
                 importRequestDetail.getId(),
                 importRequestDetail.getImportRequest() != null ? importRequestDetail.getImportRequest().getId() : null,
-                itemProvider.getProviderCode(),
+                itemProvider != null? itemProvider.getProviderCode() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getId() : null,
                 importRequestDetail.getItem() != null ? importRequestDetail.getItem().getName() : null,
                 importRequestDetail.getInventoryItemId(),
@@ -81,24 +86,28 @@ public class Mapper {
     public static ImportOrderDetailResponse mapToImportOrderDetailResponse(
             ImportOrderDetail importOrderDetail,
             ItemProviderRepository itemProviderRepository) {
+        ItemProvider itemProvider = new ItemProvider();
 
-        Long providerId = importOrderDetail.getImportOrder()
-                .getImportRequest()
-                .getProvider()
-                .getId();
+        if(importOrderDetail.getImportOrder().getImportRequest().getType().equals(ImportType.ORDER)) {
+            Long providerId = importOrderDetail.getImportOrder()
+                    .getImportRequest()
+                    .getProvider()
+                    .getId();
 
-        String itemId = importOrderDetail.getItem().getId();
+            String itemId = importOrderDetail.getItem().getId();
 
-        ItemProvider itemProvider = itemProviderRepository
-                .findByProvider_IdAndItem_Id(providerId, itemId)
-                .orElseThrow(() -> new NoSuchElementException(
-                        "No ItemProvider found for providerId=" + providerId + " and itemId=" + itemId
-                ));
+           itemProvider = itemProviderRepository
+                    .findByProvider_IdAndItem_Id(providerId, itemId)
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "No ItemProvider found for providerId=" + providerId + " and itemId=" + itemId
+                    ));
+        }
+
 
         return new ImportOrderDetailResponse(
                 importOrderDetail.getId(),
                 importOrderDetail.getImportOrder().getId(),
-                itemProvider.getProviderCode(),
+                itemProvider != null ? itemProvider.getProviderCode() : null,
                 importOrderDetail.getItem().getId(),
                 importOrderDetail.getItem().getName(),
                 importOrderDetail.getInventoryItemId(),

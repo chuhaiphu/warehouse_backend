@@ -122,7 +122,6 @@ public class ImportRequestService {
         importRequest.setType(request.getImportType());
         importRequest.setStatus(RequestStatus.NOT_STARTED);
         importRequest.setDepartmentId(department.getId());
-
         LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
         LocalDate endDate = startDate.plusDays(config.getMaxAllowedDaysForImportRequestProcess());
 
@@ -152,7 +151,6 @@ public class ImportRequestService {
         importRequest.setStartDate(startDate);
         importRequest.setEndDate(endDate);
         importRequest = importRequestRepository.save(importRequest);
-
         List<ImportRequestDetail> detailList = new ArrayList<>();
         for (ImportRequestCreateRequest.ReturnImportRequestDetail detail : request.getReturnImportRequestDetails()) {
             ImportRequestDetail importRequestDetail = new ImportRequestDetail();
@@ -171,7 +169,6 @@ public class ImportRequestService {
             detailList.add(importRequestDetail);
         }
         importRequest.setDetails(detailList);
-
         return Mapper.mapToImportRequestResponse(importRequest,itemProviderRepository);
     }
 

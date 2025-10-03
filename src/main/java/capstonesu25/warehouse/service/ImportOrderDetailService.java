@@ -134,7 +134,7 @@ public class ImportOrderDetailService {
 
         List<AccountResponse> accountResponse = accountService.getAllActiveStaffsInDate(activeAccountRequest);
         if (!accountResponse.isEmpty()) {
-            assignStaff(importOrder.getId(), accountResponse.get(0).getId());
+            assignStaff(importOrder.getId(), accountResponse.getFirst().getId());
         }
 
     }
