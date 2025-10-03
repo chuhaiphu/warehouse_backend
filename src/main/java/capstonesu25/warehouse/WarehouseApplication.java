@@ -88,7 +88,8 @@ public class WarehouseApplication {
 					30,
 					5,
 					90,
-					false);
+					false,
+					4);
 			configurationRepo.save(configuration);
 
 			// Categories

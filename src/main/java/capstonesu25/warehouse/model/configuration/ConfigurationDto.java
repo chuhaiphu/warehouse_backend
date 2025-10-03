@@ -27,5 +27,6 @@ public class ConfigurationDto {
     private Integer maxDispatchErrorPercent;
     private Integer maxPercentOfItemForExport;
     private Boolean warehouseIsChecking;
+    private Integer periodicCreatingStockCheck;
 
 }

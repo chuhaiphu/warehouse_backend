@@ -69,7 +69,8 @@ public class ConfigurationService {
                 configuration.getMaxAllowedDaysForImportRequestProcess(),
                 configuration.getMaxDispatchErrorPercent(),
                 configuration.getMaxPercentOfItemForExport(),
-                configuration.getWarehouseIsChecking()
+                configuration.getWarehouseIsChecking(),
+                configuration.getPeriodicCreatingStockCheck()
         );
     }
 

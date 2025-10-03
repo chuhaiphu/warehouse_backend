@@ -1,6 +1,7 @@
 package capstonesu25.warehouse.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.CriteriaBuilder.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -64,5 +65,7 @@ public class Configuration {
     @Column(name = "warehouse_is_checking")
     private Boolean warehouseIsChecking;
 
+    @Column(name = "periodic_creating_stock_check")
+    private Integer periodicCreatingStockCheck;
 
 }
