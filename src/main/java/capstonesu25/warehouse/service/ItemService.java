@@ -106,8 +106,8 @@ public class ItemService {
              || item.getTotalMeasurementValue() < item.getMeasurementValue()* item.getMinimumStockQuantity()) {
                  itemFigure.setTotalOutOfStock(itemFigure.getTotalOutOfStock() + 1);
              }
-             if(item.getTotalMeasurementValue() >= item.getMeasurementValue()* item.getMinimumStockQuantity()
-                     && item.getTotalMeasurementValue() <= item.getMeasurementValue()* item.getMaximumStockQuantity()) {
+             if(item.getTotalMeasurementValue() > item.getMeasurementValue()* item.getMinimumStockQuantity()
+                     && item.getTotalMeasurementValue() < item.getMeasurementValue()* item.getMaximumStockQuantity()) {
                  itemFigure.setTotalInStock(itemFigure.getTotalInStock() + 1);
              }
         }
