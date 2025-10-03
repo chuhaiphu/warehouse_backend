@@ -44,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -86,15 +87,18 @@ public class AccountServiceImpl implements AccountService, LogoutHandler {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
         Configuration configuration = configurationRepository.findAll().getFirst();
 
-        if (configuration.getWarehouseIsChecking() && account.getRole().equals(AccountRole.STAFF)) {
-            List<StockCheckRequest> stockCheckRequests = account.getStockCheckRequests().stream()
-                    .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.IN_PROGRESS))
-                    .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.COUNTED))
-                    .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.COUNT_CONFIRMED))
+        if (configuration.getWarehouseIsChecking() && account.getRole() == AccountRole.STAFF) {
+            LOGGER.info("warehouse is checking and account is: {}",account.getEmail());
+            // avoid NPE if getStockCheckRequests() is null
+            List<StockCheckRequest> requests = Optional.ofNullable(account.getStockCheckRequests()).orElse(List.of());
+            List<StockCheckRequest> checked = requests.stream()
+                    .filter(r -> r.getStatus() == RequestStatus.IN_PROGRESS
+                            || r.getStatus() == RequestStatus.COUNTED
+                            || r.getStatus() == RequestStatus.COUNT_CONFIRMED)
                     .toList();
 
-            if (stockCheckRequests == null) {
-                throw new IllegalArgumentException("System is checking");
+            if (checked.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "System is checking");
             }
         }
 
