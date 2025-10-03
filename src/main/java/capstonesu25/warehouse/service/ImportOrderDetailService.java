@@ -418,7 +418,11 @@ public class ImportOrderDetailService {
         LOGGER.info("Updating actual value for inventory item: {}", request.getActualMeasurement());
 
         detail.setActualQuantity(detail.getActualQuantity() + 1);
-        if(detail.getActualMeasurementValue() == null || detail.getActualMeasurementValue() == 0) {
+        if(detail.getActualMeasurementValue() == null) {
+            detail.setActualMeasurementValue(0.0);
+        }
+
+        if(detail.getImportOrder().getImportRequest().getType().equals(ImportType.RETURN)) {
             detail.setActualMeasurementValue(request.getActualMeasurement());
         } else {
             detail.setActualMeasurementValue(detail.getActualMeasurementValue() + request.getActualMeasurement());
