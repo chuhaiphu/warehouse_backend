@@ -19,11 +19,13 @@ public class ConfigurationDto {
     private LocalTime timeToAllowAssign;
     private LocalTime timeToAllowConfirm;
     private LocalTime timeToAllowCancel;
+    private LocalTime timeToAllowCounting;
     private Integer dayWillBeCancelRequest;
     private Integer daysToAllowExtend;
     private Integer maxAllowedDaysForExtend;
     private Integer maxAllowedDaysForImportRequestProcess;
     private Integer maxDispatchErrorPercent;
     private Integer maxPercentOfItemForExport;
+    private Boolean warehouseIsChecking;
 
 }
