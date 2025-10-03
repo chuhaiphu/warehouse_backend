@@ -479,11 +479,18 @@ public class ImportOrderService {
 
         importOrder.setStatus(RequestStatus.READY_TO_STORE);
         notificationService.handleNotification(
-                NotificationUtil.WAREHOUSE_MANAGER_CHANNEL,
+                NotificationUtil.DEPARTMENT_CHANNEL,
                 NotificationUtil.IMPORT_ORDER_READY_TO_STORE_EVENT + "-" + importOrderId,
                 importOrderId,
-                "Đơn nhập mã #" + importOrderId + " đã sẵn sàng để lưu trữ",
-                accountRepository.findByRole(AccountRole.WAREHOUSE_MANAGER));
+                "Đơn nhập mã #" + importOrderId + " đã sẵn sàng lưu kho",
+                accountRepository.findByRole(AccountRole.DEPARTMENT));
+
+        notificationService.handleNotification(
+                NotificationUtil.STAFF_CHANNEL + importOrder.getAssignedStaff().getId(),
+                NotificationUtil.IMPORT_ORDER_READY_TO_STORE_EVENT + "-" + importOrderId,
+                importOrder.getId(),
+                "Đơn nhập mã #" + importOrder.getId() + " đã sẵn sàng lưu kho",
+                List.of(importOrder.getAssignedStaff()));
 
         return Mapper.mapToImportOrderResponse(importOrderRepository.save(importOrder),itemProviderRepository);
     }

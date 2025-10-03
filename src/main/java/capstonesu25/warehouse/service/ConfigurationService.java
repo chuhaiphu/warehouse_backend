@@ -36,12 +36,14 @@ public class ConfigurationService {
         configuration.setTimeToAllowAssign(configurationDto.getTimeToAllowAssign());
         configuration.setTimeToAllowConfirm(configurationDto.getTimeToAllowConfirm());
         configuration.setTimeToAllowCancel(configurationDto.getTimeToAllowCancel());
+        configuration.setTimeToAllowCounting(configurationDto.getTimeToAllowCounting());
         configuration.setDayWillBeCancelRequest(configurationDto.getDayWillBeCancelRequest());
         configuration.setDaysToAllowExtend(configurationDto.getDaysToAllowExtend());
         configuration.setMaxAllowedDaysForExtend(configurationDto.getMaxAllowedDaysForExtend());
         configuration.setMaxAllowedDaysForImportRequestProcess(configurationDto.getMaxAllowedDaysForImportRequestProcess());
         configuration.setMaxDispatchErrorPercent(configurationDto.getMaxDispatchErrorPercent());
         configuration.setMaxPercentOfItemForExport(configurationDto.getMaxPercentOfItemForExport());
+        configuration.setWarehouseIsChecking(configurationDto.getWarehouseIsChecking());
 
         Configuration updatedConfiguration = configurationRepository.save(configuration);
         return mapToDto(updatedConfiguration);
@@ -60,12 +62,14 @@ public class ConfigurationService {
                 configuration.getTimeToAllowAssign(),
                 configuration.getTimeToAllowConfirm(),
                 configuration.getTimeToAllowCancel(),
+                configuration.getTimeToAllowCounting(),
                 configuration.getDayWillBeCancelRequest(),
                 configuration.getDaysToAllowExtend(),
                 configuration.getMaxAllowedDaysForExtend(),
                 configuration.getMaxAllowedDaysForImportRequestProcess(),
                 configuration.getMaxDispatchErrorPercent(),
-                configuration.getMaxPercentOfItemForExport()
+                configuration.getMaxPercentOfItemForExport(),
+                configuration.getWarehouseIsChecking()
         );
     }
 
