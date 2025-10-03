@@ -86,7 +86,7 @@ public class AccountServiceImpl implements AccountService, LogoutHandler {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
         Configuration configuration = configurationRepository.findAll().getFirst();
 
-        if (configuration.getWarehouseIsChecking()) {
+        if (configuration.getWarehouseIsChecking() && account.getRole().equals(AccountRole.STAFF)) {
             List<StockCheckRequest> stockCheckRequests = account.getStockCheckRequests().stream()
                     .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.IN_PROGRESS))
                     .filter(stockCheckRequest -> stockCheckRequest.getStatus().equals(RequestStatus.COUNTED))
